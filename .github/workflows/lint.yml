@@ -1,13 +1,12 @@
 on: pull_request
 jobs:
   lint:
-    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - run: cd packages/web && npm install
+      - run: cd packages/web && npm run type-check
+      - run: cd packages/server && npm install
+      - run: cd packages/server && npm run type-check
       - run: npm install
-      - run: npm install
-        working-directory: packages/editor
-      - run: npm install
-        working-directory: packages/server
       - run: npm run lint
