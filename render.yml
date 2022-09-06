@@ -1,0 +1,31 @@
+services:
+  - name: web
+    type: web
+    env: static
+    buildCommand: cd packages/web && npm ci && VITE_SERVER_ORIGIN=https://$SERVER_HOST npm run build
+    staticPublishPath: packages/web/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: sameorigin
+    envVars:
+      - key: SERVER_HOST
+        fromService:
+          name: server
+          type: web
+          property: host
+  - name: server
+    type: web
+    env: node
+    buildCommand: cd packages/server && npm ci && npm run build
+    startCommand: cd packages/server && WEB_ORIGIN=https://$WEB_HOST npm start
+    region: singapore
+    plan: free
+    envVars:
+      - key: WEB_HOST
+        fromService:
+          name: web
+          type: web
+          property: host
+      - key: PORT
+        value: 8081
