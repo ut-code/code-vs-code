@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev -r dotenv/config src/main.ts",
+    "dev": "ts-node-dev -r dotenv/config --inspect=8082 src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js"
   },
