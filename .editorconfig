@@ -4,6 +4,6 @@ root = true
 end_of_line = lf
 charset = utf-8
 
-[{*.json,*.js,*.jsx,*.ts,*.tsx}]
+[*.{json,js,jsx,ts,tsx}]
 indent_style = space
 indent_size = 2
