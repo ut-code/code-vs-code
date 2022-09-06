@@ -1,3 +1,4 @@
+/* eslint-disable */
 // イメージです
 
 interface Location {
@@ -25,12 +26,12 @@ interface Player extends Fighter {
 interface Tool extends GameObject {
   type: "回復" | "スピードアップ" | "火力アップ";
   effectSize: number;
-};
+}
 
 interface Weapon {
   range: number;
   damage: number;
-};
+}
 
 declare const player: Player;
 declare const enemies: Fighter[];
