@@ -17,8 +17,10 @@ function Injection() {
         },
       ],
     };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const workspace = Blockly.inject("blocklyDiv", { toolbox });
+    return () => {
+      workspace.dispose();
+    };
   }, []);
 
   return (
