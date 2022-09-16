@@ -24,7 +24,7 @@ class GameScene extends Phaser.Scene {
     this.physics.add.collider(player, enemy);
   }
 
-  update(time: number, delta: number): void {
+  update(): void {
     this.physics.accelerateToObject(player, enemy, 30);
     this.physics.accelerateTo(enemy, 200, 200, 30);
     player.angle =
