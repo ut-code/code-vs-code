@@ -1,18 +1,34 @@
 import { useRef, useEffect } from "react";
 import Phaser from "phaser";
 
+let player: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
+let enemy: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
 class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: "GameScene" });
   }
 
   preload() {
-    this.load.setBaseURL("http://labs.phaser.io");
-    this.load.image("sky", "assets/skies/space3.png");
+    this.load.image("aircraft1", "/images/aircraft1.png");
+    this.load.image("bullet", "/images/bullet.gif");
   }
 
   create() {
-    this.add.image(400, 300, "sky");
+    player = this.physics.add.image(300, 400, "aircraft1");
+    enemy = this.physics.add.image(500, 500, "aircraft1");
+    player.setDisplaySize(40, 40);
+    enemy.setDisplaySize(40, 40);
+    player.angle += ((Math.atan2(enemy.y - player.y, enemy.x - player.x) * 180) / Math.PI)
+    player.setCollideWorldBounds(true);
+    enemy.setCollideWorldBounds(true);
+    this.physics.add.collider(player, enemy);
+  }
+
+  update(time: number, delta: number): void {
+    this.physics.accelerateToObject(player, enemy, 30);
+    this.physics.accelerateTo(enemy, 200, 200, 30);
+    player.angle =
+      (Math.atan2(enemy.y - player.y, enemy.x - player.x) * 180) / Math.PI;
   }
 }
 
@@ -24,6 +40,11 @@ function App() {
     width: 800,
     height: 600,
     parent: ref.current || "game" || undefined,
+    physics: {
+      default: "arcade",
+      arcade: { debug: false },
+    },
+    backgroundColor: "#CCFFFF",
     scene: [GameScene],
   };
   useEffect(() => {
