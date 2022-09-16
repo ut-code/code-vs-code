@@ -18,13 +18,14 @@ class GameScene extends Phaser.Scene {
     enemy = this.physics.add.image(500, 500, "aircraft1");
     player.setDisplaySize(40, 40);
     enemy.setDisplaySize(40, 40);
-    player.angle += ((Math.atan2(enemy.y - player.y, enemy.x - player.x) * 180) / Math.PI)
+    player.angle +=
+      (Math.atan2(enemy.y - player.y, enemy.x - player.x) * 180) / Math.PI;
     player.setCollideWorldBounds(true);
     enemy.setCollideWorldBounds(true);
     this.physics.add.collider(player, enemy);
   }
 
-  update(): void {
+  update() {
     this.physics.accelerateToObject(player, enemy, 30);
     this.physics.accelerateTo(enemy, 200, 200, 30);
     player.angle =
