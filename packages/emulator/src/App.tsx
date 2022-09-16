@@ -50,7 +50,6 @@ function App() {
   };
   useEffect(() => {
     const game = new Phaser.Game(config);
-    console.log(game.isRunning);
     return () => {
       game.destroy(true);
     };
