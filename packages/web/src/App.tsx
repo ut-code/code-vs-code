@@ -4,20 +4,24 @@ import "./style.css";
 
 function Injection() {
   useEffect(() => {
-    const toolbox = {
-      kind: "flyoutToolbox",
-      contents: [
-        {
-          kind: "block",
-          type: "controls_if",
-        },
-        {
-          kind: "block",
-          type: "controls_whileUntil",
-        },
-      ],
+    // https://github.com/google/blockly/issues/6075
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const options: any = {
+      toolbox: {
+        kind: "flyoutToolbox",
+        contents: [
+          {
+            kind: "block",
+            type: "controls_if",
+          },
+          {
+            kind: "block",
+            type: "controls_whileUntil",
+          },
+        ],
+      },
     };
-    const workspace = Blockly.inject("blocklyDiv", { toolbox });
+    const workspace = Blockly.inject("blocklyDiv", options);
     return () => {
       workspace.dispose();
     };
