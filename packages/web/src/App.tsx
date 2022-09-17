@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Blockly from "blockly";
 import "./style.css";
 
 function Injection() {
+  const workspaceRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const toolbox = {
       kind: "flyoutToolbox",
@@ -17,20 +18,15 @@ function Injection() {
         },
       ],
     };
-    const workspace = Blockly.inject("blocklyDiv", { toolbox });
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const workspace = Blockly.inject(workspaceRef.current, { toolbox });
     return () => {
       workspace.dispose();
     };
   }, []);
 
-  return (
-    <>
-      <script src="node_modules/blockly/blockly_compressed.js" />
-      <script src="node_modules/blocklyblocks_compressed.js" />
-      <script src="node_modules/blocklymsg/js/ja.js" />
-      <div id="blocklyDiv" />
-    </>
-  );
+  return <div ref={workspaceRef} />;
 }
 
 export default function App() {
