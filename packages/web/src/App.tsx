@@ -24,7 +24,7 @@ function Injection() {
     };
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const workspace = Blockly.inject(workspaceRef.current, { toolbox });
+    const workspace = Blockly.inject(workspaceRef.current, options);
     return () => {
       workspace.dispose();
     };
