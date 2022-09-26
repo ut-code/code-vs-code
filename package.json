@@ -4,7 +4,7 @@
     "lint:fix": "eslint --fix .",
     "setup": "npm run setup:env && npm run setup:install",
     "setup:env": "cp packages/web/.env.sample packages/web/.env && cp packages/server/.env.sample packages/server/.env",
-    "setup:install": "npm run web:install && npm run server:install",
+    "setup:install": "npm ci && npm run web:install && npm run server:install",
     "web:install": "cd packages/web && npm ci",
     "web:dev": "cd packages/web && npm run dev",
     "web:type-check:watch": "cd packages/web && npm run type-check:watch",
