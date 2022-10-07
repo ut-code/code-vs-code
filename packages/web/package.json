@@ -12,11 +12,15 @@
   },
   "dependencies": {
     "blockly": "^8.0.5",
+    "mathjs": "^11.2.1",
+    "path": "^0.12.7",
+    "pixi.js": "^6.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^1.0.1",
+    "@types/node": "^18.7.18",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^2.1.0",
