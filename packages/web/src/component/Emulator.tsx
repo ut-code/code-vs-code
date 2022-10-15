@@ -10,5 +10,5 @@ export default function Emulator() {
       game.destroy();
     };
   }, []);
-  return <canvas ref={ref} />;
+  return <canvas ref={ref} style={{ border: "solid" }} />;
 }

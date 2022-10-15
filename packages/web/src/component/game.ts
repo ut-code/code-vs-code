@@ -2,11 +2,21 @@
 import * as PIXI from "pixi.js";
 import * as math from "mathjs";
 
+interface Vector2 {
+  x: number;
+  y: number;
+}
 class Entity {
-  sprite: PIXI.Sprite;
+  location: Vector2;
 
-  constructor(sprite: PIXI.Sprite) {
-    this.sprite = sprite;
+  width: number;
+
+  height: number;
+
+  constructor(location: Vector2, width: number, height: number) {
+    this.location = location;
+    this.width = width;
+    this.height = height;
   }
 }
 
@@ -31,11 +41,13 @@ class Portion extends Entity {
   effect: number;
 
   constructor(
-    sprite: PIXI.Sprite,
+    location: Vector2,
+    width: number,
+    height: number,
     type: "speedUp" | "attackUp",
     effect: number
   ) {
-    super(sprite);
+    super(location, width, height);
     this.type = type;
     this.effect = effect;
   }
@@ -46,36 +58,36 @@ class Fighter extends Entity {
 
   speed = 2; // 1 フレームの移動
 
-  speedUpCount = 0;
-
   stamina = 100;
 
   weapon: Weapon | null = null;
 
   reloadFrameLeft = 10;
 
-  direction: PIXI.IPointData = { x: 0, y: 1 };
+  direction: Vector2 = { x: 0, y: 1 };
+
+  rotation = 0;
 
   rotate(radian: number) {
-    this.sprite.rotation = this.direction.x <= 0 ? radian : radian + math.pi;
+    this.rotation = this.direction.x <= 0 ? radian : radian + math.pi;
   }
 
   moveX(deltaX: number) {
-    this.sprite.x += deltaX;
+    this.location.x += deltaX;
   }
 
   moveY(deltaY: number) {
-    this.sprite.y += deltaY;
+    this.location.y += deltaY;
   }
 
   moveTo(
-    destination: PIXI.IPointData | Entity | "closestEnemy" | "closestPortion",
+    destination: Vector2 | Entity | "closestEnemy" | "closestPortion",
     entities: Entities
   ) {
-    const calculateDistance = (sprite: PIXI.Sprite) => {
+    const calculateDistance = (entity: Vector2) => {
       return Number(
         math.sqrt(
-          (sprite.x - this.sprite.x) ** 2 + (sprite.y - this.sprite.y) ** 2
+          (entity.x - this.location.x) ** 2 + (entity.y - this.location.y) ** 2
         )
       );
     };
@@ -88,46 +100,46 @@ class Fighter extends Entity {
     const move = () => {
       if (typeof destination !== "string") {
         if ("x" in destination) {
-          const deltaX = destination.x - this.sprite.x;
-          const deltaY = destination.y - this.sprite.y;
+          const deltaX = destination.x - this.location.x;
+          const deltaY = destination.y - this.location.y;
           this.direction = calculateUnit(deltaX, deltaY);
           this.moveX(this.direction.x * this.speed);
           this.moveY(this.direction.y * this.speed);
         } else {
-          const deltaX = destination.sprite.x - this.sprite.x;
-          const deltaY = destination.sprite.y - this.sprite.y;
+          const deltaX = destination.location.x - this.location.x;
+          const deltaY = destination.location.y - this.location.y;
           this.direction = calculateUnit(deltaX, deltaY);
           this.moveX(this.direction.x * this.speed);
           this.moveY(this.direction.y * this.speed);
         }
       } else if (destination === "closestEnemy") {
-        const enemies = entities.players.filter(
-          (player) => player.sprite !== this.sprite
-        );
+        const enemies = entities.players.filter((player) => player !== this);
         const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
-          const previousDistance = calculateDistance(previousEnemy.sprite);
-          const currentDistance = calculateDistance(currentEnemy.sprite);
+          const previousDistance = calculateDistance(previousEnemy.location);
+          const currentDistance = calculateDistance(currentEnemy.location);
           return previousDistance < currentDistance
             ? previousEnemy
             : currentEnemy;
         });
-        const deltaX = closestEnemy.sprite.x - this.sprite.x;
-        const deltaY = closestEnemy.sprite.y - this.sprite.y;
+        const deltaX = closestEnemy.location.x - this.location.x;
+        const deltaY = closestEnemy.location.y - this.location.y;
         this.direction = calculateUnit(deltaX, deltaY);
         this.moveX(this.direction.x * this.speed);
         this.moveY(this.direction.y * this.speed);
       } else if (entities.portions.length !== 0) {
         const closestPortion = entities.portions.reduce(
           (previousPortion, currentPortion) => {
-            const previousDistance = calculateDistance(previousPortion.sprite);
-            const currentDistance = calculateDistance(currentPortion.sprite);
+            const previousDistance = calculateDistance(
+              previousPortion.location
+            );
+            const currentDistance = calculateDistance(currentPortion.location);
             return previousDistance < currentDistance
               ? previousPortion
               : currentPortion;
           }
         );
-        const deltaX = closestPortion.sprite.x - this.sprite.x;
-        const deltaY = closestPortion.sprite.y - this.sprite.y;
+        const deltaX = closestPortion.location.x - this.location.x;
+        const deltaY = closestPortion.location.y - this.location.y;
         this.direction = calculateUnit(deltaX, deltaY);
         this.moveX(this.direction.x * this.speed);
         this.moveY(this.direction.y * this.speed);
@@ -136,19 +148,85 @@ class Fighter extends Entity {
     move();
   }
 
-  changeSpeed(x: number) {
+  runTo(
+    destination: PIXI.IPointData | Entity | "closestEnemy" | "closestPortion",
+    entities: Entities
+  ) {
+    const calculateDistance = (location: Vector2) => {
+      return Number(
+        math.sqrt(
+          (location.x - this.location.x) ** 2 +
+            (location.y - this.location.y) ** 2
+        )
+      );
+    };
+    const calculateUnit = (X: number, Y: number) => {
+      return {
+        x: X / Number(math.sqrt(X ** 2 + Y ** 2)),
+        y: Y / Number(math.sqrt(X ** 2 + Y ** 2)),
+      };
+    };
+    const run = () => {
+      if (typeof destination !== "string") {
+        if ("x" in destination) {
+          const deltaX = destination.x - this.location.x;
+          const deltaY = destination.y - this.location.y;
+          this.direction = calculateUnit(deltaX, deltaY);
+          this.moveX(this.direction.x * this.speed * 1.5);
+          this.moveY(this.direction.y * this.speed * 1.5);
+        } else {
+          const deltaX = destination.location.x - this.location.x;
+          const deltaY = destination.location.y - this.location.y;
+          this.direction = calculateUnit(deltaX, deltaY);
+          this.moveX(this.direction.x * this.speed * 1.5);
+          this.moveY(this.direction.y * this.speed * 1.5);
+        }
+      } else if (destination === "closestEnemy") {
+        const enemies = entities.players.filter((player) => player !== this);
+        const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
+          const previousDistance = calculateDistance(previousEnemy.location);
+          const currentDistance = calculateDistance(currentEnemy.location);
+          return previousDistance < currentDistance
+            ? previousEnemy
+            : currentEnemy;
+        });
+        const deltaX = closestEnemy.location.x - this.location.x;
+        const deltaY = closestEnemy.location.y - this.location.y;
+        this.direction = calculateUnit(deltaX, deltaY);
+        this.moveX(this.direction.x * this.speed * 1.5);
+        this.moveY(this.direction.y * this.speed * 1.5);
+      } else if (entities.portions.length !== 0) {
+        const closestPortion = entities.portions.reduce(
+          (previousPortion, currentPortion) => {
+            const previousDistance = calculateDistance(
+              previousPortion.location
+            );
+            const currentDistance = calculateDistance(currentPortion.location);
+            return previousDistance < currentDistance
+              ? previousPortion
+              : currentPortion;
+          }
+        );
+        const deltaX = closestPortion.location.x - this.location.x;
+        const deltaY = closestPortion.location.y - this.location.y;
+        this.direction = calculateUnit(deltaX, deltaY);
+        this.moveX(this.direction.x * this.speed * 1.5);
+        this.moveY(this.direction.y * this.speed * 1.5);
+      }
+    };
+    this.stamina -= 0.5;
+    run();
+  }
+
+  addSpeed(x: number) {
     this.speed += x;
     if (this.speed > 8) {
       this.speed = 8;
     }
   }
-
-  setSpeedUpCount(x: number) {
-    this.speedUpCount = x;
-  }
 }
 
-export default class Game {
+class Map {
   app: PIXI.Application;
 
   players: Fighter[] = [];
@@ -157,76 +235,62 @@ export default class Game {
 
   weapons: Weapon[] = [];
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.app = new PIXI.Application({ view: canvas });
-    this.displayPlayers();
-    this.displayItems();
-    this.rotatePlayers();
-    this.detectCollision();
-    this.runWorkers();
+  constructor(app: PIXI.Application) {
+    this.app = app;
   }
 
-  displayPlayers() {
-    const playerTexture = PIXI.Texture.from("image/aircraft1.png");
+  mapPlayers() {
     for (let i = 0; i < 4; i += 1) {
-      const player = PIXI.Sprite.from(playerTexture);
-      player.scale.set(0.2);
-      player.anchor.set(0.5, 0.5);
-      player.position.x = 100 * i + 100;
-      this.app.stage.addChild(player);
-      this.players.push(new Fighter(player));
+      const location = { x: 100 * i + 100, y: 100 * i + 100 };
+      const player = new Fighter(location, 20, 20);
+      this.players.push(player);
     }
   }
 
-  displayItems() {
-    const itemTexture = PIXI.Texture.from("image/kinoko.png");
+  mapPortions() {
     let startTime = Date.now();
     this.app.ticker.add(() => {
       if (Date.now() - startTime > 1000) {
         startTime = Date.now();
-        const item = PIXI.Sprite.from(itemTexture);
-        item.anchor.set(0.5, 0.5);
-        item.scale.set(0.05);
+        const location = { x: math.random(0, 800), y: math.random(0, 600) };
+        const portion = new Portion(location, 10, 10, "speedUp", 1);
         let overlap = true;
-        item.position.x = math.random(0, 800);
-        item.position.y = math.random(0, 600);
         while (overlap) {
           overlap = false;
-          const box1 = item.getBounds();
           for (let i = 0; i < this.players.length; i += 1) {
-            const box2 = this.players[i]?.sprite.getBounds();
-            if (!box2) throw new Error("Cannot find a player");
+            const player = this.players[i];
+            if (!player) throw new Error("Cannot find a player");
             if (
-              box1.x + box1.width > box2.x &&
-              box1.x < box2.x + box2.width &&
-              box1.y + box1.height > box2.y &&
-              box1.y < box2.y + box2.width
+              portion.location.x + portion.width > player.location.x &&
+              portion.location.x < player.location.x + player.width &&
+              portion.location.y + portion.height > player.location.y &&
+              portion.location.y < player.location.y + player.height
             ) {
-              item.position.x = math.random(0, 800);
-              item.position.y = math.random(0, 600);
+              portion.location.x = math.random(0, 800);
+              portion.location.y = math.random(0, 600);
               overlap = true;
               break;
             }
           }
           if (overlap) break;
           for (let i = 0; i < this.portions.length; i += 1) {
-            const box3 = this.portions[i]?.sprite.getBounds();
-            if (!box3) throw new Error("Cannot find a portion");
+            const OtherPortion = this.portions[i];
+            if (!OtherPortion) throw new Error("Cannot find a portion");
             if (
-              box1.x + box1.width > box3.x &&
-              box1.x < box3.x + box3.width &&
-              box1.y + box1.height > box3.y &&
-              box1.y < box3.y + box3.width
+              portion.location.x + portion.width > OtherPortion.location.x &&
+              portion.location.x <
+                OtherPortion.location.x + OtherPortion.width &&
+              portion.location.y + portion.height > OtherPortion.location.y &&
+              portion.location.y < OtherPortion.location.y + OtherPortion.width
             ) {
-              item.position.x = math.random(0, 800);
-              item.position.y = math.random(0, 600);
+              portion.location.x = math.random(0, 800);
+              portion.location.y = math.random(0, 600);
               overlap = true;
               break;
             }
           }
         }
-        this.app.stage.addChild(item);
-        this.portions.push(new Portion(item, "speedUp", 0.5));
+        this.portions.push(portion);
       }
     });
   }
@@ -243,36 +307,60 @@ export default class Game {
 
   detectCollision() {
     let timerID: NodeJS.Timeout;
-    this.app.ticker.add(() => {
-      this.players.forEach((fighter) => {
-        const box1 = fighter.sprite.getBounds();
-        this.portions.forEach((portion) => {
-          const box2 = portion.sprite.getBounds();
-          if (
-            box1.x + box1.width > box2.x &&
-            box1.x < box2.x + box2.width &&
-            box1.y + box1.height > box2.y &&
-            box1.y < box2.y + box2.width
-          ) {
-            this.portions.splice(this.portions.indexOf(portion), 1);
-            this.app.stage.removeChild(portion.sprite);
-            fighter.changeSpeed(0.5);
-            if (fighter.speed === 8) {
-              clearTimeout(timerID);
+    const detectCollisionWithPortions = () => {
+      this.app.ticker.add(() => {
+        this.players.forEach((fighter) => {
+          this.portions.forEach((portion) => {
+            if (
+              fighter.location.x + fighter.width > portion.location.x &&
+              fighter.location.x < portion.location.x + portion.width &&
+              fighter.location.y + fighter.height > portion.location.y &&
+              fighter.location.y < portion.location.y + portion.height
+            ) {
+              this.portions.splice(this.portions.indexOf(portion), 1);
+              fighter.addSpeed(0.5);
+              if (fighter.speed === 8) {
+                clearTimeout(timerID);
+              }
+              timerID = setTimeout(() => {
+                fighter.addSpeed(-0.5);
+              }, 5000);
             }
-            timerID = setTimeout(() => {
-              fighter.changeSpeed(-0.5);
-            }, 5000);
+          });
+        });
+      });
+    };
+    const detectCollisionWithStage = () => {
+      this.app.ticker.add(() => {
+        this.players.forEach((fighter) => {
+          const rightRunover = fighter.location.x + fighter.width - 800;
+          const leftRunover = -fighter.location.x;
+          const topRunover = -fighter.location.y;
+          const bottomRunover = fighter.location.y + fighter.height - 600;
+          if (rightRunover > 0) {
+            fighter.moveX(-rightRunover);
+          }
+          if (leftRunover > 0) {
+            fighter.moveX(leftRunover);
+          }
+          if (topRunover > 0) {
+            fighter.moveY(topRunover);
+          }
+          if (bottomRunover > 0) {
+            fighter.moveY(bottomRunover);
           }
         });
       });
-    });
+    };
+    detectCollisionWithPortions();
+    detectCollisionWithStage();
   }
 
   runWorkers() {
     // const script = "moveTo(0,{ x: 200, y: 300 })";
     // const script = "moveTo(0, 0)";
-    const script = "moveTo(0,'closestPortion')";
+    // const script = "moveTo(0,'closestPortion')";
+    const script = "runTo(0,'closestPortion')";
     const worker = new Worker(new URL("./worker.ts", import.meta.url));
     worker.postMessage(script);
     worker.onmessage = (e) => {
@@ -289,8 +377,79 @@ export default class Game {
           player.moveTo(object.param2, entities);
         };
         this.app.ticker.add(moveToFunction);
+      } else if (object.type === "runTo") {
+        const runToFunction = () => {
+          const player = this.players[object.param1];
+          const entities = {
+            players: this.players,
+            portions: this.portions,
+            weapons: this.weapons,
+          };
+          if (!player) throw Error(`Cannot find player ${object.param1 + 1}`);
+          player.runTo(object.param2, entities);
+        };
+        this.app.ticker.add(runToFunction);
       }
     };
+  }
+}
+export default class Game {
+  app: PIXI.Application;
+
+  map: Map;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.app = new PIXI.Application({
+      view: canvas,
+      backgroundColor: 0xffffff,
+    });
+    this.map = new Map(this.app);
+    this.map.mapPlayers();
+    this.map.mapPortions();
+    this.map.detectCollision();
+    this.map.rotatePlayers();
+    this.map.runWorkers();
+    this.displayImages();
+  }
+
+  displayImages() {
+    const playerTexture = PIXI.Texture.from("image/aircraft1.png");
+    const portionTexture = PIXI.Texture.from("image/kinoko.png");
+    const displayPlayers = () => {
+      this.map.players.forEach((player) => {
+        const playerImage = PIXI.Sprite.from(playerTexture);
+        if (!player) throw new Error();
+        const { width, height, location } = player;
+        playerImage.width = width;
+        playerImage.height = height;
+        playerImage.anchor.set(0.5, 0.5);
+        playerImage.position.set(
+          location.x + width / 2,
+          location.y + height / 2
+        );
+        playerImage.rotation = player.rotation;
+        this.app.stage.addChild(playerImage);
+      });
+    };
+    const displayPortions = () => {
+      this.map.portions.forEach((portion) => {
+        const portionImage = PIXI.Sprite.from(portionTexture);
+        if (!portion) return;
+        const { width, height, location } = portion;
+        portionImage.width = width;
+        portionImage.height = height;
+        portionImage.position.set(location.x, location.y);
+        this.app.stage.addChild(portionImage);
+      });
+    };
+    const removeImages = () => {
+      this.app.stage.removeChildren();
+    };
+    this.app.ticker.add(() => {
+      removeImages();
+      displayPlayers();
+      displayPortions();
+    });
   }
 
   destroy() {
