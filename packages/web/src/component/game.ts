@@ -20,7 +20,6 @@ class Entity {
   }
 }
 
-export type { Entity };
 interface Weapon extends Entity {
   firingRange: number;
   attackRange: number;
@@ -239,7 +238,7 @@ class Map {
     this.app = app;
   }
 
-  mapPlayers() {
+  deployPlayers() {
     for (let i = 0; i < 4; i += 1) {
       const location = { x: 100 * i + 100, y: 100 * i + 100 };
       const player = new Fighter(location, 20, 20);
@@ -247,7 +246,7 @@ class Map {
     }
   }
 
-  mapPortions() {
+  deployPortions() {
     let startTime = Date.now();
     this.app.ticker.add(() => {
       if (Date.now() - startTime > 1000) {
@@ -360,36 +359,36 @@ class Map {
     // const script = "moveTo(0,{ x: 200, y: 300 })";
     // const script = "moveTo(0, 0)";
     // const script = "moveTo(0,'closestPortion')";
-    const script = "runTo(0,'closestPortion')";
-    const worker = new Worker(new URL("./worker.ts", import.meta.url));
+    // const script = "runTo(0,'closestPortion')";
+    const script = `id = 0;
+    players = ${JSON.stringify(this.players)};
+    portions = ${JSON.stringify(this.portions)};
+    weapons = ${JSON.stringify(this.weapons)};
+    entities = ${JSON.stringify({
+      players: this.players,
+      portions: this.portions,
+      weapons: this.weapons,
+    })};
+    enemies = players.filter((player) => player !== players[id]);
+    for (let i = 0; i < enemies.length; i += 1) {
+      if(enemies[i + 1]){
+      const currentDistance = calculateDistance(enemies[i]);
+      const nextDistance = calculateDistance(enemies[i + 1]);
+      target = currentDistance < nextDistance ? currentDistance : nextDistance; 
+     }; // if文の終わり
+    }; // for文の終わり
+    moveTo(target);
+    
+    `;
+    const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+      type: "module",
+    });
     worker.postMessage(script);
     worker.onmessage = (e) => {
-      const object = JSON.parse(e.data);
-      if (object.type === "moveTo") {
-        const moveToFunction = () => {
-          const player = this.players[object.param1];
-          const entities = {
-            players: this.players,
-            portions: this.portions,
-            weapons: this.weapons,
-          };
-          if (!player) throw Error(`Cannot find player ${object.param1 + 1}`);
-          player.moveTo(object.param2, entities);
-        };
-        this.app.ticker.add(moveToFunction);
-      } else if (object.type === "runTo") {
-        const runToFunction = () => {
-          const player = this.players[object.param1];
-          const entities = {
-            players: this.players,
-            portions: this.portions,
-            weapons: this.weapons,
-          };
-          if (!player) throw Error(`Cannot find player ${object.param1 + 1}`);
-          player.runTo(object.param2, entities);
-        };
-        this.app.ticker.add(runToFunction);
-      }
+      const data: Entities = JSON.parse(e.data);
+      this.players = data.players;
+      this.portions = data.portions;
+      this.weapons = data.weapons;
     };
   }
 }
@@ -404,8 +403,8 @@ export default class Game {
       backgroundColor: 0xffffff,
     });
     this.map = new Map(this.app);
-    this.map.mapPlayers();
-    this.map.mapPortions();
+    this.map.deployPlayers();
+    this.map.deployPortions();
     this.map.detectCollision();
     this.map.rotatePlayers();
     this.map.runWorkers();
@@ -456,3 +455,6 @@ export default class Game {
     this.app.destroy();
   }
 }
+
+export type { Vector2 };
+export { Entity, Fighter, Portion, Weapon, Entities };
