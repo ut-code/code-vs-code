@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as math from "mathjs";
-import type {
-  Entities,
-  Entity,
-  Fighter,
-  Portion,
-  Vector2,
-  Weapon,
-} from "./game";
+import type { Entities, Entity, Portion, Vector2, Weapon } from "./game";
+
+interface Status {
+  location: Vector2;
+  HP: number;
+  speed: number;
+  stamina: number;
+  weapon: Weapon | null;
+  direction: Vector2;
+}
 
 let id: number;
-let players: Fighter[];
+let players: Status[];
 let portions: Portion[];
 let weapons: Weapon[];
 let entities: Entities;
-let enemies: Fighter[];
+let enemies: Status[];
 let target: Entity | Vector2;
 
 onmessage = (e) => {
@@ -25,19 +27,14 @@ onmessage = (e) => {
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 function moveTo(destination: Vector2 | Entity) {
-  const player = players[id];
-  if (!player) throw new Error("A player is undefined");
-  player.moveTo(destination, entities);
-  postMessage(JSON.stringify({ players, portions, weapons }));
+  postMessage(JSON.stringify({ type: "moveTo", id, target }));
   throw new Error();
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 function runTo(destination: Vector2 | Entity) {
-  const player = players[id];
-  if (!player) throw new Error("A player is undefined");
-  player.runTo(destination, entities);
+  postMessage(JSON.stringify({ type: "runTo", id, target }));
   throw new Error();
 }
 
