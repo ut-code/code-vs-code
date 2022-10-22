@@ -9,39 +9,41 @@ paths:
     get:
       tags:
         - user
-      summary: Get user by ID
-      parameters:
-        - name: id
-          in: query
-          description: user id
-          required: true
-          schema:
-            type: integer
+      summary: Get all users
       responses:
         '200':
-          description: user object
+          description: array of user objects
           content:
             application/json:
               schema: 
+                type: array
+                items:
                   $ref: '#/components/schemas/User'
     put:
       tags:
         - user
-      summary: Update user
-      parameters: []
+      summary: Change user name
+      parameters:
+        - name: Id
+          in: query
+          description: user ID
+          required: true
+          schema:
+            type: integer
       requestBody:
-        description: new user object
+        description: new user name
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
       responses:
         '200':
-          description: new user object
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+          description: successful operation
     post:
       tags:
         - user
@@ -56,8 +58,6 @@ paths:
               properties:
                 name:
                   type: string
-              example:
-                name: ユーティー太郎
       responses:
         '200':
           description: user object
@@ -65,91 +65,90 @@ paths:
             application/json:
               schema: 
                   $ref: '#/components/schemas/User'
+  /user/{userId}:
+    get:
+      tags:
+        - user
+      summary: Get user by ID
+      parameters:
+        - name: userId
+          in: path
+          description: user ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: user object
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/User'
   /program:
-    post:
+    put:
       tags:
         - program
       summary: Upload program
       parameters: []
       requestBody:
-        description: id and program
+        description: userID and program
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Program'
       responses:
         '200':
-          description: uploaded
-    get:
-      tags:
-        - program
-      summary: Get all programs
-      parameters: []
-      responses:
-        '200':
-          description: array of programs
-          content:
-            application/json:
-              schema: 
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Program'
-    delete:
-      tags:
-      - program
-      summary: Delete program
-      parameters:
-        - name: id
-          in: query
-          description: user id
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: deleted
-  /result:
+          description: successful operation
+  /swap-rank:
     post:
       tags:
-        - result
-      summary: Upload game results
+        - swap-rank
+      summary: Swap ranks of two users
       parameters: []
       requestBody:
-        description: result
+        description: two userID
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Result'
+              $ref: '#/components/schemas/SwapRank'
       responses:
         '200':
-          description: uploaded
+          description: successful operation
 components:
   schemas:
     User:
       type: object
       required:
         - id
+        - name
       properties:
         id:
           type: integer
+          readOnly: true
         name:
           type: string
         rank:
           type: integer
-      example:
-          id: 1
-          name: ユーティー太郎
-          rank: 24
+        code:
+          type: string
     Program:
       type: object
       required:
-        - id
+        - userId
         - code
       properties:
-        id:
+        userId:
           type: integer
         code:
           type: string
-    Result:
+    SwapRank:
       type: object
+      required:
+        - userId1
+        - userId2
+      properties:
+        userId1:
+          type: integer
+        userId2:
+          type: integer
     

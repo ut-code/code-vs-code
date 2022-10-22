@@ -1,20 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import Blockly from "blockly";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error
 import Ja from "blockly/msg/ja";
 import "./style.css";
 import options from "./options";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Blockly.setLocale(Ja);
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Blockly.HSV_SATURATION = 0.6;
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Blockly.HSV_VALUE = 1;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+(Blockly as any).setLocale(Ja);
+(Blockly as any).HSV_SATURATION = 0.6;
+(Blockly as any).HSV_VALUE = 1;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function Injection() {
   const [code, setCode] = useState("");
