@@ -20,7 +20,6 @@ class Entity {
   }
 }
 
-export type { Entity };
 interface Weapon extends Entity {
   firingRange: number;
   attackRange: number;
@@ -80,17 +79,11 @@ class Fighter extends Entity {
     this.location.y += deltaY;
   }
 
-  moveTo(
-    destination: Vector2 | Entity | "closestEnemy" | "closestPortion",
-    entities: Entities
-  ) {
-    const calculateDistance = (entity: Vector2) => {
-      return Number(
-        math.sqrt(
-          (entity.x - this.location.x) ** 2 + (entity.y - this.location.y) ** 2
-        )
-      );
-    };
+  setLocation(x: number, y: number) {
+    this.location = { x, y };
+  }
+
+  moveTo(destination: Vector2 | Entity) {
     const calculateUnit = (X: number, Y: number) => {
       return {
         x: X / Number(math.sqrt(X ** 2 + Y ** 2)),
@@ -98,68 +91,28 @@ class Fighter extends Entity {
       };
     };
     const move = () => {
-      if (typeof destination !== "string") {
+      if (destination) {
         if ("x" in destination) {
-          const deltaX = destination.x - this.location.x;
-          const deltaY = destination.y - this.location.y;
-          this.direction = calculateUnit(deltaX, deltaY);
-          this.moveX(this.direction.x * this.speed);
-          this.moveY(this.direction.y * this.speed);
-        } else {
+          if (destination !== this.location) {
+            const deltaX = destination.x - this.location.x;
+            const deltaY = destination.y - this.location.y;
+            this.direction = calculateUnit(deltaX, deltaY);
+            this.moveX(this.direction.x * this.speed);
+            this.moveY(this.direction.y * this.speed);
+          }
+        } else if (destination.location !== this.location) {
           const deltaX = destination.location.x - this.location.x;
           const deltaY = destination.location.y - this.location.y;
           this.direction = calculateUnit(deltaX, deltaY);
           this.moveX(this.direction.x * this.speed);
           this.moveY(this.direction.y * this.speed);
         }
-      } else if (destination === "closestEnemy") {
-        const enemies = entities.players.filter((player) => player !== this);
-        const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
-          const previousDistance = calculateDistance(previousEnemy.location);
-          const currentDistance = calculateDistance(currentEnemy.location);
-          return previousDistance < currentDistance
-            ? previousEnemy
-            : currentEnemy;
-        });
-        const deltaX = closestEnemy.location.x - this.location.x;
-        const deltaY = closestEnemy.location.y - this.location.y;
-        this.direction = calculateUnit(deltaX, deltaY);
-        this.moveX(this.direction.x * this.speed);
-        this.moveY(this.direction.y * this.speed);
-      } else if (entities.portions.length !== 0) {
-        const closestPortion = entities.portions.reduce(
-          (previousPortion, currentPortion) => {
-            const previousDistance = calculateDistance(
-              previousPortion.location
-            );
-            const currentDistance = calculateDistance(currentPortion.location);
-            return previousDistance < currentDistance
-              ? previousPortion
-              : currentPortion;
-          }
-        );
-        const deltaX = closestPortion.location.x - this.location.x;
-        const deltaY = closestPortion.location.y - this.location.y;
-        this.direction = calculateUnit(deltaX, deltaY);
-        this.moveX(this.direction.x * this.speed);
-        this.moveY(this.direction.y * this.speed);
       }
     };
     move();
   }
 
-  runTo(
-    destination: PIXI.IPointData | Entity | "closestEnemy" | "closestPortion",
-    entities: Entities
-  ) {
-    const calculateDistance = (location: Vector2) => {
-      return Number(
-        math.sqrt(
-          (location.x - this.location.x) ** 2 +
-            (location.y - this.location.y) ** 2
-        )
-      );
-    };
+  runTo(destination: Vector2 | Entity) {
     const calculateUnit = (X: number, Y: number) => {
       return {
         x: X / Number(math.sqrt(X ** 2 + Y ** 2)),
@@ -167,51 +120,22 @@ class Fighter extends Entity {
       };
     };
     const run = () => {
-      if (typeof destination !== "string") {
+      if (destination) {
         if ("x" in destination) {
-          const deltaX = destination.x - this.location.x;
-          const deltaY = destination.y - this.location.y;
-          this.direction = calculateUnit(deltaX, deltaY);
-          this.moveX(this.direction.x * this.speed * 1.5);
-          this.moveY(this.direction.y * this.speed * 1.5);
-        } else {
+          if (destination !== this.location) {
+            const deltaX = destination.x - this.location.x;
+            const deltaY = destination.y - this.location.y;
+            this.direction = calculateUnit(deltaX, deltaY);
+            this.moveX(this.direction.x * this.speed * 1.5);
+            this.moveY(this.direction.y * this.speed * 1.5);
+          }
+        } else if (destination.location !== this.location) {
           const deltaX = destination.location.x - this.location.x;
           const deltaY = destination.location.y - this.location.y;
           this.direction = calculateUnit(deltaX, deltaY);
           this.moveX(this.direction.x * this.speed * 1.5);
           this.moveY(this.direction.y * this.speed * 1.5);
         }
-      } else if (destination === "closestEnemy") {
-        const enemies = entities.players.filter((player) => player !== this);
-        const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
-          const previousDistance = calculateDistance(previousEnemy.location);
-          const currentDistance = calculateDistance(currentEnemy.location);
-          return previousDistance < currentDistance
-            ? previousEnemy
-            : currentEnemy;
-        });
-        const deltaX = closestEnemy.location.x - this.location.x;
-        const deltaY = closestEnemy.location.y - this.location.y;
-        this.direction = calculateUnit(deltaX, deltaY);
-        this.moveX(this.direction.x * this.speed * 1.5);
-        this.moveY(this.direction.y * this.speed * 1.5);
-      } else if (entities.portions.length !== 0) {
-        const closestPortion = entities.portions.reduce(
-          (previousPortion, currentPortion) => {
-            const previousDistance = calculateDistance(
-              previousPortion.location
-            );
-            const currentDistance = calculateDistance(currentPortion.location);
-            return previousDistance < currentDistance
-              ? previousPortion
-              : currentPortion;
-          }
-        );
-        const deltaX = closestPortion.location.x - this.location.x;
-        const deltaY = closestPortion.location.y - this.location.y;
-        this.direction = calculateUnit(deltaX, deltaY);
-        this.moveX(this.direction.x * this.speed * 1.5);
-        this.moveY(this.direction.y * this.speed * 1.5);
       }
     };
     this.stamina -= 0.5;
@@ -235,11 +159,17 @@ class Map {
 
   weapons: Weapon[] = [];
 
+  entities: Entities = {
+    players: this.players,
+    portions: this.portions,
+    weapons: this.weapons,
+  };
+
   constructor(app: PIXI.Application) {
     this.app = app;
   }
 
-  mapPlayers() {
+  deployPlayers() {
     for (let i = 0; i < 4; i += 1) {
       const location = { x: 100 * i + 100, y: 100 * i + 100 };
       const player = new Fighter(location, 20, 20);
@@ -247,7 +177,7 @@ class Map {
     }
   }
 
-  mapPortions() {
+  deployPortions() {
     let startTime = Date.now();
     this.app.ticker.add(() => {
       if (Date.now() - startTime > 1000) {
@@ -332,65 +262,16 @@ class Map {
     };
     const detectCollisionWithStage = () => {
       this.app.ticker.add(() => {
-        this.players.forEach((fighter) => {
-          const rightRunover = fighter.location.x + fighter.width - 800;
-          const leftRunover = -fighter.location.x;
-          const topRunover = -fighter.location.y;
-          const bottomRunover = fighter.location.y + fighter.height - 600;
-          if (rightRunover > 0) {
-            fighter.moveX(-rightRunover);
-          }
-          if (leftRunover > 0) {
-            fighter.moveX(leftRunover);
-          }
-          if (topRunover > 0) {
-            fighter.moveY(topRunover);
-          }
-          if (bottomRunover > 0) {
-            fighter.moveY(bottomRunover);
-          }
+        this.players.forEach((player) => {
+          player.setLocation(
+            math.min(player.location.x, 800 - player.width),
+            math.min(player.location.y, 600 - player.height)
+          );
         });
       });
     };
     detectCollisionWithPortions();
     detectCollisionWithStage();
-  }
-
-  runWorkers() {
-    // const script = "moveTo(0,{ x: 200, y: 300 })";
-    // const script = "moveTo(0, 0)";
-    // const script = "moveTo(0,'closestPortion')";
-    const script = "runTo(0,'closestPortion')";
-    const worker = new Worker(new URL("./worker.ts", import.meta.url));
-    worker.postMessage(script);
-    worker.onmessage = (e) => {
-      const object = JSON.parse(e.data);
-      if (object.type === "moveTo") {
-        const moveToFunction = () => {
-          const player = this.players[object.param1];
-          const entities = {
-            players: this.players,
-            portions: this.portions,
-            weapons: this.weapons,
-          };
-          if (!player) throw Error(`Cannot find player ${object.param1 + 1}`);
-          player.moveTo(object.param2, entities);
-        };
-        this.app.ticker.add(moveToFunction);
-      } else if (object.type === "runTo") {
-        const runToFunction = () => {
-          const player = this.players[object.param1];
-          const entities = {
-            players: this.players,
-            portions: this.portions,
-            weapons: this.weapons,
-          };
-          if (!player) throw Error(`Cannot find player ${object.param1 + 1}`);
-          player.runTo(object.param2, entities);
-        };
-        this.app.ticker.add(runToFunction);
-      }
-    };
   }
 }
 export default class Game {
@@ -398,18 +279,23 @@ export default class Game {
 
   map: Map;
 
+  workers: Worker[] = [];
+
+  actions: ((() => void) | null)[] = [null, null, null, null];
+
   constructor(canvas: HTMLCanvasElement) {
     this.app = new PIXI.Application({
       view: canvas,
       backgroundColor: 0xffffff,
     });
     this.map = new Map(this.app);
-    this.map.mapPlayers();
-    this.map.mapPortions();
+    this.map.deployPlayers();
+    this.map.deployPortions();
     this.map.detectCollision();
     this.map.rotatePlayers();
-    this.map.runWorkers();
     this.displayImages();
+    this.buildWorkers();
+    this.sendScriptsToWorkers();
   }
 
   displayImages() {
@@ -442,6 +328,19 @@ export default class Game {
         this.app.stage.addChild(portionImage);
       });
     };
+    const displayBars = () => {
+      this.map.players.forEach((player) => {
+        const bars = new PIXI.Graphics();
+        bars.beginFill(0xff0000);
+        bars.drawRect(
+          player.location.x,
+          player.location.y - 10,
+          player.width,
+          2
+        );
+        this.app.stage.addChild(bars);
+      });
+    };
     const removeImages = () => {
       this.app.stage.removeChildren();
     };
@@ -449,10 +348,76 @@ export default class Game {
       removeImages();
       displayPlayers();
       displayPortions();
+      displayBars();
     });
+  }
+
+  buildWorkers() {
+    for (let i = 0; i < 4; i += 1) {
+      const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+        type: "module",
+      });
+      worker.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        const action = this.actions[data.id];
+        if (action === undefined) throw new Error();
+        if (action !== null) this.app.ticker.remove(action);
+        this.actions[data.id] = null;
+        if (data.type === "moveTo") {
+          const moveToFunction = () => {
+            this.map.players[data.id]?.moveTo(data.target);
+          };
+          this.app.ticker.add(moveToFunction);
+          this.actions[data.id] = moveToFunction;
+        }
+      };
+      this.workers.push(worker);
+    }
+  }
+
+  sendScriptsToWorkers() {
+    // const script = "moveTo(0,{ x: 200, y: 300 })";
+    // const script = "moveTo(0, 0)";
+    // const script = "moveTo(0,'closestPortion')";
+    // const script = "runTo(0,'closestPortion')";
+    let startTime: number = Date.now();
+    this.app.ticker.add(() => {
+      if (Date.now() - startTime > 500) {
+        startTime = Date.now();
+        const script = `id = 0;
+        players = ${JSON.stringify(this.map.players)}
+        portions = ${JSON.stringify(this.map.portions)}
+        weapons = ${JSON.stringify(this.map.weapons)}
+        entities = ${JSON.stringify({
+          players: this.map.players,
+          portions: this.map.portions,
+          weapons: this.map.weapons,
+        })}
+        enemies = players.filter((player) => player !== players[id]);
+        for (let i = 0; i < portions.length; i += 1) {
+          if(portions[i + 1]){
+          const currentDistance = calculateDistance(portions[i]);
+          const nextDistance = calculateDistance(portions[i + 1]);
+          target = currentDistance < nextDistance ? portions[i] : portions[i + 1]; 
+         }; // if文の終わり
+        }; // for文の終わり
+        moveTo(target);`;
+        this.workers[0]?.postMessage(script);
+      }
+    });
+  }
+
+  terminateWorkers() {
+    this.workers.forEach((worker) => {
+      worker.terminate();
+    });
+    this.workers.splice(0, 100);
   }
 
   destroy() {
     this.app.destroy();
   }
 }
+
+export type { Vector2 };
+export { Entity, Fighter, Portion, Weapon, Entities };
