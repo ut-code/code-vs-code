@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as math from "mathjs";
-import type { Entities, Entity, Portion, Vector2, Weapon } from "./game";
+import type { Entities, Entity, Vector2, Weapon } from "./game";
 
 interface Status {
   location: Vector2;
@@ -13,8 +13,6 @@ interface Status {
 
 let id: number;
 let players: Status[];
-let portions: Portion[];
-let weapons: Weapon[];
 let entities: Entities;
 let enemies: Status[];
 let target: Entity | Vector2;
