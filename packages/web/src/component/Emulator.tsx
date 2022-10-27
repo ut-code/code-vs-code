@@ -7,7 +7,6 @@ export default function Emulator() {
     if (!ref.current) throw new Error();
     const game = new Game(ref.current);
     return () => {
-      game.terminateWorkers();
       game.destroy();
     };
   }, []);
