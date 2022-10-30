@@ -45,7 +45,7 @@ class Fighter implements Entity {
 
   speed = 2; // 1 フレームの移動
 
-  stamina = 100;
+  stamina = 200;
 
   weapon: Weapon | null = null;
 
@@ -261,8 +261,6 @@ class FighterRenderer implements Renderer {
 
   sprite: PIXI.Sprite;
 
-  staminaBar: PIXI.Graphics;
-
   constructor(fighter: Fighter, pixi: PIXI.Application) {
     this.fighter = fighter;
     this.pixi = pixi;
@@ -272,23 +270,12 @@ class FighterRenderer implements Renderer {
     this.sprite.anchor.set(0.5);
     this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
     this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
-    const graphics = new PIXI.Graphics();
-    graphics.beginFill(0xff0000);
-    this.staminaBar = graphics.drawRect(
-      this.sprite.x,
-      this.sprite.y - 5,
-      this.fighter.size.x,
-      5
-    );
     pixi.stage.addChild(this.sprite);
-    pixi.stage.addChild(graphics);
   }
 
   render(): void {
     this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
     this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
-    this.staminaBar.x = this.sprite.x;
-    this.staminaBar.y = this.sprite.y - 5;
     const radian =
       Math.atan(this.fighter.direction.y / this.fighter.direction.x) -
       Math.PI / 2;
@@ -331,6 +318,8 @@ class WorldRenderer implements Renderer {
 
   portionRenderers: PortionRenderer[];
 
+  Graphics: PIXI.Graphics = new PIXI.Graphics();
+
   constructor(world: World, canvas: HTMLCanvasElement) {
     this.world = world;
     this.#pixi = new PIXI.Application({
@@ -345,6 +334,18 @@ class WorldRenderer implements Renderer {
     this.portionRenderers = this.world.portions.map(
       (portion) => new PortionRenderer(portion, this.#pixi)
     );
+    const graphics = this.Graphics;
+    graphics.beginFill(0xff0000);
+    for (const fighter of this.world.fighters) {
+      graphics.drawRect(
+        fighter.location.x,
+        fighter.location.y - 5,
+        fighter.size.x,
+        2
+      );
+    }
+    graphics.endFill();
+    this.#pixi.stage.addChild(graphics);
   }
 
   run() {
@@ -356,6 +357,7 @@ class WorldRenderer implements Renderer {
   render() {
     this.addPortionSprite();
     this.deletePortionSprite();
+    this.updateStaminaBar();
     for (const fighterRenderer of this.fighterRenderers) {
       fighterRenderer.render();
     }
@@ -388,6 +390,23 @@ class WorldRenderer implements Renderer {
         );
       }
     });
+  }
+
+  updateStaminaBar() {
+    const graphics = this.Graphics;
+    graphics.clear();
+    graphics.beginFill(0xff0000);
+    for (const fighter of this.world.fighters) {
+      graphics.drawRect(
+        fighter.location.x,
+        fighter.location.y - 5,
+        fighter.stamina < 200
+          ? fighter.size.x * (fighter.stamina / 200)
+          : fighter.size.x,
+        2
+      );
+    }
+    graphics.endFill();
   }
 
   destroy() {
@@ -431,7 +450,7 @@ export default class GameManager {
               fighter.stamina -= action.requiredStamina;
             }
           }
-          if (fighter.stamina < 100 && fighter.stamina > 0) {
+          if (fighter.stamina < 200 && fighter.stamina > 0) {
             fighter.stamina += 1;
             if (fighter.stamina >= 50) {
               fighter.isShortOfStamina = false;

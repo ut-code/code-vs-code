@@ -25,7 +25,8 @@ onmessage = (e: MessageEvent<string>) => {
     // eslint-disable-next-line no-eval
     eval(e.data) as void;
   } catch (error) {
-    console.log("action done");
+    const action = () => 1;
+    action();
   }
 };
 
@@ -109,3 +110,8 @@ function getClosestPortion(player: Fighter, portions: Portion[]) {
   );
   return closestPortion;
 }
+
+walkTo.toString();
+runTo.toString();
+getClosestEnemy.toString();
+getClosestPortion.toString();
