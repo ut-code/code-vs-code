@@ -10,8 +10,8 @@ interface Vector2 {
 
 function normalizeVector2(x: number, y: number): Vector2 {
   return {
-    x: x / Number(Math.sqrt(x ** 2 + y ** 2)),
-    y: y / Number(Math.sqrt(x ** 2 + y ** 2)),
+    x: x / Math.sqrt(x ** 2 + y ** 2),
+    y: y / Math.sqrt(x ** 2 + y ** 2),
   };
 }
 
@@ -506,7 +506,7 @@ export default class GameManager {
       const enemies = this.world.fighters.filter(
         (fighter) => fighter !== player
       );
-      const script = `const player = ${JSON.stringify({
+      const script = `player = ${JSON.stringify({
         location: player.location,
         HP: player.HP,
         speed: player.speed,
@@ -519,7 +519,7 @@ export default class GameManager {
           staminaRequired: player.weapon?.staminaRequired,
         },
       })}
-          const enemies = ${JSON.stringify(
+          enemies = ${JSON.stringify(
             enemies.map((enemy) => {
               return {
                 location: enemy.location,
@@ -536,7 +536,7 @@ export default class GameManager {
               };
             })
           )}
-          const portions = ${JSON.stringify(
+          portions = ${JSON.stringify(
             portions.map((portion) => {
               return {
                 location: portion.location,

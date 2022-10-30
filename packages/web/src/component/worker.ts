@@ -20,64 +20,73 @@ interface Weapon extends Entity {
   staminaRequired: number;
 }
 
+type JsonMessage = {
+  type: string;
+  target: Vector2 | Entity;
+};
+
+let player: Fighter;
+let enemies: Fighter[];
+let portions: Portion[];
+
 onmessage = (e: MessageEvent<string>) => {
   try {
     // eslint-disable-next-line no-eval
     eval(e.data) as void;
   } catch (error) {
-    const action = () => 1;
-    action();
+    const done = () => null;
+    done();
   }
 };
 
 function walkTo(target: Vector2 | Entity) {
   if ("x" in target) {
-    postMessage(JSON.stringify({ type: "walkTo", target }));
+    const message: JsonMessage = { type: "walkTo", target };
+    postMessage(JSON.stringify(message));
   } else {
-    postMessage(
-      JSON.stringify({
-        type: "walkTo",
-        target: { x: target.location.x, y: target.location.y },
-      })
-    );
+    const message: JsonMessage = {
+      type: "walkTo",
+      target: { x: target.location.x, y: target.location.y },
+    };
+    postMessage(JSON.stringify(message));
   }
   throw new Error();
 }
 
 function runTo(target: Vector2 | Entity) {
   if ("x" in target) {
-    postMessage(JSON.stringify({ type: "runTo", target }));
+    const message: JsonMessage = { type: "runTo", target };
+    postMessage(JSON.stringify(message));
   } else {
-    postMessage(
-      JSON.stringify({
-        type: "runTo",
-        target: { x: target.location.x, y: target.location.y },
-      })
-    );
+    const message: JsonMessage = {
+      type: "runTo",
+      target: { x: target.location.x, y: target.location.y },
+    };
+    postMessage(JSON.stringify(message));
   }
   throw new Error();
 }
 
-function calculateDistance(player: Fighter, destination: Vector2 | Entity) {
-  if (!player) throw new Error("A player is undefined");
+function calculateDistance(thing: Entity, destination: Vector2 | Entity) {
+  if (!thing) throw new Error();
   if (!destination) throw new Error("destination is undefined");
   if ("x" in destination) {
     return Number(
       Math.sqrt(
-        (destination.x - player.location.x) ** 2 +
-          (destination.y - player.location.y) ** 2
+        (destination.x - thing.location.x) ** 2 +
+          (destination.y - thing.location.y) ** 2
       )
     );
   }
   return Number(
     Math.sqrt(
-      (destination.location.x - player.location.x) ** 2 +
-        (destination.location.y - player.location.y) ** 2
+      (destination.location.x - thing.location.x) ** 2 +
+        (destination.location.y - thing.location.y) ** 2
     )
   );
 }
 
-function getClosestEnemy(player: Fighter, enemies: Fighter[]) {
+function getClosestEnemy() {
   if (!player) throw new Error();
   const closestEnemy = enemies.reduce(
     (previousEnemy: Fighter, currentEnemy: Fighter) => {
@@ -92,7 +101,7 @@ function getClosestEnemy(player: Fighter, enemies: Fighter[]) {
   return closestEnemy;
 }
 
-function getClosestPortion(player: Fighter, portions: Portion[]) {
+function getClosestPortion() {
   const closestPortion = portions.reduce(
     (previousPortion: Portion, currentPortion: Portion) => {
       const previousDistance = calculateDistance(
@@ -111,6 +120,7 @@ function getClosestPortion(player: Fighter, portions: Portion[]) {
   return closestPortion;
 }
 
+// eslintのエラーを消すだけの式
 walkTo.toString();
 runTo.toString();
 getClosestEnemy.toString();
