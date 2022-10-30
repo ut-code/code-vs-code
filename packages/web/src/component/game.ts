@@ -1,23 +1,18 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable max-classes-per-file */
 import * as PIXI from "pixi.js";
 import * as math from "mathjs";
+import aircraftImage from "../aircraft1.png";
+import kinoko from "../kinoko.png";
 
 interface Vector2 {
   x: number;
   y: number;
 }
-class Entity {
+interface Entity {
   location: Vector2;
 
-  width: number;
-
-  height: number;
-
-  constructor(location: Vector2, width: number, height: number) {
-    this.location = location;
-    this.width = width;
-    this.height = height;
-  }
+  readonly size: Vector2;
 }
 
 interface Weapon extends Entity {
@@ -28,31 +23,13 @@ interface Weapon extends Entity {
   staminaRequired: number;
 }
 
-interface Entities {
-  players: Fighter[];
-  portions: Portion[];
-  weapons: Weapon[];
-}
+//  ドメインオブジェクト
 
-class Portion extends Entity {
-  type: "speedUp" | "attackUp";
+class Fighter implements Entity {
+  location: Vector2;
 
-  effect: number;
+  readonly size: Vector2 = { x: 20, y: 20 };
 
-  constructor(
-    location: Vector2,
-    width: number,
-    height: number,
-    type: "speedUp" | "attackUp",
-    effect: number
-  ) {
-    super(location, width, height);
-    this.type = type;
-    this.effect = effect;
-  }
-}
-
-class Fighter extends Entity {
   HP = 100;
 
   speed = 2; // 1 フレームの移動
@@ -65,291 +42,336 @@ class Fighter extends Entity {
 
   direction: Vector2 = { x: 0, y: 1 };
 
-  rotation = 0;
+  action: FighterAction | null = null;
 
-  rotate(radian: number) {
-    this.rotation = this.direction.x <= 0 ? radian : radian + math.pi;
-  }
-
-  moveX(deltaX: number) {
-    this.location.x += deltaX;
-  }
-
-  moveY(deltaY: number) {
-    this.location.y += deltaY;
-  }
-
-  setLocation(x: number, y: number) {
-    this.location = { x, y };
-  }
-
-  moveTo(destination: Vector2 | Entity) {
-    const calculateUnit = (X: number, Y: number) => {
-      return {
-        x: X / Number(math.sqrt(X ** 2 + Y ** 2)),
-        y: Y / Number(math.sqrt(X ** 2 + Y ** 2)),
-      };
-    };
-    const move = () => {
-      if (destination) {
-        if ("x" in destination) {
-          if (destination !== this.location) {
-            const deltaX = destination.x - this.location.x;
-            const deltaY = destination.y - this.location.y;
-            this.direction = calculateUnit(deltaX, deltaY);
-            this.moveX(this.direction.x * this.speed);
-            this.moveY(this.direction.y * this.speed);
-          }
-        } else if (destination.location !== this.location) {
-          const deltaX = destination.location.x - this.location.x;
-          const deltaY = destination.location.y - this.location.y;
-          this.direction = calculateUnit(deltaX, deltaY);
-          this.moveX(this.direction.x * this.speed);
-          this.moveY(this.direction.y * this.speed);
-        }
-      }
-    };
-    move();
-  }
-
-  runTo(destination: Vector2 | Entity) {
-    const calculateUnit = (X: number, Y: number) => {
-      return {
-        x: X / Number(math.sqrt(X ** 2 + Y ** 2)),
-        y: Y / Number(math.sqrt(X ** 2 + Y ** 2)),
-      };
-    };
-    const run = () => {
-      if (destination) {
-        if ("x" in destination) {
-          if (destination !== this.location) {
-            const deltaX = destination.x - this.location.x;
-            const deltaY = destination.y - this.location.y;
-            this.direction = calculateUnit(deltaX, deltaY);
-            this.moveX(this.direction.x * this.speed * 1.5);
-            this.moveY(this.direction.y * this.speed * 1.5);
-          }
-        } else if (destination.location !== this.location) {
-          const deltaX = destination.location.x - this.location.x;
-          const deltaY = destination.location.y - this.location.y;
-          this.direction = calculateUnit(deltaX, deltaY);
-          this.moveX(this.direction.x * this.speed * 1.5);
-          this.moveY(this.direction.y * this.speed * 1.5);
-        }
-      }
-    };
-    this.stamina -= 0.5;
-    run();
-  }
-
-  addSpeed(x: number) {
-    this.speed += x;
-    if (this.speed > 8) {
-      this.speed = 8;
-    }
+  constructor(location: Vector2) {
+    this.location = location;
   }
 }
 
-class Map {
-  app: PIXI.Application;
+class Portion implements Entity {
+  location: Vector2;
 
-  players: Fighter[] = [];
+  readonly size: Vector2;
+
+  type: "speedUp" | "attackUp";
+
+  effect: number;
+
+  constructor(
+    location: Vector2,
+    size: Vector2,
+    type: "speedUp" | "attackUp",
+    effect: number
+  ) {
+    this.size = size;
+    this.location = location;
+    this.type = type;
+    this.effect = effect;
+  }
+}
+class World {
+  fighters: Fighter[] = [];
 
   portions: Portion[] = [];
 
   weapons: Weapon[] = [];
 
-  entities: Entities = {
-    players: this.players,
-    portions: this.portions,
-    weapons: this.weapons,
-  };
+  AddedPortion: Portion | null = null;
 
-  constructor(app: PIXI.Application) {
-    this.app = app;
-  }
+  deletedPortion: Portion | null = null;
 
-  deployPlayers() {
+  constructor() {
     for (let i = 0; i < 4; i += 1) {
       const location = { x: 100 * i + 100, y: 100 * i + 100 };
-      const player = new Fighter(location, 20, 20);
-      this.players.push(player);
+      const fighter = new Fighter(location);
+      this.fighters.push(fighter);
     }
   }
 
-  deployPortions() {
-    let startTime = Date.now();
-    this.app.ticker.add(() => {
-      if (Date.now() - startTime > 1000) {
-        startTime = Date.now();
-        const location = { x: math.random(0, 800), y: math.random(0, 600) };
-        const portion = new Portion(location, 10, 10, "speedUp", 1);
-        let overlap = true;
-        while (overlap) {
-          overlap = false;
-          for (let i = 0; i < this.players.length; i += 1) {
-            const player = this.players[i];
-            if (!player) throw new Error("Cannot find a player");
-            if (
-              portion.location.x + portion.width > player.location.x &&
-              portion.location.x < player.location.x + player.width &&
-              portion.location.y + portion.height > player.location.y &&
-              portion.location.y < player.location.y + player.height
-            ) {
-              portion.location.x = math.random(0, 800);
-              portion.location.y = math.random(0, 600);
-              overlap = true;
-              break;
-            }
-          }
-          if (overlap) break;
-          for (let i = 0; i < this.portions.length; i += 1) {
-            const OtherPortion = this.portions[i];
-            if (!OtherPortion) throw new Error("Cannot find a portion");
-            if (
-              portion.location.x + portion.width > OtherPortion.location.x &&
-              portion.location.x <
-                OtherPortion.location.x + OtherPortion.width &&
-              portion.location.y + portion.height > OtherPortion.location.y &&
-              portion.location.y < OtherPortion.location.y + OtherPortion.width
-            ) {
-              portion.location.x = math.random(0, 800);
-              portion.location.y = math.random(0, 600);
-              overlap = true;
-              break;
-            }
-          }
+  createPortion() {
+    const location = { x: math.random(0, 800), y: math.random(0, 600) };
+    const portion = new Portion(location, { x: 20, y: 20 }, "speedUp", 1);
+    let overlap = true;
+    while (overlap) {
+      overlap = false;
+      for (let i = 0; i < this.fighters.length; i += 1) {
+        const player = this.fighters[i];
+        if (!player) throw new Error("Cannot find a player");
+        if (
+          portion.location.x + portion.size.x > player.location.x &&
+          portion.location.x < player.location.x + player.size.x &&
+          portion.location.y + portion.size.y > player.location.y &&
+          portion.location.y < player.location.y + player.size.y
+        ) {
+          portion.location.x = math.random(0, 800);
+          portion.location.y = math.random(0, 600);
+          overlap = true;
+          break;
         }
-        this.portions.push(portion);
       }
-    });
-  }
-
-  rotatePlayers() {
-    this.app.ticker.add(() => {
-      this.players.forEach((fighter) => {
-        fighter.rotate(
-          math.atan(fighter.direction.y / fighter.direction.x) - math.pi / 2
-        );
-      });
-    });
+      if (overlap) break;
+      for (let i = 0; i < this.portions.length; i += 1) {
+        const OtherPortion = this.portions[i];
+        if (!OtherPortion) throw new Error("Cannot find a portion");
+        if (
+          portion.location.x + portion.size.x > OtherPortion.location.x &&
+          portion.location.x < OtherPortion.location.x + OtherPortion.size.x &&
+          portion.location.y + portion.size.y > OtherPortion.location.y &&
+          portion.location.y < OtherPortion.location.y + OtherPortion.size.y
+        ) {
+          portion.location.x = math.random(0, 800);
+          portion.location.y = math.random(0, 600);
+          overlap = true;
+          break;
+        }
+      }
+    }
+    this.portions.push(portion);
+    this.AddedPortion = portion;
   }
 
   detectCollision() {
-    let timerID: NodeJS.Timeout;
     const detectCollisionWithPortions = () => {
-      this.app.ticker.add(() => {
-        this.players.forEach((fighter) => {
-          this.portions.forEach((portion) => {
-            if (
-              fighter.location.x + fighter.width > portion.location.x &&
-              fighter.location.x < portion.location.x + portion.width &&
-              fighter.location.y + fighter.height > portion.location.y &&
-              fighter.location.y < portion.location.y + portion.height
-            ) {
-              this.portions.splice(this.portions.indexOf(portion), 1);
-              fighter.addSpeed(0.5);
-              if (fighter.speed === 8) {
-                clearTimeout(timerID);
-              }
-              timerID = setTimeout(() => {
-                fighter.addSpeed(-0.5);
-              }, 5000);
-            }
-          });
+      for (const fighter of this.fighters) {
+        this.portions.forEach((portion) => {
+          if (
+            fighter.location.x + fighter.size.x > portion.location.x &&
+            fighter.location.x < portion.location.x + portion.size.x &&
+            fighter.location.y + fighter.size.y > portion.location.y &&
+            fighter.location.y < portion.location.y + portion.size.y
+          ) {
+            this.portions.splice(this.portions.indexOf(portion), 1);
+            this.deletedPortion = portion;
+            fighter.speed += 0.5;
+            setTimeout(() => {
+              fighter.speed -= 0.5;
+            }, 5000);
+          }
         });
-      });
+      }
     };
-    const detectCollisionWithStage = () => {
-      this.app.ticker.add(() => {
-        this.players.forEach((player) => {
-          player.setLocation(
-            math.min(player.location.x, 800 - player.width),
-            math.min(player.location.y, 600 - player.height)
-          );
-        });
-      });
+    const detectCollisionWithWalls = () => {
+      for (const fighter of this.fighters) {
+        fighter.location = {
+          x: math.min(fighter.location.x, 800 - fighter.size.x),
+          y: math.min(fighter.location.y, 600 - fighter.size.y),
+        };
+      }
     };
     detectCollisionWithPortions();
-    detectCollisionWithStage();
+    detectCollisionWithWalls();
   }
 }
-export default class Game {
-  app: PIXI.Application;
 
-  map: Map;
+// アクション
+
+interface FighterAction {
+  tick(delay: number): void;
+}
+
+class WalkToAction implements FighterAction {
+  world: World;
+
+  fighter: Fighter;
+
+  destination: Vector2;
+
+  constructor(world: World, fighter: Fighter, destination: Vector2) {
+    this.world = world;
+    this.fighter = fighter;
+    this.destination = destination;
+  }
+
+  tick() {
+    const calculateUnit = (X: number, Y: number) => {
+      return {
+        x: X / Number(math.sqrt(X ** 2 + Y ** 2)),
+        y: Y / Number(math.sqrt(X ** 2 + Y ** 2)),
+      };
+    };
+    const walk = () => {
+      const deltaX = this.destination.x - this.fighter.location.x;
+      const deltaY = this.destination.y - this.fighter.location.y;
+      this.fighter.direction = calculateUnit(deltaX, deltaY);
+      this.fighter.location.x += this.fighter.direction.x * this.fighter.speed;
+      this.fighter.location.y += this.fighter.direction.y * this.fighter.speed;
+    };
+    if (this.destination) walk();
+  }
+}
+
+// レンダラー
+
+interface Renderer {
+  render(): void;
+}
+
+class FighterRenderer implements Renderer {
+  fighter: Fighter;
+
+  pixi: PIXI.Application;
+
+  sprite: PIXI.Sprite;
+
+  constructor(fighter: Fighter, pixi: PIXI.Application) {
+    this.fighter = fighter;
+    this.pixi = pixi;
+    this.sprite = PIXI.Sprite.from(aircraftImage);
+    this.sprite.width = this.fighter.size.x;
+    this.sprite.height = this.fighter.size.y;
+    this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
+    this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
+    this.sprite.anchor.set(0.5);
+    pixi.stage.addChild(this.sprite);
+  }
+
+  render(): void {
+    this.sprite.x = this.fighter.location.x;
+    this.sprite.y = this.fighter.location.y;
+    const radian =
+      math.atan(this.fighter.direction.y / this.fighter.direction.x) -
+      math.pi / 2;
+    this.sprite.rotation =
+      this.fighter.direction.x <= 0 ? radian : radian + math.pi;
+  }
+}
+
+class PortionRenderer implements Renderer {
+  portion: Portion;
+
+  pixi: PIXI.Application;
+
+  sprite: PIXI.Sprite = PIXI.Sprite.from(kinoko);
+
+  constructor(portion: Portion, pixi: PIXI.Application) {
+    this.portion = portion;
+    this.pixi = pixi;
+    if (this.portion.type === "speedUp") {
+      this.sprite = PIXI.Sprite.from(kinoko);
+    }
+    this.sprite.x = this.portion.location.x;
+    this.sprite.y = this.portion.location.y;
+    this.sprite.width = this.portion.size.x;
+    this.sprite.height = this.portion.size.y;
+    this.pixi.stage.addChild(this.sprite);
+  }
+
+  render(): void {
+    this.sprite.x = this.portion.location.x;
+    this.sprite.y = this.portion.location.y;
+  }
+}
+class WorldRenderer implements Renderer {
+  world: World;
+
+  pixi: PIXI.Application;
+
+  fighterRenderers: FighterRenderer[];
+
+  portionRenderers: PortionRenderer[];
+
+  constructor(world: World, canvas: HTMLCanvasElement) {
+    this.world = world;
+    this.pixi = new PIXI.Application({
+      view: canvas,
+      width: 800,
+      height: 600,
+      backgroundColor: 0xffffff,
+    });
+    this.fighterRenderers = this.world.fighters.map(
+      (fighter) => new FighterRenderer(fighter, this.pixi)
+    );
+    this.portionRenderers = this.world.portions.map(
+      (portion) => new PortionRenderer(portion, this.pixi)
+    );
+  }
+
+  run() {
+    this.pixi.ticker.add(() => {
+      this.render();
+    });
+  }
+
+  render() {
+    this.addPortionSprite();
+    this.deletePortionSprite();
+    for (const fighterRenderer of this.fighterRenderers) {
+      fighterRenderer.render();
+    }
+    for (const portionRenderer of this.portionRenderers) {
+      portionRenderer.render();
+    }
+  }
+
+  addPortionSprite() {
+    if (this.world.AddedPortion) {
+      const newRenderer = new PortionRenderer(
+        this.world.AddedPortion,
+        this.pixi
+      );
+      this.portionRenderers.push(newRenderer);
+      this.world.AddedPortion = null;
+    }
+  }
+
+  deletePortionSprite() {
+    if (this.world.deletedPortion) {
+      const oldRenderer = this.portionRenderers.find(
+        (portionRenderer) =>
+          portionRenderer.portion === this.world.deletedPortion
+      );
+      if (oldRenderer) {
+        this.pixi.stage.removeChild(oldRenderer?.sprite);
+        const newPortionRenderers = this.portionRenderers.filter(
+          (portionRenderer) => portionRenderer !== oldRenderer
+        );
+        this.portionRenderers = newPortionRenderers;
+      }
+      this.world.deletedPortion = null;
+    }
+  }
+}
+
+// 全体を管理するやつ
+
+export default class GameManager {
+  world: World;
+
+  worldRenderer: WorldRenderer;
+
+  isDestroyed = false;
 
   workers: Worker[] = [];
 
-  actions: ((() => void) | null)[] = [null, null, null, null];
-
   constructor(canvas: HTMLCanvasElement) {
-    this.app = new PIXI.Application({
-      view: canvas,
-      backgroundColor: 0xffffff,
-    });
-    this.map = new Map(this.app);
-    this.map.deployPlayers();
-    this.map.deployPortions();
-    this.map.detectCollision();
-    this.map.rotatePlayers();
-    this.displayImages();
-    this.buildWorkers();
-    this.sendScriptsToWorkers();
+    this.world = new World();
+    this.worldRenderer = new WorldRenderer(this.world, canvas);
+    this.run();
   }
 
-  displayImages() {
-    const playerTexture = PIXI.Texture.from("image/aircraft1.png");
-    const portionTexture = PIXI.Texture.from("image/kinoko.png");
-    const displayPlayers = () => {
-      this.map.players.forEach((player) => {
-        const playerImage = PIXI.Sprite.from(playerTexture);
-        if (!player) throw new Error();
-        const { width, height, location } = player;
-        playerImage.width = width;
-        playerImage.height = height;
-        playerImage.anchor.set(0.5, 0.5);
-        playerImage.position.set(
-          location.x + width / 2,
-          location.y + height / 2
-        );
-        playerImage.rotation = player.rotation;
-        this.app.stage.addChild(playerImage);
+  run() {
+    this.buildWorkers();
+    this.worldRenderer.run();
+    let previousTime = Date.now();
+    let previousTime2 = Date.now();
+    const callback = () => {
+      if (this.isDestroyed) return;
+      const currentTime = Date.now();
+      const delta = currentTime - previousTime;
+      previousTime = currentTime;
+      this.world.fighters.forEach((fighter) => {
+        fighter.action?.tick(delta);
       });
+      this.world.detectCollision();
+      if (currentTime - previousTime2 >= 500) {
+        previousTime2 = Date.now();
+        this.world.createPortion();
+        this.sendScriptsToWorkers();
+      }
+      requestAnimationFrame(callback);
     };
-    const displayPortions = () => {
-      this.map.portions.forEach((portion) => {
-        const portionImage = PIXI.Sprite.from(portionTexture);
-        if (!portion) return;
-        const { width, height, location } = portion;
-        portionImage.width = width;
-        portionImage.height = height;
-        portionImage.position.set(location.x, location.y);
-        this.app.stage.addChild(portionImage);
-      });
-    };
-    const displayBars = () => {
-      this.map.players.forEach((player) => {
-        const bars = new PIXI.Graphics();
-        bars.beginFill(0xff0000);
-        bars.drawRect(
-          player.location.x,
-          player.location.y - 10,
-          player.width,
-          2
-        );
-        this.app.stage.addChild(bars);
-      });
-    };
-    const removeImages = () => {
-      this.app.stage.removeChildren();
-    };
-    this.app.ticker.add(() => {
-      removeImages();
-      displayPlayers();
-      displayPortions();
-      displayBars();
-    });
+    callback();
   }
 
   buildWorkers() {
@@ -359,16 +381,11 @@ export default class Game {
       });
       worker.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        const action = this.actions[data.id];
-        if (action === undefined) throw new Error();
-        if (action !== null) this.app.ticker.remove(action);
-        this.actions[data.id] = null;
-        if (data.type === "moveTo") {
-          const moveToFunction = () => {
-            this.map.players[data.id]?.moveTo(data.target);
-          };
-          this.app.ticker.add(moveToFunction);
-          this.actions[data.id] = moveToFunction;
+        const player = this.world.fighters[i];
+        if (player === undefined) throw new Error();
+        player.action = null;
+        if (data.type === "walkTo") {
+          player.action = new WalkToAction(this.world, player, data.target);
         }
       };
       this.workers.push(worker);
@@ -376,48 +393,76 @@ export default class Game {
   }
 
   sendScriptsToWorkers() {
-    // const script = "moveTo(0,{ x: 200, y: 300 })";
-    // const script = "moveTo(0, 0)";
-    // const script = "moveTo(0,'closestPortion')";
+    // const script = "walkTo(0,{ x: 200, y: 300 })";
+    // const script = "walkTo(0, 0)";
+    // const script = "walkTo(0,'closestPortion')";
     // const script = "runTo(0,'closestPortion')";
-    let startTime: number = Date.now();
-    this.app.ticker.add(() => {
-      if (Date.now() - startTime > 500) {
-        startTime = Date.now();
-        const script = `id = 0;
-        players = ${JSON.stringify(this.map.players)}
-        portions = ${JSON.stringify(this.map.portions)}
-        weapons = ${JSON.stringify(this.map.weapons)}
-        entities = ${JSON.stringify({
-          players: this.map.players,
-          portions: this.map.portions,
-          weapons: this.map.weapons,
-        })}
-        enemies = players.filter((player) => player !== players[id]);
-        for (let i = 0; i < portions.length; i += 1) {
-          if(portions[i + 1]){
-          const currentDistance = calculateDistance(portions[i]);
-          const nextDistance = calculateDistance(portions[i + 1]);
-          target = currentDistance < nextDistance ? portions[i] : portions[i + 1]; 
-         }; // if文の終わり
-        }; // for文の終わり
-        moveTo(target);`;
-        this.workers[0]?.postMessage(script);
-      }
-    });
-  }
-
-  terminateWorkers() {
-    this.workers.forEach((worker) => {
-      worker.terminate();
-    });
-    this.workers.splice(0, 100);
+    const player = this.world.fighters[0];
+    const enemies = this.world.fighters.filter(
+      (fighter) => fighter !== this.world.fighters[0]
+    );
+    const { portions } = this.world;
+    if (!player) throw new Error();
+    const script = `const player = ${JSON.stringify({
+      location: player.location,
+      HP: player.HP,
+      speed: player.speed,
+      stamina: player.stamina,
+      weapon: {
+        firingRange: player.weapon?.firingRange,
+        attackRange: player.weapon?.attackRange,
+        speed: player.weapon?.speed,
+        ReloadFrame: player.weapon?.ReloadFrame,
+        staminaRequired: player.weapon?.staminaRequired,
+      },
+    })}
+        const enemies = ${JSON.stringify(
+          enemies.map((enemy) => {
+            return {
+              location: enemy.location,
+              HP: enemy.HP,
+              speed: enemy.speed,
+              stamina: enemy.stamina,
+              weapon: {
+                firingRange: enemy.weapon?.firingRange,
+                attackRange: enemy.weapon?.attackRange,
+                speed: enemy.weapon?.speed,
+                ReloadFrame: enemy.weapon?.ReloadFrame,
+                staminaRequired: enemy.weapon?.staminaRequired,
+              },
+            };
+          })
+        )}
+        const portions = ${JSON.stringify(
+          portions.map((portion) => {
+            return {
+              location: portion.location,
+              type: portion.type,
+              effect: portion.effect,
+            };
+          })
+        )}
+        const weapons = ${JSON.stringify(this.world.weapons)}
+        let target = null
+        let closestPortion = portions[0]
+        for ( const portion of portions ) {
+          const previousDistance = calculateDistance( player, closestPortion );
+          const currentDistance = calculateDistance( player, portion );
+          if(previousDistance > currentDistance){closestPortion = portion}   
+        }
+        target = closestPortion
+        walkTo(target);`;
+    this.workers[0]?.postMessage(script);
   }
 
   destroy() {
-    this.app.destroy();
+    this.worldRenderer.pixi.destroy();
+    this.workers.forEach((worker) => {
+      worker.terminate();
+    });
+    this.workers = [];
+    this.isDestroyed = true;
   }
 }
 
-export type { Vector2 };
-export { Entity, Fighter, Portion, Weapon, Entities };
+export type { Vector2, Entity };
