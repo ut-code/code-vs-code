@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as math from "mathjs";
 import type { Vector2, Entity } from "./game";
 
 interface Fighter extends Entity {
@@ -8,7 +7,6 @@ interface Fighter extends Entity {
   stamina: number;
   weapon: Weapon | null;
 }
-
 interface Portion extends Entity {
   type: "speedUp" | "attackUp";
   effect: number;
@@ -18,17 +16,19 @@ interface Weapon extends Entity {
   firingRange: number;
   attackRange: number;
   speed: number;
-  ReloadFrame: number;
+  reloadFrame: number;
   staminaRequired: number;
 }
 
-onmessage = (e) => {
-  // eslint-disable-next-line no-eval
-  eval(e.data);
+onmessage = (e: MessageEvent<string>) => {
+  try {
+    // eslint-disable-next-line no-eval
+    eval(e.data) as void;
+  } catch (error) {
+    console.log("action done");
+  }
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 function walkTo(target: Vector2 | Entity) {
   if ("x" in target) {
     postMessage(JSON.stringify({ type: "walkTo", target }));
@@ -43,37 +43,40 @@ function walkTo(target: Vector2 | Entity) {
   throw new Error();
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 function runTo(target: Vector2 | Entity) {
-  postMessage(JSON.stringify({ type: "runTo", destination: target }));
+  if ("x" in target) {
+    postMessage(JSON.stringify({ type: "runTo", target }));
+  } else {
+    postMessage(
+      JSON.stringify({
+        type: "runTo",
+        target: { x: target.location.x, y: target.location.y },
+      })
+    );
+  }
   throw new Error();
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function calculateDistance(player, destination: Vector2 | Entity) {
+function calculateDistance(player: Fighter, destination: Vector2 | Entity) {
   if (!player) throw new Error("A player is undefined");
   if (!destination) throw new Error("destination is undefined");
   if ("x" in destination) {
     return Number(
-      math.sqrt(
+      Math.sqrt(
         (destination.x - player.location.x) ** 2 +
           (destination.y - player.location.y) ** 2
       )
     );
   }
   return Number(
-    math.sqrt(
+    Math.sqrt(
       (destination.location.x - player.location.x) ** 2 +
         (destination.location.y - player.location.y) ** 2
     )
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function getClosestEnemy(player, enemies) {
+function getClosestEnemy(player: Fighter, enemies: Fighter[]) {
   if (!player) throw new Error();
   const closestEnemy = enemies.reduce(
     (previousEnemy: Fighter, currentEnemy: Fighter) => {
@@ -88,9 +91,7 @@ function getClosestEnemy(player, enemies) {
   return closestEnemy;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function getClosestPortion(player, portions) {
+function getClosestPortion(player: Fighter, portions: Portion[]) {
   const closestPortion = portions.reduce(
     (previousPortion: Portion, currentPortion: Portion) => {
       const previousDistance = calculateDistance(
