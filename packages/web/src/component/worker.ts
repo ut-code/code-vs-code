@@ -67,6 +67,14 @@ function runTo(target: Vector2 | Entity) {
   throw new Error();
 }
 
+function punch(target: Fighter) {
+  const message: JsonMessage = {
+    type: "punch",
+    target,
+  };
+  postMessage(JSON.stringify(message));
+}
+
 function calculateDistance(thing: Entity, destination: Vector2 | Entity) {
   if (!thing) throw new Error();
   if (!destination) throw new Error("destination is undefined");
@@ -123,5 +131,6 @@ function getClosestPortion() {
 // eslintのエラーを消すだけの式
 walkTo.toString();
 runTo.toString();
+punch.toString();
 getClosestEnemy.toString();
 getClosestPortion.toString();

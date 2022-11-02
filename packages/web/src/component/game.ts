@@ -2,6 +2,14 @@
 import * as PIXI from "pixi.js";
 import aircraftImage from "../../resources/aircraft1.png";
 import kinoko from "../../resources/kinoko.png";
+import explosion1 from "../../resources/explosion1.png";
+import explosion2 from "../../resources/explosion2.png";
+import explosion3 from "../../resources/explosion3.png";
+import explosion4 from "../../resources/explosion4.png";
+import explosion5 from "../../resources/explosion5.png";
+import explosion6 from "../../resources/explosion6.png";
+import explosion7 from "../../resources/explosion7.png";
+import explosion8 from "../../resources/explosion8.png";
 
 interface Vector2 {
   x: number;
@@ -21,10 +29,31 @@ interface Entity {
   readonly size: Vector2;
 }
 
-interface DataFromWorker {
-  type: string;
-  target: Vector2;
+function calculateDistance(thing: Entity, destination: Vector2 | Entity) {
+  if (!thing) throw new Error();
+  if (!destination) throw new Error("destination is undefined");
+  if ("x" in destination) {
+    return Number(
+      Math.sqrt(
+        (destination.x - thing.location.x) ** 2 +
+          (destination.y - thing.location.y) ** 2
+      )
+    );
+  }
+  return Number(
+    Math.sqrt(
+      (destination.location.x - thing.location.x) ** 2 +
+        (destination.location.y - thing.location.y) ** 2
+    )
+  );
 }
+
+type DataFromWorker =
+  | {
+      type: "walkTo" | "runTo";
+      target: Vector2;
+    }
+  | { type: "punch"; target: Fighter };
 
 interface Weapon extends Entity {
   firingRange: number;
@@ -56,6 +85,8 @@ class Fighter implements Entity {
   action: FighterAction | null = null;
 
   isShortOfStamina = false;
+
+  armLength = 200;
 
   constructor(location: Vector2) {
     this.location = location;
@@ -187,12 +218,20 @@ class World {
 // アクション
 
 interface FighterAction {
+  type: string;
+
+  world: World;
+
+  fighter: Fighter;
+
   requiredStamina: number;
 
   tick(delay: number): void;
 }
 
 class WalkToAction implements FighterAction {
+  type = "walk";
+
   world: World;
 
   fighter: Fighter;
@@ -220,6 +259,8 @@ class WalkToAction implements FighterAction {
 }
 
 class RunToAction implements FighterAction {
+  type = "run";
+
   world: World;
 
   fighter: Fighter;
@@ -248,10 +289,44 @@ class RunToAction implements FighterAction {
   }
 }
 
+class PunchAction implements FighterAction {
+  type = "punch";
+
+  world: World;
+
+  fighter: Fighter;
+
+  requiredStamina = 11;
+
+  target: Fighter;
+
+  isHit = false;
+
+  constructor(world: World, fighter: Fighter, target: Fighter) {
+    this.world = world;
+    this.fighter = fighter;
+    this.target = target;
+  }
+
+  tick() {
+    const punch = () => {
+      const distance = calculateDistance(this.fighter, this.target);
+      console.log(distance);
+      if (distance < this.fighter.armLength) {
+        this.target.HP -= 10;
+        this.isHit = true;
+        console.log(this.target.HP);
+      }
+      console.log("punch");
+    };
+    punch();
+  }
+}
+
 // レンダラー
 
 interface Renderer {
-  render(): void;
+  render(delta: number): void;
 }
 
 class FighterRenderer implements Renderer {
@@ -309,14 +384,68 @@ class PortionRenderer implements Renderer {
     this.sprite.y = this.portion.location.y;
   }
 }
+
+class PunchEffectRenderer implements Renderer {
+  punchAction: PunchAction;
+
+  pixi: PIXI.Application;
+
+  startTime: number = Date.now();
+
+  sprites: PIXI.Sprite[] = [
+    PIXI.Sprite.from(explosion1),
+    PIXI.Sprite.from(explosion2),
+    PIXI.Sprite.from(explosion3),
+    PIXI.Sprite.from(explosion4),
+    PIXI.Sprite.from(explosion5),
+    PIXI.Sprite.from(explosion6),
+    PIXI.Sprite.from(explosion7),
+    PIXI.Sprite.from(explosion8),
+  ];
+
+  currentSprite: PIXI.Sprite | undefined;
+
+  isFinished = false;
+
+  constructor(action: PunchAction, pixi: PIXI.Application) {
+    this.punchAction = action;
+    this.pixi = pixi;
+    [this.currentSprite] = this.sprites;
+    const { currentSprite } = this;
+    if (!currentSprite) throw new Error();
+    currentSprite.x = this.punchAction.fighter.location.x;
+    currentSprite.y = this.punchAction.fighter.location.y;
+    currentSprite.scale.set(0.1);
+    this.pixi.stage.addChild(currentSprite);
+  }
+
+  render(): void {
+    if (Date.now() - this.startTime > 5) {
+      this.startTime = Date.now();
+      const { currentSprite } = this;
+      if (!currentSprite) throw new Error();
+      this.pixi.stage.removeChild(currentSprite);
+      const nextSprite = this.sprites[this.sprites.indexOf(currentSprite) + 1];
+      if (!nextSprite) this.isFinished = true;
+      else {
+        nextSprite.x = currentSprite.x;
+        nextSprite.y = currentSprite.y;
+        nextSprite.scale.set(0.1);
+        this.pixi.stage.addChild(nextSprite);
+      }
+    }
+  }
+}
 class WorldRenderer implements Renderer {
   world: World;
 
   #pixi: PIXI.Application;
 
-  fighterRenderers: FighterRenderer[];
+  fighterRenderers: FighterRenderer[] = [];
 
-  portionRenderers: PortionRenderer[];
+  portionRenderers: PortionRenderer[] = [];
+
+  punchEffectRenderers: PunchEffectRenderer[] = [];
 
   Graphics: PIXI.Graphics = new PIXI.Graphics();
 
@@ -334,17 +463,36 @@ class WorldRenderer implements Renderer {
     this.portionRenderers = this.world.portions.map(
       (portion) => new PortionRenderer(portion, this.#pixi)
     );
-    const graphics = this.Graphics;
-    graphics.beginFill(0xff0000);
     for (const fighter of this.world.fighters) {
-      graphics.drawRect(
-        fighter.location.x,
-        fighter.location.y - 5,
-        fighter.size.x,
-        2
-      );
+      const { action } = fighter;
+      if (action && action?.type === "punch") {
+        const newRenderer = new PunchEffectRenderer(action, this.#pixi);
+        this.punchEffectRenderers.push(newRenderer);
+      }
     }
-    graphics.endFill();
+    const graphics = this.Graphics;
+    const drawBars = () => {
+      graphics.beginFill(0xff0000);
+      for (const fighter of this.world.fighters) {
+        graphics.drawRect(
+          fighter.location.x,
+          fighter.location.y - 5,
+          fighter.size.x,
+          2
+        );
+      }
+      graphics.beginFill(0x00ff00);
+      for (const fighter of this.world.fighters) {
+        graphics.drawRect(
+          fighter.location.x,
+          fighter.location.y - 10,
+          fighter.size.x,
+          2
+        );
+      }
+      graphics.endFill();
+    };
+    drawBars();
     this.#pixi.stage.addChild(graphics);
   }
 
@@ -357,12 +505,22 @@ class WorldRenderer implements Renderer {
   render() {
     this.addPortionSprite();
     this.deletePortionSprite();
-    this.updateStaminaBar();
+    this.updateStaminaBarAndHPBar();
     for (const fighterRenderer of this.fighterRenderers) {
       fighterRenderer.render();
     }
     for (const portionRenderer of this.portionRenderers) {
       portionRenderer.render();
+    }
+    for (const punchEffectRenderer of this.punchEffectRenderers) {
+      if (punchEffectRenderer.isFinished) {
+        this.punchEffectRenderers.splice(
+          this.punchEffectRenderers.indexOf(punchEffectRenderer),
+          1
+        );
+      } else {
+        punchEffectRenderer.render();
+      }
     }
   }
 
@@ -392,20 +550,37 @@ class WorldRenderer implements Renderer {
     });
   }
 
-  updateStaminaBar() {
+  updateStaminaBarAndHPBar() {
     const graphics = this.Graphics;
     graphics.clear();
-    graphics.beginFill(0xff0000);
-    for (const fighter of this.world.fighters) {
-      graphics.drawRect(
-        fighter.location.x,
-        fighter.location.y - 5,
-        fighter.stamina < 200
-          ? fighter.size.x * (fighter.stamina / 200)
-          : fighter.size.x,
-        2
-      );
-    }
+    const updateStaminaBar = () => {
+      graphics.beginFill(0xff0000);
+      for (const fighter of this.world.fighters) {
+        graphics.drawRect(
+          fighter.location.x,
+          fighter.location.y - 5,
+          fighter.stamina < 200
+            ? fighter.size.x * (fighter.stamina / 200)
+            : fighter.size.x,
+          2
+        );
+      }
+    };
+    const updateHPbar = () => {
+      graphics.beginFill(0x00ff00);
+      for (const fighter of this.world.fighters) {
+        graphics.drawRect(
+          fighter.location.x,
+          fighter.location.y - 10,
+          fighter.HP < 100
+            ? fighter.size.x * (fighter.HP / 100)
+            : fighter.size.x,
+          2
+        );
+      }
+    };
+    updateStaminaBar();
+    updateHPbar();
     graphics.endFill();
   }
 
@@ -463,7 +638,7 @@ export default class GameManager {
       };
       runFightersAction();
       this.world.detectCollision();
-      if (currentTime - previousTime2 >= 100) {
+      if (currentTime - previousTime2 >= 500) {
         previousTime2 = Date.now();
         this.world.setRandomPortion();
         this.sendScriptsToWorkers();
@@ -489,6 +664,9 @@ export default class GameManager {
         if (data.type === "runTo") {
           player.action = new RunToAction(this.world, player, data.target);
         }
+        if (data.type === "punch") {
+          player.action = new PunchAction(this.world, player, data.target);
+        }
       };
       this.workers.push(worker);
     }
@@ -500,7 +678,7 @@ export default class GameManager {
     // const script = "walkTo(0,'closestPortion')";
     // const script = "runTo(0,'closestPortion')";
     const { portions } = this.world;
-    for (let i = 0; i < this.world.fighters.length; i += 1) {
+    for (let i = 0; i < this.world.fighters.length - 1; i += 1) {
       const player = this.world.fighters[i];
       if (!player) throw new Error();
       const enemies = this.world.fighters.filter(
@@ -555,12 +733,68 @@ export default class GameManager {
           }
           target = closestPortion
           ${
-            i !== this.world.fighters.length - 1
+            i !== this.world.fighters.length - 2
               ? "walkTo(target);"
               : "runTo(target)"
           }`;
       this.workers[i]?.postMessage(script);
     }
+    const player4 = this.world.fighters[this.world.fighters.length - 1];
+    const enemies = this.world.fighters.filter(
+      (fighter) => fighter !== player4
+    );
+    if (!player4) throw new Error();
+    const script4 = `
+    player = ${JSON.stringify({
+      location: player4.location,
+      HP: player4.HP,
+      speed: player4.speed,
+      stamina: player4.stamina,
+      armLength: player4.armLength,
+      weapon: {
+        firingRange: player4.weapon?.firingRange,
+        attackRange: player4.weapon?.attackRange,
+        speed: player4.weapon?.speed,
+        reloadFrame: player4.weapon?.reloadFrame,
+        staminaRequired: player4.weapon?.staminaRequired,
+      },
+    })} 
+    enemies = ${JSON.stringify(
+      enemies.map((enemy) => {
+        return {
+          location: enemy.location,
+          HP: enemy.HP,
+          speed: enemy.speed,
+          stamina: enemy.stamina,
+          weapon: {
+            firingRange: enemy.weapon?.firingRange,
+            attackRange: enemy.weapon?.attackRange,
+            speed: enemy.weapon?.speed,
+            reloadFrame: enemy.weapon?.reloadFrame,
+            staminaRequired: enemy.weapon?.staminaRequired,
+          },
+        };
+      })
+    )}
+    portions = ${JSON.stringify(
+      portions.map((portion) => {
+        return {
+          location: portion.location,
+          type: portion.type,
+          effect: portion.effect,
+        };
+      })
+    )}
+    const weapons = ${JSON.stringify(this.world.weapons)}
+          let closestEnemy = enemies[0]
+          for ( const enemy of enemies ) {
+            const previousDistance = calculateDistance( player, closestEnemy );
+            const currentDistance = calculateDistance( player, enemy );
+            if(previousDistance > currentDistance){closestEnemy = enemy}   
+          }
+          if(calculateDistance(player,closestEnemy)<player.armLength){punch(closestEnemy);}
+    `;
+    this.workers[3]?.postMessage(script4);
   }
 
   destroy() {
