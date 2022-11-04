@@ -11,6 +11,9 @@ import explosion6 from "../../resources/explosion6.png";
 import explosion7 from "../../resources/explosion7.png";
 import explosion8 from "../../resources/explosion8.png";
 
+const MAX_HP = 100;
+const MAX_STAMINA = 100;
+
 interface Vector2 {
   x: number;
   y: number;
@@ -53,8 +56,16 @@ type DataFromWorker =
       type: "walkTo" | "runTo";
       target: Vector2;
     }
-  | { type: "punch"; target: Fighter };
+  | { type: "punch"; target: TargetData };
 
+interface TargetData extends Entity {
+  HP: number;
+  id: number;
+  speed: number;
+  stamina: number;
+  armLength: number;
+  weapon: Weapon | null;
+}
 interface Weapon extends Entity {
   firingRange: number;
   attackRange: number;
@@ -66,15 +77,19 @@ interface Weapon extends Entity {
 //  ドメインオブジェクト
 
 class Fighter implements Entity {
+  id: number;
+
   location: Vector2;
 
   readonly size: Vector2 = { x: 20, y: 20 };
+
+  isAlive = true;
 
   HP = 100;
 
   speed = 2; // 1 フレームの移動
 
-  stamina = 200;
+  stamina = 100;
 
   weapon: Weapon | null = null;
 
@@ -86,9 +101,10 @@ class Fighter implements Entity {
 
   isShortOfStamina = false;
 
-  armLength = 200;
+  armLength = 100;
 
-  constructor(location: Vector2) {
+  constructor(id: number, location: Vector2) {
+    this.id = id;
     this.location = location;
   }
 }
@@ -114,24 +130,18 @@ class Portion implements Entity {
     this.effect = effect;
   }
 }
+
 class World {
-  fighters: Fighter[] = [];
+  fighters: Fighter[] = [
+    new Fighter(0, { x: 100, y: 100 }),
+    new Fighter(1, { x: 200, y: 200 }),
+    new Fighter(2, { x: 300, y: 300 }),
+    new Fighter(3, { x: 400, y: 400 }),
+  ];
 
   portions: Portion[] = [];
 
   weapons: Weapon[] = [];
-
-  addedPortions: Portion[] = [];
-
-  deletedPortions: Portion[] = [];
-
-  constructor() {
-    for (let i = 0; i < 4; i += 1) {
-      const location = { x: 100 * i + 100, y: 100 * i + 100 };
-      const fighter = new Fighter(location);
-      this.fighters.push(fighter);
-    }
-  }
 
   setRandomPortion() {
     const size = { x: 20, y: 20 };
@@ -177,41 +187,76 @@ class World {
     const location = setAppropriateLocation();
     const portion = new Portion(location, size, "speedUp", 1);
     this.portions.push(portion);
-    this.addedPortions.push(portion);
+  }
+
+  runFightersAction() {
+    for (const fighter of this.fighters) {
+      // スタミナ回復
+      if (fighter.stamina < MAX_STAMINA) fighter.stamina += 1;
+      // スタミナ不足か判断後、アクションによってはスタミナ消費し実行
+      if (!fighter.isShortOfStamina) {
+        const { action } = fighter;
+        if (action) {
+          if (action instanceof PunchAction) {
+            if (!action.isCompleted) {
+              action.tick();
+              fighter.stamina = Math.max(
+                fighter.stamina - action.requiredStamina,
+                0
+              );
+              action.isCompleted = true;
+            }
+          } else if (action instanceof RunToAction) {
+            action.tick();
+            fighter.stamina = Math.max(
+              fighter.stamina - action.requiredStamina,
+              0
+            );
+          } else {
+            action.tick();
+          }
+        }
+        if (fighter.stamina === 0) fighter.isShortOfStamina = true;
+      } else if (fighter.stamina > MAX_STAMINA / 2) {
+        fighter.isShortOfStamina = false;
+      }
+    }
   }
 
   detectCollision() {
-    const detectCollisionWithPortions = () => {
-      for (const fighter of this.fighters) {
-        this.portions.forEach((portion) => {
-          if (
-            fighter.location.x + fighter.size.x > portion.location.x &&
-            fighter.location.x < portion.location.x + portion.size.x &&
-            fighter.location.y + fighter.size.y > portion.location.y &&
-            fighter.location.y < portion.location.y + portion.size.y
-          ) {
-            this.portions.splice(this.portions.indexOf(portion), 1);
-            this.deletedPortions.push(portion);
-            if (fighter.speed < 8) {
-              setTimeout(() => {
-                fighter.speed -= 0.5;
-              }, 5000);
-            }
-            fighter.speed = Math.min(fighter.speed + 0.5, 8);
+    // ポーションとの当たり判定
+    for (const fighter of this.fighters) {
+      this.portions.forEach((portion) => {
+        if (
+          fighter.location.x + fighter.size.x > portion.location.x &&
+          fighter.location.x < portion.location.x + portion.size.x &&
+          fighter.location.y + fighter.size.y > portion.location.y &&
+          fighter.location.y < portion.location.y + portion.size.y
+        ) {
+          this.portions.splice(this.portions.indexOf(portion), 1);
+          if (fighter.speed < 8) {
+            setTimeout(() => {
+              fighter.speed -= 0.5;
+            }, 5000);
           }
-        });
-      }
-    };
-    const detectCollisionWithWalls = () => {
-      for (const fighter of this.fighters) {
-        fighter.location = {
-          x: Math.min(fighter.location.x, 800 - fighter.size.x),
-          y: Math.min(fighter.location.y, 600 - fighter.size.y),
-        };
-      }
-    };
-    detectCollisionWithPortions();
-    detectCollisionWithWalls();
+          fighter.speed = Math.min(fighter.speed + 0.5, 8);
+        }
+      });
+    }
+
+    // 壁との当たり判定
+    for (const fighter of this.fighters) {
+      fighter.location = {
+        x: Math.min(fighter.location.x, 800 - fighter.size.x),
+        y: Math.min(fighter.location.y, 600 - fighter.size.y),
+      };
+    }
+  }
+
+  checkFightersHP() {
+    for (const fighter of this.fighters) {
+      if (fighter.HP <= 0) fighter.isAlive = false;
+    }
   }
 }
 
@@ -220,39 +265,34 @@ class World {
 interface FighterAction {
   type: string;
 
-  world: World;
+  actor: Fighter;
 
-  fighter: Fighter;
+  readonly requiredStamina: number;
 
-  requiredStamina: number;
-
-  tick(delay: number): void;
+  tick(): void;
 }
 
 class WalkToAction implements FighterAction {
   type = "walk";
 
-  world: World;
-
-  fighter: Fighter;
+  actor: Fighter;
 
   destination: Vector2;
 
   requiredStamina = 0;
 
-  constructor(world: World, fighter: Fighter, destination: Vector2) {
-    this.world = world;
-    this.fighter = fighter;
+  constructor(fighter: Fighter, destination: Vector2) {
+    this.actor = fighter;
     this.destination = destination;
   }
 
   tick() {
     const walk = () => {
-      const deltaX = this.destination.x - this.fighter.location.x;
-      const deltaY = this.destination.y - this.fighter.location.y;
-      this.fighter.direction = normalizeVector2(deltaX, deltaY);
-      this.fighter.location.x += this.fighter.direction.x * this.fighter.speed;
-      this.fighter.location.y += this.fighter.direction.y * this.fighter.speed;
+      const deltaX = this.destination.x - this.actor.location.x;
+      const deltaY = this.destination.y - this.actor.location.y;
+      this.actor.direction = normalizeVector2(deltaX, deltaY);
+      this.actor.location.x += this.actor.direction.x * this.actor.speed;
+      this.actor.location.y += this.actor.direction.y * this.actor.speed;
     };
     if (this.destination) walk();
   }
@@ -261,29 +301,24 @@ class WalkToAction implements FighterAction {
 class RunToAction implements FighterAction {
   type = "run";
 
-  world: World;
-
-  fighter: Fighter;
+  actor: Fighter;
 
   destination: Vector2;
 
   requiredStamina = 2;
 
-  constructor(world: World, fighter: Fighter, destination: Vector2) {
-    this.world = world;
-    this.fighter = fighter;
+  constructor(fighter: Fighter, destination: Vector2) {
+    this.actor = fighter;
     this.destination = destination;
   }
 
   tick() {
     const run = () => {
-      const deltaX = this.destination.x - this.fighter.location.x;
-      const deltaY = this.destination.y - this.fighter.location.y;
-      this.fighter.direction = normalizeVector2(deltaX, deltaY);
-      this.fighter.location.x +=
-        this.fighter.direction.x * (this.fighter.speed + 1);
-      this.fighter.location.y +=
-        this.fighter.direction.y * (this.fighter.speed + 1);
+      const deltaX = this.destination.x - this.actor.location.x;
+      const deltaY = this.destination.y - this.actor.location.y;
+      this.actor.direction = normalizeVector2(deltaX, deltaY);
+      this.actor.location.x += this.actor.direction.x * (this.actor.speed + 1);
+      this.actor.location.y += this.actor.direction.y * (this.actor.speed + 1);
     };
     if (this.destination) run();
   }
@@ -292,53 +327,43 @@ class RunToAction implements FighterAction {
 class PunchAction implements FighterAction {
   type = "punch";
 
-  world: World;
-
-  fighter: Fighter;
-
-  requiredStamina = 11;
+  actor: Fighter;
 
   target: Fighter;
 
-  isHit = false;
+  isCompleted = false;
 
-  constructor(world: World, fighter: Fighter, target: Fighter) {
-    this.world = world;
-    this.fighter = fighter;
+  requiredStamina = 11;
+
+  constructor(actor: Fighter, target: Fighter) {
+    this.actor = actor;
     this.target = target;
   }
 
   tick() {
-    const punch = () => {
-      const distance = calculateDistance(this.fighter, this.target);
-      console.log(distance);
-      if (distance < this.fighter.armLength) {
-        this.target.HP -= 10;
-        this.isHit = true;
-        console.log(this.target.HP);
-      }
-      console.log("punch");
-    };
-    punch();
+    const distance = calculateDistance(this.actor, this.target);
+    if (distance <= this.actor.armLength) {
+      this.target.HP -= 10;
+    }
   }
 }
 
 // レンダラー
 
-interface Renderer {
-  render(delta: number): void;
-}
-
-class FighterRenderer implements Renderer {
+class FighterRenderer {
   fighter: Fighter;
 
   pixi: PIXI.Application;
 
   sprite: PIXI.Sprite;
 
+  statusBarGraphics: PIXI.Graphics;
+
   constructor(fighter: Fighter, pixi: PIXI.Application) {
     this.fighter = fighter;
     this.pixi = pixi;
+
+    // 機体画像
     this.sprite = PIXI.Sprite.from(aircraftImage);
     this.sprite.width = this.fighter.size.x;
     this.sprite.height = this.fighter.size.y;
@@ -346,9 +371,14 @@ class FighterRenderer implements Renderer {
     this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
     this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
     pixi.stage.addChild(this.sprite);
+
+    // HPバー・ステータスバー
+    this.statusBarGraphics = new PIXI.Graphics();
+    pixi.stage.addChild(this.statusBarGraphics);
   }
 
   render(): void {
+    // 機体画像
     this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
     this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
     const radian =
@@ -356,10 +386,35 @@ class FighterRenderer implements Renderer {
       Math.PI / 2;
     this.sprite.rotation =
       this.fighter.direction.x <= 0 ? radian : radian + Math.PI;
+
+    // HPバー・スタミナバー
+    this.statusBarGraphics.clear();
+    this.statusBarGraphics.x = this.fighter.location.x;
+    this.statusBarGraphics.y = this.fighter.location.y - 10;
+
+    // HPバー
+    this.statusBarGraphics.beginFill(0x00ff00);
+    this.statusBarGraphics.drawRect(0, 0, (20 * this.fighter.HP) / MAX_HP, 2);
+
+    // スタミナバー
+    this.statusBarGraphics.beginFill(0xff0000);
+    this.statusBarGraphics.drawRect(
+      0,
+      5,
+      (20 * this.fighter.stamina) / MAX_STAMINA,
+      2
+    );
+
+    this.statusBarGraphics.endFill();
+  }
+
+  destroy() {
+    this.pixi.stage.removeChild(this.sprite);
+    this.pixi.stage.removeChild(this.statusBarGraphics);
   }
 }
 
-class PortionRenderer implements Renderer {
+class PortionRenderer {
   portion: Portion;
 
   pixi: PIXI.Application;
@@ -383,71 +438,63 @@ class PortionRenderer implements Renderer {
     this.sprite.x = this.portion.location.x;
     this.sprite.y = this.portion.location.y;
   }
+
+  destroy() {
+    this.pixi.stage.removeChild(this.sprite);
+  }
 }
 
-class PunchEffectRenderer implements Renderer {
+class PunchEffectRenderer {
   punchAction: PunchAction;
 
   pixi: PIXI.Application;
 
-  startTime: number = Date.now();
+  onCompleted?: () => void;
 
-  sprites: PIXI.Sprite[] = [
-    PIXI.Sprite.from(explosion1),
-    PIXI.Sprite.from(explosion2),
-    PIXI.Sprite.from(explosion3),
-    PIXI.Sprite.from(explosion4),
-    PIXI.Sprite.from(explosion5),
-    PIXI.Sprite.from(explosion6),
-    PIXI.Sprite.from(explosion7),
-    PIXI.Sprite.from(explosion8),
+  static sprites: PIXI.Texture[] = [
+    PIXI.Texture.from(explosion1),
+    PIXI.Texture.from(explosion2),
+    PIXI.Texture.from(explosion3),
+    PIXI.Texture.from(explosion4),
+    PIXI.Texture.from(explosion5),
+    PIXI.Texture.from(explosion6),
+    PIXI.Texture.from(explosion7),
+    PIXI.Texture.from(explosion8),
   ];
 
-  currentSprite: PIXI.Sprite | undefined;
+  animatedSprite: PIXI.AnimatedSprite;
 
-  isFinished = false;
-
-  constructor(action: PunchAction, pixi: PIXI.Application) {
-    this.punchAction = action;
+  constructor(punchAction: PunchAction, pixi: PIXI.Application) {
+    this.punchAction = punchAction;
     this.pixi = pixi;
-    [this.currentSprite] = this.sprites;
-    const { currentSprite } = this;
-    if (!currentSprite) throw new Error();
-    currentSprite.x = this.punchAction.fighter.location.x;
-    currentSprite.y = this.punchAction.fighter.location.y;
-    currentSprite.scale.set(0.1);
-    this.pixi.stage.addChild(currentSprite);
+    this.animatedSprite = new PIXI.AnimatedSprite(PunchEffectRenderer.sprites);
+    this.animatedSprite.anchor.set(0.5);
+    this.animatedSprite.scale.set(0.5);
+    this.animatedSprite.x = this.punchAction.target.location.x + 10;
+    this.animatedSprite.y = this.punchAction.target.location.y + 10;
+    this.animatedSprite.loop = false;
+    this.animatedSprite.onComplete = () => {
+      this.onCompleted?.();
+    };
+    this.pixi.stage.addChild(this.animatedSprite);
+    this.animatedSprite.play();
   }
 
-  render(): void {
-    if (Date.now() - this.startTime > 5) {
-      this.startTime = Date.now();
-      const { currentSprite } = this;
-      if (!currentSprite) throw new Error();
-      this.pixi.stage.removeChild(currentSprite);
-      const nextSprite = this.sprites[this.sprites.indexOf(currentSprite) + 1];
-      if (!nextSprite) this.isFinished = true;
-      else {
-        nextSprite.x = currentSprite.x;
-        nextSprite.y = currentSprite.y;
-        nextSprite.scale.set(0.1);
-        this.pixi.stage.addChild(nextSprite);
-      }
-    }
+  destroy(): void {
+    this.pixi.stage.removeChild(this.animatedSprite);
   }
 }
-class WorldRenderer implements Renderer {
+
+class WorldRenderer {
   world: World;
 
   #pixi: PIXI.Application;
 
-  fighterRenderers: FighterRenderer[] = [];
+  fighterRenderers = new Map<Fighter, FighterRenderer>();
 
-  portionRenderers: PortionRenderer[] = [];
+  portionRenderers = new Map<Portion, PortionRenderer>();
 
-  punchEffectRenderers: PunchEffectRenderer[] = [];
-
-  Graphics: PIXI.Graphics = new PIXI.Graphics();
+  punchEffectRenderers = new Map<PunchAction, PunchEffectRenderer>();
 
   constructor(world: World, canvas: HTMLCanvasElement) {
     this.world = world;
@@ -457,43 +504,12 @@ class WorldRenderer implements Renderer {
       height: 600,
       backgroundColor: 0xffffff,
     });
-    this.fighterRenderers = this.world.fighters.map(
-      (fighter) => new FighterRenderer(fighter, this.#pixi)
-    );
-    this.portionRenderers = this.world.portions.map(
-      (portion) => new PortionRenderer(portion, this.#pixi)
-    );
     for (const fighter of this.world.fighters) {
-      const { action } = fighter;
-      if (action && action?.type === "punch") {
-        const newRenderer = new PunchEffectRenderer(action, this.#pixi);
-        this.punchEffectRenderers.push(newRenderer);
-      }
+      this.fighterRenderers.set(
+        fighter,
+        new FighterRenderer(fighter, this.#pixi)
+      );
     }
-    const graphics = this.Graphics;
-    const drawBars = () => {
-      graphics.beginFill(0xff0000);
-      for (const fighter of this.world.fighters) {
-        graphics.drawRect(
-          fighter.location.x,
-          fighter.location.y - 5,
-          fighter.size.x,
-          2
-        );
-      }
-      graphics.beginFill(0x00ff00);
-      for (const fighter of this.world.fighters) {
-        graphics.drawRect(
-          fighter.location.x,
-          fighter.location.y - 10,
-          fighter.size.x,
-          2
-        );
-      }
-      graphics.endFill();
-    };
-    drawBars();
-    this.#pixi.stage.addChild(graphics);
   }
 
   run() {
@@ -503,85 +519,52 @@ class WorldRenderer implements Renderer {
   }
 
   render() {
-    this.addPortionSprite();
-    this.deletePortionSprite();
-    this.updateStaminaBarAndHPBar();
-    for (const fighterRenderer of this.fighterRenderers) {
-      fighterRenderer.render();
+    // ファイター
+    for (const [fighter, fighterRenderer] of this.fighterRenderers) {
+      if (fighter.isAlive) {
+        fighterRenderer.render();
+      } else {
+        fighterRenderer.destroy();
+        this.fighterRenderers.delete(fighter);
+      }
     }
-    for (const portionRenderer of this.portionRenderers) {
-      portionRenderer.render();
-    }
-    for (const punchEffectRenderer of this.punchEffectRenderers) {
-      if (punchEffectRenderer.isFinished) {
-        this.punchEffectRenderers.splice(
-          this.punchEffectRenderers.indexOf(punchEffectRenderer),
-          1
+
+    // ポーション
+    const unusedPortionRenderers = new Set(this.portionRenderers.values());
+    for (const portion of this.world.portions) {
+      const existingRenderer = this.portionRenderers.get(portion);
+      if (!existingRenderer) {
+        this.portionRenderers.set(
+          portion,
+          new PortionRenderer(portion, this.#pixi)
         );
       } else {
-        punchEffectRenderer.render();
+        existingRenderer.render();
+        unusedPortionRenderers.delete(existingRenderer);
       }
     }
-  }
+    for (const renderer of unusedPortionRenderers) {
+      renderer.destroy();
+    }
 
-  addPortionSprite() {
-    this.world.addedPortions.forEach((addedPortion) => {
-      const newRenderer = new PortionRenderer(addedPortion, this.#pixi);
-      this.world.addedPortions.splice(
-        this.world.addedPortions.indexOf(addedPortion),
-        1
-      );
-      this.portionRenderers.push(newRenderer);
-    });
-  }
-
-  deletePortionSprite() {
-    this.world.deletedPortions.forEach((deletedPortion) => {
-      const oldRenderer = this.portionRenderers.find((portionRenderer) => {
-        return portionRenderer.portion === deletedPortion;
-      });
-      if (oldRenderer) {
-        this.#pixi.stage.removeChild(oldRenderer.sprite);
-        this.portionRenderers.splice(
-          this.portionRenderers.indexOf(oldRenderer),
-          1
-        );
+    // エフェクト
+    for (const fighter of this.world.fighters) {
+      const { action } = fighter;
+      if (action instanceof PunchAction) {
+        const existingRenderer = this.punchEffectRenderers.get(action);
+        if (!existingRenderer) {
+          const newRenderer = new PunchEffectRenderer(action, this.#pixi);
+          this.punchEffectRenderers.set(action, newRenderer);
+          newRenderer.onCompleted = () => {
+            this.punchEffectRenderers.delete(action);
+            newRenderer.destroy();
+          };
+        }
+        else if(action.isCompleted){
+          
+        }
       }
-    });
-  }
-
-  updateStaminaBarAndHPBar() {
-    const graphics = this.Graphics;
-    graphics.clear();
-    const updateStaminaBar = () => {
-      graphics.beginFill(0xff0000);
-      for (const fighter of this.world.fighters) {
-        graphics.drawRect(
-          fighter.location.x,
-          fighter.location.y - 5,
-          fighter.stamina < 200
-            ? fighter.size.x * (fighter.stamina / 200)
-            : fighter.size.x,
-          2
-        );
-      }
-    };
-    const updateHPbar = () => {
-      graphics.beginFill(0x00ff00);
-      for (const fighter of this.world.fighters) {
-        graphics.drawRect(
-          fighter.location.x,
-          fighter.location.y - 10,
-          fighter.HP < 100
-            ? fighter.size.x * (fighter.HP / 100)
-            : fighter.size.x,
-          2
-        );
-      }
-    };
-    updateStaminaBar();
-    updateHPbar();
-    graphics.endFill();
+    }
   }
 
   destroy() {
@@ -610,36 +593,16 @@ export default class GameManager {
     this.buildWorkers();
     this.worldRenderer.run();
     let previousTime = Date.now();
-    let previousTime2 = Date.now();
     const callback = () => {
       if (this.isDestroyed) return;
       const currentTime = Date.now();
-      const delta = currentTime - previousTime;
-      previousTime = currentTime;
-      const runFightersAction = () => {
-        for (const fighter of this.world.fighters) {
-          const { action } = fighter;
-          if (action) {
-            if (fighter.isShortOfStamina === false) {
-              action.tick(delta);
-              fighter.stamina -= action.requiredStamina;
-            }
-          }
-          if (fighter.stamina < 200 && fighter.stamina > 0) {
-            fighter.stamina += 1;
-            if (fighter.stamina >= 50) {
-              fighter.isShortOfStamina = false;
-            }
-          } else if (fighter.stamina <= 0) {
-            fighter.isShortOfStamina = true;
-            fighter.stamina += 1;
-          }
-        }
-      };
-      runFightersAction();
+      // worldクラスのメソッド実行
+      this.world.runFightersAction();
       this.world.detectCollision();
-      if (currentTime - previousTime2 >= 500) {
-        previousTime2 = Date.now();
+      this.world.checkFightersHP();
+      // タイムラグが必要な処理実行
+      if (currentTime - previousTime >= 500) {
+        previousTime = Date.now();
         this.world.setRandomPortion();
         this.sendScriptsToWorkers();
       }
@@ -659,13 +622,16 @@ export default class GameManager {
         if (player === undefined) throw new Error();
         player.action = null;
         if (data.type === "walkTo") {
-          player.action = new WalkToAction(this.world, player, data.target);
+          player.action = new WalkToAction(player, data.target);
         }
         if (data.type === "runTo") {
-          player.action = new RunToAction(this.world, player, data.target);
+          player.action = new RunToAction(player, data.target);
         }
         if (data.type === "punch") {
-          player.action = new PunchAction(this.world, player, data.target);
+          player.action = new PunchAction(
+            player,
+            this.world.fighters[data.target.id]
+          );
         }
       };
       this.workers.push(worker);
@@ -673,10 +639,6 @@ export default class GameManager {
   }
 
   sendScriptsToWorkers() {
-    // const script = "walkTo(0,{ x: 200, y: 300 })";
-    // const script = "walkTo(0, 0)";
-    // const script = "walkTo(0,'closestPortion')";
-    // const script = "runTo(0,'closestPortion')";
     const { portions } = this.world;
     for (let i = 0; i < this.world.fighters.length - 1; i += 1) {
       const player = this.world.fighters[i];
@@ -687,8 +649,10 @@ export default class GameManager {
       const script = `player = ${JSON.stringify({
         location: player.location,
         HP: player.HP,
+        id: player.id,
         speed: player.speed,
         stamina: player.stamina,
+        armLength: player.armLength,
         weapon: {
           firingRange: player.weapon?.firingRange,
           attackRange: player.weapon?.attackRange,
@@ -702,8 +666,10 @@ export default class GameManager {
               return {
                 location: enemy.location,
                 HP: enemy.HP,
+                id: enemy.id,
                 speed: enemy.speed,
                 stamina: enemy.stamina,
+                armLength: enemy.armLength,
                 weapon: {
                   firingRange: enemy.weapon?.firingRange,
                   attackRange: enemy.weapon?.attackRange,
@@ -737,7 +703,7 @@ export default class GameManager {
               ? "walkTo(target);"
               : "runTo(target)"
           }`;
-      this.workers[i]?.postMessage(script);
+      if (this.world.fighters[i]) this.workers[i]?.postMessage(script);
     }
     const player4 = this.world.fighters[this.world.fighters.length - 1];
     const enemies = this.world.fighters.filter(
@@ -748,6 +714,7 @@ export default class GameManager {
     player = ${JSON.stringify({
       location: player4.location,
       HP: player4.HP,
+      id: player4.id,
       speed: player4.speed,
       stamina: player4.stamina,
       armLength: player4.armLength,
@@ -764,8 +731,10 @@ export default class GameManager {
         return {
           location: enemy.location,
           HP: enemy.HP,
+          id: enemy.id,
           speed: enemy.speed,
           stamina: enemy.stamina,
+          armLength: enemy.armLength,
           weapon: {
             firingRange: enemy.weapon?.firingRange,
             attackRange: enemy.weapon?.attackRange,
@@ -792,9 +761,10 @@ export default class GameManager {
             const currentDistance = calculateDistance( player, enemy );
             if(previousDistance > currentDistance){closestEnemy = enemy}   
           }
-          if(calculateDistance(player,closestEnemy)<player.armLength){punch(closestEnemy);}
+          if(calculateDistance(player,closestEnemy)<=player.armLength){punch(closestEnemy);}
+          else{runTo(closestEnemy)}
     `;
-    this.workers[3]?.postMessage(script4);
+    if (this.workers[3]) this.workers[3]?.postMessage(script4);
   }
 
   destroy() {

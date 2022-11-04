@@ -3,8 +3,10 @@ import type { Vector2, Entity } from "./game";
 
 interface Fighter extends Entity {
   HP: number;
+  id: number;
   speed: number;
   stamina: number;
+  armLength: number;
   weapon: Weapon | null;
 }
 interface Portion extends Entity {
