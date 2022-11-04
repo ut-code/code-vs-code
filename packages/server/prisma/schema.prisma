@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int                       @id @default(autoincrement())
+  name                String                    @db.VarChar(255)
+  createdAt           DateTime                  @default(now())
+  userIdentity        UserBattleIdentity?
+  battleParticipation UserBattleParticipation[]
+}
+
+model UserBattleIdentity {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  program   String
+  league    Int
+}
+
+model Battle {
+  id                Int                       @id @default(autoincrement())
+  createdAt         DateTime                  @default(now())
+  league            Int
+  userParticipation UserBattleParticipation[]
+}
+
+model UserBattleParticipation {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  battle   Battle @relation(fields: [battleId], references: [id])
+  battleId Int
+}
