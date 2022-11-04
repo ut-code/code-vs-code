@@ -19,10 +19,10 @@ interface Vector2 {
   y: number;
 }
 
-function normalizeVector2(x: number, y: number): Vector2 {
+function normalizeVector2(vector2: Vector2): Vector2 {
   return {
-    x: x / Math.sqrt(x ** 2 + y ** 2),
-    y: y / Math.sqrt(x ** 2 + y ** 2),
+    x: vector2.x / Math.sqrt(vector2.x ** 2 + vector2.y ** 2),
+    y: vector2.y / Math.sqrt(vector2.x ** 2 + vector2.y ** 2),
   };
 }
 
@@ -32,22 +32,14 @@ interface Entity {
   readonly size: Vector2;
 }
 
-function calculateDistance(thing: Entity, destination: Vector2 | Entity) {
-  if (!thing) throw new Error();
-  if (!destination) throw new Error("destination is undefined");
-  if ("x" in destination) {
-    return Number(
-      Math.sqrt(
-        (destination.x - thing.location.x) ** 2 +
-          (destination.y - thing.location.y) ** 2
-      )
-    );
-  }
+function calculateDistance(
+  thing: Vector2 | Entity,
+  destination: Vector2 | Entity
+) {
+  const vector1 = "x" in thing ? thing : thing.location;
+  const vector2 = "x" in destination ? destination : destination.location;
   return Number(
-    Math.sqrt(
-      (destination.location.x - thing.location.x) ** 2 +
-        (destination.location.y - thing.location.y) ** 2
-    )
+    Math.sqrt((vector2.x - vector1.x) ** 2 + (vector2.y - vector1.y) ** 2)
   );
 }
 
@@ -101,7 +93,7 @@ class Fighter implements Entity {
 
   isShortOfStamina = false;
 
-  armLength = 100;
+  static armLength = 50;
 
   constructor(id: number, location: Vector2) {
     this.id = id;
@@ -263,8 +255,6 @@ class World {
 // アクション
 
 interface FighterAction {
-  type: string;
-
   actor: Fighter;
 
   readonly requiredStamina: number;
@@ -273,8 +263,6 @@ interface FighterAction {
 }
 
 class WalkToAction implements FighterAction {
-  type = "walk";
-
   actor: Fighter;
 
   destination: Vector2;
@@ -287,20 +275,17 @@ class WalkToAction implements FighterAction {
   }
 
   tick() {
-    const walk = () => {
-      const deltaX = this.destination.x - this.actor.location.x;
-      const deltaY = this.destination.y - this.actor.location.y;
-      this.actor.direction = normalizeVector2(deltaX, deltaY);
-      this.actor.location.x += this.actor.direction.x * this.actor.speed;
-      this.actor.location.y += this.actor.direction.y * this.actor.speed;
+    const vector2 = {
+      x: this.destination.x - this.actor.location.x,
+      y: this.destination.y - this.actor.location.y,
     };
-    if (this.destination) walk();
+    this.actor.direction = normalizeVector2(vector2);
+    this.actor.location.x += this.actor.direction.x * this.actor.speed;
+    this.actor.location.y += this.actor.direction.y * this.actor.speed;
   }
 }
 
 class RunToAction implements FighterAction {
-  type = "run";
-
   actor: Fighter;
 
   destination: Vector2;
@@ -313,20 +298,17 @@ class RunToAction implements FighterAction {
   }
 
   tick() {
-    const run = () => {
-      const deltaX = this.destination.x - this.actor.location.x;
-      const deltaY = this.destination.y - this.actor.location.y;
-      this.actor.direction = normalizeVector2(deltaX, deltaY);
-      this.actor.location.x += this.actor.direction.x * (this.actor.speed + 1);
-      this.actor.location.y += this.actor.direction.y * (this.actor.speed + 1);
+    const vector2 = {
+      x: this.destination.x - this.actor.location.x,
+      y: this.destination.y - this.actor.location.y,
     };
-    if (this.destination) run();
+    this.actor.direction = normalizeVector2(vector2);
+    this.actor.location.x += this.actor.direction.x * (this.actor.speed + 1);
+    this.actor.location.y += this.actor.direction.y * (this.actor.speed + 1);
   }
 }
 
 class PunchAction implements FighterAction {
-  type = "punch";
-
   actor: Fighter;
 
   target: Fighter;
@@ -342,8 +324,13 @@ class PunchAction implements FighterAction {
 
   tick() {
     const distance = calculateDistance(this.actor, this.target);
-    if (distance <= this.actor.armLength) {
+    if (distance <= Fighter.armLength) {
       this.target.HP -= 10;
+      const vector2 = normalizeVector2({
+        x: this.target.location.x - this.actor.location.x,
+        y: this.target.location.y - this.actor.location.y,
+      });
+      this.actor.direction = vector2;
     }
   }
 }
@@ -553,15 +540,14 @@ class WorldRenderer {
       if (action instanceof PunchAction) {
         const existingRenderer = this.punchEffectRenderers.get(action);
         if (!existingRenderer) {
-          const newRenderer = new PunchEffectRenderer(action, this.#pixi);
-          this.punchEffectRenderers.set(action, newRenderer);
-          newRenderer.onCompleted = () => {
-            this.punchEffectRenderers.delete(action);
-            newRenderer.destroy();
-          };
-        }
-        else if(action.isCompleted){
-          
+          if (!action.isCompleted) {
+            const newRenderer = new PunchEffectRenderer(action, this.#pixi);
+            this.punchEffectRenderers.set(action, newRenderer);
+            newRenderer.onCompleted = () => {
+              this.punchEffectRenderers.delete(action);
+              newRenderer.destroy();
+            };
+          }
         }
       }
     }
@@ -581,11 +567,15 @@ export default class GameManager {
 
   isDestroyed = false;
 
-  workers: Worker[] = [];
+  workers: Map<number, Worker>;
 
-  constructor(canvas: HTMLCanvasElement) {
+  scripts: string[];
+
+  constructor(scripts: string[], canvas: HTMLCanvasElement) {
     this.world = new World();
     this.worldRenderer = new WorldRenderer(this.world, canvas);
+    this.scripts = scripts;
+    this.workers = new Map<number, Worker>();
     this.run();
   }
 
@@ -612,38 +602,39 @@ export default class GameManager {
   }
 
   buildWorkers() {
-    for (let i = 0; i < 4; i += 1) {
+    for (let i = 0; i < this.world.fighters.length; i += 1) {
       const worker = new Worker(new URL("./worker.ts", import.meta.url), {
         type: "module",
       });
       worker.onmessage = (e: MessageEvent<string>) => {
         const data: DataFromWorker = JSON.parse(e.data);
-        const player = this.world.fighters[i];
-        if (player === undefined) throw new Error();
-        player.action = null;
-        if (data.type === "walkTo") {
-          player.action = new WalkToAction(player, data.target);
-        }
-        if (data.type === "runTo") {
-          player.action = new RunToAction(player, data.target);
-        }
-        if (data.type === "punch") {
-          player.action = new PunchAction(
-            player,
-            this.world.fighters[data.target.id]
-          );
+        const player = this.world.fighters.find((fighter) => fighter.id === i);
+        if (player === undefined) {
+          worker.terminate();
+          this.workers.delete(i);
+        } else {
+          if (data.type === "walkTo") {
+            player.action = new WalkToAction(player, data.target);
+          }
+          if (data.type === "runTo") {
+            player.action = new RunToAction(player, data.target);
+          }
+          if (data.type === "punch") {
+            const target = this.world.fighters[data.target.id];
+            if (!target) throw new Error();
+            player.action = new PunchAction(player, target);
+          }
         }
       };
-      this.workers.push(worker);
+      this.workers.set(i, worker);
     }
   }
 
   sendScriptsToWorkers() {
     const { portions } = this.world;
-    for (let i = 0; i < this.world.fighters.length - 1; i += 1) {
-      const player = this.world.fighters[i];
+    for (const player of this.world.fighters) {
       if (!player) throw new Error();
-      const enemies = this.world.fighters.filter(
+      const enemies: Fighter[] = this.world.fighters.filter(
         (fighter) => fighter !== player
       );
       const script = `player = ${JSON.stringify({
@@ -652,7 +643,7 @@ export default class GameManager {
         id: player.id,
         speed: player.speed,
         stamina: player.stamina,
-        armLength: player.armLength,
+        armLength: Fighter.armLength,
         weapon: {
           firingRange: player.weapon?.firingRange,
           attackRange: player.weapon?.attackRange,
@@ -669,13 +660,13 @@ export default class GameManager {
                 id: enemy.id,
                 speed: enemy.speed,
                 stamina: enemy.stamina,
-                armLength: enemy.armLength,
+                armLength: Fighter.armLength,
                 weapon: {
                   firingRange: enemy.weapon?.firingRange,
                   attackRange: enemy.weapon?.attackRange,
                   speed: enemy.weapon?.speed,
                   reloadFrame: enemy.weapon?.reloadFrame,
-                  staminaRequired: enemy.weapon?.staminaRequired,
+                  requiredStamina: enemy.weapon?.staminaRequired,
                 },
               };
             })
@@ -690,89 +681,17 @@ export default class GameManager {
             })
           )}
           const weapons = ${JSON.stringify(this.world.weapons)}
-          let target = null
-          let closestPortion = portions[0]
-          for ( const portion of portions ) {
-            const previousDistance = calculateDistance( player, closestPortion );
-            const currentDistance = calculateDistance( player, portion );
-            if(previousDistance > currentDistance){closestPortion = portion}   
-          }
-          target = closestPortion
-          ${
-            i !== this.world.fighters.length - 2
-              ? "walkTo(target);"
-              : "runTo(target)"
-          }`;
-      if (this.world.fighters[i]) this.workers[i]?.postMessage(script);
+          ${this.scripts[player.id]}`;
+      this.workers.get(player.id)?.postMessage(script);
     }
-    const player4 = this.world.fighters[this.world.fighters.length - 1];
-    const enemies = this.world.fighters.filter(
-      (fighter) => fighter !== player4
-    );
-    if (!player4) throw new Error();
-    const script4 = `
-    player = ${JSON.stringify({
-      location: player4.location,
-      HP: player4.HP,
-      id: player4.id,
-      speed: player4.speed,
-      stamina: player4.stamina,
-      armLength: player4.armLength,
-      weapon: {
-        firingRange: player4.weapon?.firingRange,
-        attackRange: player4.weapon?.attackRange,
-        speed: player4.weapon?.speed,
-        reloadFrame: player4.weapon?.reloadFrame,
-        staminaRequired: player4.weapon?.staminaRequired,
-      },
-    })} 
-    enemies = ${JSON.stringify(
-      enemies.map((enemy) => {
-        return {
-          location: enemy.location,
-          HP: enemy.HP,
-          id: enemy.id,
-          speed: enemy.speed,
-          stamina: enemy.stamina,
-          armLength: enemy.armLength,
-          weapon: {
-            firingRange: enemy.weapon?.firingRange,
-            attackRange: enemy.weapon?.attackRange,
-            speed: enemy.weapon?.speed,
-            reloadFrame: enemy.weapon?.reloadFrame,
-            staminaRequired: enemy.weapon?.staminaRequired,
-          },
-        };
-      })
-    )}
-    portions = ${JSON.stringify(
-      portions.map((portion) => {
-        return {
-          location: portion.location,
-          type: portion.type,
-          effect: portion.effect,
-        };
-      })
-    )}
-    const weapons = ${JSON.stringify(this.world.weapons)}
-          let closestEnemy = enemies[0]
-          for ( const enemy of enemies ) {
-            const previousDistance = calculateDistance( player, closestEnemy );
-            const currentDistance = calculateDistance( player, enemy );
-            if(previousDistance > currentDistance){closestEnemy = enemy}   
-          }
-          if(calculateDistance(player,closestEnemy)<=player.armLength){punch(closestEnemy);}
-          else{runTo(closestEnemy)}
-    `;
-    if (this.workers[3]) this.workers[3]?.postMessage(script4);
   }
 
   destroy() {
     this.worldRenderer.destroy();
-    this.workers.forEach((worker) => {
+    for (const worker of this.workers.values()) {
       worker.terminate();
-    });
-    this.workers = [];
+    }
+    this.workers.clear();
     this.isDestroyed = true;
   }
 }

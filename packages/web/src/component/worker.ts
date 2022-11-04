@@ -22,8 +22,8 @@ interface Weapon extends Entity {
   staminaRequired: number;
 }
 
-type JsonMessage = {
-  type: string;
+type MessageToMainThread = {
+  type: "walkTo" | "runTo" | "punch";
   target: Vector2 | Entity;
 };
 
@@ -36,17 +36,17 @@ onmessage = (e: MessageEvent<string>) => {
     // eslint-disable-next-line no-eval
     eval(e.data) as void;
   } catch (error) {
-    const done = () => null;
+    const done = () => 1;
     done();
   }
 };
 
 function walkTo(target: Vector2 | Entity) {
   if ("x" in target) {
-    const message: JsonMessage = { type: "walkTo", target };
+    const message: MessageToMainThread = { type: "walkTo", target };
     postMessage(JSON.stringify(message));
   } else {
-    const message: JsonMessage = {
+    const message: MessageToMainThread = {
       type: "walkTo",
       target: { x: target.location.x, y: target.location.y },
     };
@@ -57,10 +57,10 @@ function walkTo(target: Vector2 | Entity) {
 
 function runTo(target: Vector2 | Entity) {
   if ("x" in target) {
-    const message: JsonMessage = { type: "runTo", target };
+    const message: MessageToMainThread = { type: "runTo", target };
     postMessage(JSON.stringify(message));
   } else {
-    const message: JsonMessage = {
+    const message: MessageToMainThread = {
       type: "runTo",
       target: { x: target.location.x, y: target.location.y },
     };
@@ -70,29 +70,21 @@ function runTo(target: Vector2 | Entity) {
 }
 
 function punch(target: Fighter) {
-  const message: JsonMessage = {
+  const message: MessageToMainThread = {
     type: "punch",
     target,
   };
   postMessage(JSON.stringify(message));
 }
 
-function calculateDistance(thing: Entity, destination: Vector2 | Entity) {
-  if (!thing) throw new Error();
-  if (!destination) throw new Error("destination is undefined");
-  if ("x" in destination) {
-    return Number(
-      Math.sqrt(
-        (destination.x - thing.location.x) ** 2 +
-          (destination.y - thing.location.y) ** 2
-      )
-    );
-  }
+function calculateDistance(
+  thing: Vector2 | Entity,
+  destination: Vector2 | Entity
+) {
+  const vector1 = "x" in thing ? thing : thing.location;
+  const vector2 = "x" in destination ? destination : destination.location;
   return Number(
-    Math.sqrt(
-      (destination.location.x - thing.location.x) ** 2 +
-        (destination.location.y - thing.location.y) ** 2
-    )
+    Math.sqrt((vector2.x - vector1.x) ** 2 + (vector2.y - vector1.y) ** 2)
   );
 }
 
@@ -130,7 +122,7 @@ function getClosestPortion() {
   return closestPortion;
 }
 
-// eslintのエラーを消すだけの式
+// eval内で呼ばれる関数だがコードだけ見るとどこにも呼ばれてないように見えるのでeslintのエラーを消すための処理
 walkTo.toString();
 runTo.toString();
 punch.toString();
