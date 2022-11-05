@@ -4,14 +4,14 @@ import App from "./App";
 import EmulatorMock from "./component/mock";
 
 interface User {
-  username: string;
+  name: string;
   id: number;
   script: string;
 }
 
 const users: User[] = [
   {
-    username: "fooBarBaz",
+    name: "fooBarBaz",
     id: 0,
     script: `let target = null; 
 let closestPortion = portions[0]; 
@@ -24,7 +24,7 @@ target = closestPortion
 walkTo(target)`,
   },
   {
-    username: "吾輩は猫",
+    name: "吾輩は猫",
     id: 1,
     script: `let target = null; 
 let closestPortion = portions[0]; 
@@ -37,7 +37,7 @@ target = closestPortion
 walkTo(target)`,
   },
   {
-    username: "テスト",
+    name: "テスト",
     id: 2,
     script: `let target = null; 
 let closestPortion = portions[0]; 
@@ -50,7 +50,7 @@ target = closestPortion
 walkTo(target)`,
   },
   {
-    username: "UTC",
+    name: "UTC",
     id: 3,
     script: `let target = null; 
 let closestPortion = portions[0]; 
