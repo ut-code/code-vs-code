@@ -17,15 +17,15 @@ const scripts: string[] = [
   } 
   target = closestPortion 
   walkTo(target)`,
-  `let target = null; 
-  let closestPortion = portions[0]; 
-  for ( const portion of portions ) {
-    const previousDistance = calculateDistance( player, closestPortion ) 
-    const currentDistance = calculateDistance( player, portion );
+  `let closestWeapon = weapons[0];
+  for ( const weapon of weapons ) {
+    const previousDistance = calculateDistance( player, closestWeapon ) 
+    const currentDistance = calculateDistance( player, weapon );
     if(previousDistance > currentDistance){closestPortion = portion}
-  } 
-    target = closestPortion 
-    walkTo(target)`,
+  }
+  if(calculateDistance(player, closestWeapon)<player.armLength){
+    pickUp(closestWeapon)
+  }else{walkTo(closestWeapon)}`,
   `let target = null; 
   let closestPortion = portions[0]; 
   for ( const portion of portions ) {
@@ -47,10 +47,10 @@ const scripts: string[] = [
 ];
 
 // とりあえずここではテストコードとしてusersを生成しています。
-const users: User[] = scripts.map((script) => {
+const users: User[] = scripts.map((script, index) => {
   return {
-    id: scripts.indexOf(script) + 1,
-    username: String(scripts.indexOf(script)),
+    id: index + 1,
+    username: String(index),
     script,
   };
 });

@@ -10,6 +10,7 @@ import explosion5 from "../../resources/explosion5.png";
 import explosion6 from "../../resources/explosion6.png";
 import explosion7 from "../../resources/explosion7.png";
 import explosion8 from "../../resources/explosion8.png";
+import itemFire from "../../resources/itemFire.png";
 
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
@@ -54,33 +55,25 @@ type DataFromWorker =
       type: "walkTo" | "runTo";
       target: Vector2;
     }
-  | { type: "punch"; target: TargetData };
+  | { type: "punch"; target: FighterData }
+  | { type: "pickUp"; target: WeaponData };
 
-interface TargetData extends Entity {
+interface FighterData extends Entity {
   HP: number;
   id: number;
   speed: number;
   stamina: number;
   armLength: number;
-  weapon: Weapon | null;
+  weapon: WeaponData | null;
 }
-class Weapon extends Entity {
-  type = "handgun";
 
+interface WeaponData extends Entity {
+  id: number;
   firingRange: number;
-
-  bulletSize: number;
-
+  bulletScale: number;
   speed: number;
-
   reloadFrame: number;
-
   staminaRequired: number;
-
-  constructor() {
-    this.firingRange = 200;
-    this.bulletSize = 100;
-  }
 }
 
 //  ドメインオブジェクト
@@ -138,12 +131,104 @@ class Portion implements Entity {
   }
 }
 
+// ウェポンの性能は暫定値を代入してます 武器ごとに変える予定です
+class Weapon implements Entity {
+  id: number;
+
+  location: Vector2;
+
+  size: Vector2;
+
+  type = "fire";
+
+  firingRange: number;
+
+  bulletScale: number;
+
+  speed: number;
+
+  reloadFrame: number;
+
+  staminaRequired: number;
+
+  isPickedUp = false;
+
+  constructor(id: number, location: Vector2, size: Vector2) {
+    this.id = id;
+    this.location = location;
+    this.size = size;
+    this.firingRange = 200;
+    this.bulletScale = Math.sqrt(10 ** 2 + 20 ** 2);
+    this.speed = 10;
+    this.reloadFrame = 10;
+    this.staminaRequired = 10;
+  }
+}
+
+function setAppropriateLocation(
+  size: Vector2,
+  fighters: Fighter[],
+  portions: Portion[],
+  weapons: Weapon[]
+) {
+  const checkOverlapWithPortions = (location: Vector2) => {
+    for (const fighter of fighters) {
+      if (!fighter) throw new Error("Cannot find a player");
+      if (
+        location.x + size.x > fighter.location.x &&
+        location.x < fighter.location.x + fighter.size.x &&
+        location.y + size.y > fighter.location.y &&
+        location.y < fighter.location.y + fighter.size.y
+      )
+        return true;
+    }
+    return false;
+  };
+  const checkOverlapWithPlayers = (location: Vector2) => {
+    for (const portion of portions) {
+      if (!portion) throw new Error("Cannot find a portion");
+      if (
+        location.x + size.x > portion.location.x &&
+        location.x < portion.location.x + portion.size.x &&
+        location.y + size.y > portion.location.y &&
+        location.y < portion.location.y + portion.size.y
+      )
+        return true;
+    }
+    return false;
+  };
+  const checkOverlapWithWeapons = (location: Vector2) => {
+    for (const weapon of weapons) {
+      if (!weapon) throw new Error("Cannot find a portion");
+      if (
+        location.x + size.x > weapon.location.x &&
+        location.x < weapon.location.x + weapon.size.x &&
+        location.y + size.y > weapon.location.y &&
+        location.y < weapon.location.y + weapon.size.y
+      )
+        return true;
+    }
+    return false;
+  };
+  const location = { x: Math.random() * 800, y: Math.random() * 600 };
+  while (
+    checkOverlapWithPortions(location) ||
+    checkOverlapWithPlayers(location) ||
+    checkOverlapWithWeapons(location)
+  ) {
+    location.x = Math.random() * 800;
+    location.y = Math.random() * 600;
+  }
+  return location;
+}
 class World {
   fighters: Fighter[];
 
   portions: Portion[] = [];
 
   weapons: Weapon[] = [];
+
+  nextWeaponId = 1;
 
   constructor(fighterIds: number[]) {
     const id1 = fighterIds[0];
@@ -160,46 +245,27 @@ class World {
 
   setRandomPortion() {
     const size = { x: 20, y: 20 };
-    const checkOverlapWithPortions = (location: Vector2) => {
-      for (const fighter of this.fighters) {
-        if (!fighter) throw new Error("Cannot find a player");
-        if (
-          location.x + size.x > fighter.location.x &&
-          location.x < fighter.location.x + fighter.size.x &&
-          location.y + size.y > fighter.location.y &&
-          location.y < fighter.location.y + fighter.size.y
-        )
-          return true;
-      }
-      return false;
-    };
-    const checkOverlapWithPlayers = (location: Vector2) => {
-      for (const otherPortion of this.portions) {
-        if (!otherPortion) throw new Error("Cannot find a portion");
-        if (
-          location.x + size.x > otherPortion.location.x &&
-          location.x < otherPortion.location.x + otherPortion.size.x &&
-          location.y + size.y > otherPortion.location.y &&
-          location.y < otherPortion.location.y + otherPortion.size.y
-        )
-          return true;
-      }
-      return false;
-    };
-    const setAppropriateLocation = () => {
-      const location = { x: Math.random() * 800, y: Math.random() * 600 };
-      while (
-        checkOverlapWithPortions(location) ||
-        checkOverlapWithPlayers(location)
-      ) {
-        location.x = Math.random() * 800;
-        location.y = Math.random() * 600;
-      }
-      return location;
-    };
-    const location = setAppropriateLocation();
+    const location = setAppropriateLocation(
+      size,
+      this.fighters,
+      this.portions,
+      this.weapons
+    );
     const portion = new Portion(location, size, "speedUp", 1);
     this.portions.push(portion);
+  }
+
+  setRandomWeapon() {
+    const size = { x: 15, y: 20 };
+    const location = setAppropriateLocation(
+      size,
+      this.fighters,
+      this.portions,
+      this.weapons
+    );
+    const weapon = new Weapon(this.nextWeaponId, location, size);
+    this.weapons.push(weapon);
+    this.nextWeaponId += 1;
   }
 
   runFightersAction() {
@@ -210,6 +276,7 @@ class World {
       if (!fighter.isShortOfStamina) {
         const { action } = fighter;
         if (action) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           if (action instanceof PunchAction) {
             if (!action.isCompleted) {
               action.tick();
@@ -219,6 +286,7 @@ class World {
               );
               action.isCompleted = true;
             }
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
           } else if (action instanceof RunToAction) {
             action.tick();
             fighter.stamina = Math.max(
@@ -266,15 +334,22 @@ class World {
     }
   }
 
-  checkFightersHP() {
+  deleteFightersDead() {
     for (const fighter of this.fighters) {
       if (fighter.HP <= 0) {
         this.fighters.splice(this.fighters.indexOf(fighter), 1);
       }
     }
   }
-}
 
+  deleteWeaponsPickedUp() {
+    for (const weapon of this.weapons) {
+      if (weapon.isPickedUp) {
+        this.weapons.splice(this.weapons.indexOf(weapon), 1);
+      }
+    }
+  }
+}
 // アクション
 
 interface FighterAction {
@@ -349,6 +424,32 @@ class PunchAction implements FighterAction {
     const distance = calculateDistance(this.actor, this.target);
     if (distance <= Fighter.armLength) {
       this.target.HP -= 10;
+      const vector2 = normalizeVector2({
+        x: this.target.location.x - this.actor.location.x,
+        y: this.target.location.y - this.actor.location.y,
+      });
+      this.actor.direction = vector2;
+    }
+  }
+}
+
+class PickUpAction implements FighterAction {
+  actor: Fighter;
+
+  target: Weapon;
+
+  requiredStamina = 0;
+
+  constructor(actor: Fighter, target: Weapon) {
+    this.actor = actor;
+    this.target = target;
+  }
+
+  tick() {
+    const distance = calculateDistance(this.actor, this.target);
+    if (distance <= Fighter.armLength) {
+      this.actor.weapon = this.target;
+      this.target.isPickedUp = true;
       const vector2 = normalizeVector2({
         x: this.target.location.x - this.actor.location.x,
         y: this.target.location.y - this.actor.location.y,
@@ -433,19 +534,33 @@ class PortionRenderer {
   constructor(portion: Portion, pixi: PIXI.Application) {
     this.portion = portion;
     this.pixi = pixi;
-    if (this.portion.type === "speedUp") {
-      this.sprite = PIXI.Sprite.from(kinoko);
-    }
-    this.sprite.x = this.portion.location.x;
-    this.sprite.y = this.portion.location.y;
+    this.sprite = PIXI.Sprite.from(kinoko);
+    this.sprite.position.set(this.portion.location.x, this.portion.location.y);
     this.sprite.width = this.portion.size.x;
     this.sprite.height = this.portion.size.y;
     this.pixi.stage.addChild(this.sprite);
   }
 
-  render(): void {
-    this.sprite.x = this.portion.location.x;
-    this.sprite.y = this.portion.location.y;
+  destroy() {
+    this.pixi.stage.removeChild(this.sprite);
+  }
+}
+
+class WeaponRenderer {
+  weapon: Weapon;
+
+  pixi: PIXI.Application;
+
+  sprite: PIXI.Sprite;
+
+  constructor(weapon: Weapon, pixi: PIXI.Application) {
+    this.weapon = weapon;
+    this.pixi = pixi;
+    this.sprite = PIXI.Sprite.from(itemFire);
+    this.sprite.position.set(this.weapon.location.x, this.weapon.location.y);
+    this.sprite.width = this.weapon.size.x;
+    this.sprite.height = this.weapon.size.y;
+    this.pixi.stage.addChild(this.sprite);
   }
 
   destroy() {
@@ -503,6 +618,8 @@ class WorldRenderer {
 
   portionRenderers = new Map<Portion, PortionRenderer>();
 
+  weaponRenderers = new Map<Weapon, WeaponRenderer>();
+
   punchEffectRenderers = new Map<PunchAction, PunchEffectRenderer>();
 
   constructor(world: World, canvas: HTMLCanvasElement) {
@@ -556,11 +673,27 @@ class WorldRenderer {
           new PortionRenderer(portion, this.#pixi)
         );
       } else {
-        existingRenderer.render();
         unusedPortionRenderers.delete(existingRenderer);
       }
     }
     for (const renderer of unusedPortionRenderers) {
+      renderer.destroy();
+    }
+
+    // 武器
+    const unusedWeaponRenderers = new Set(this.weaponRenderers.values());
+    for (const weapon of this.world.weapons) {
+      const existingRenderer = this.weaponRenderers.get(weapon);
+      if (!existingRenderer) {
+        this.weaponRenderers.set(
+          weapon,
+          new WeaponRenderer(weapon, this.#pixi)
+        );
+      } else {
+        unusedWeaponRenderers.delete(existingRenderer);
+      }
+    }
+    for (const renderer of unusedWeaponRenderers) {
       renderer.destroy();
     }
 
@@ -620,11 +753,13 @@ export default class GameManager {
       // worldクラスのメソッド実行
       this.world.runFightersAction();
       this.world.detectCollision();
-      this.world.checkFightersHP();
+      this.world.deleteFightersDead();
+      this.world.deleteWeaponsPickedUp();
       // タイムラグが必要な処理実行
       if (currentTime - previousTime >= 500) {
         previousTime = Date.now();
         this.world.setRandomPortion();
+        this.world.setRandomWeapon();
         this.sendScriptsToWorkers();
       }
       requestAnimationFrame(callback);
@@ -652,13 +787,20 @@ export default class GameManager {
           if (!target) throw new Error();
           me.action = new PunchAction(me, target);
         }
+        if (data.type === "pickUp") {
+          const target = this.world.weapons.find(
+            (weapon) => weapon.id === data.target.id
+          );
+          if (!target) throw new Error();
+          me.action = new PickUpAction(me, target);
+        }
       };
       this.workers.set(me.id, worker);
     }
   }
 
   sendScriptsToWorkers() {
-    const { portions } = this.world;
+    const { portions, weapons } = this.world;
     for (const me of this.world.fighters) {
       if (!me) throw new Error();
       const enemies: Fighter[] = this.world.fighters.filter(
@@ -673,7 +815,7 @@ export default class GameManager {
         armLength: Fighter.armLength,
         weapon: {
           firingRange: me.weapon?.firingRange,
-          attackRange: me.weapon?.bulletSize,
+          attackRange: me.weapon?.bulletScale,
           speed: me.weapon?.speed,
           reloadFrame: me.weapon?.reloadFrame,
           staminaRequired: me.weapon?.staminaRequired,
@@ -690,7 +832,7 @@ export default class GameManager {
                 armLength: Fighter.armLength,
                 weapon: {
                   firingRange: enemy.weapon?.firingRange,
-                  attackRange: enemy.weapon?.bulletSize,
+                  attackRange: enemy.weapon?.bulletScale,
                   speed: enemy.weapon?.speed,
                   reloadFrame: enemy.weapon?.reloadFrame,
                   requiredStamina: enemy.weapon?.staminaRequired,
@@ -707,7 +849,19 @@ export default class GameManager {
               };
             })
           )}
-          const weapons = ${JSON.stringify(this.world.weapons)}
+          weapons = ${JSON.stringify(
+            weapons.map((weapon) => {
+              return {
+                id: weapon.id,
+                location: weapon.location,
+                firingRange: weapon.firingRange,
+                bulletScale: weapon.bulletScale,
+                speed: weapon.speed,
+                reloadFrame: weapon.reloadFrame,
+                staminaRequired: weapon.staminaRequired,
+              };
+            })
+          )}
           ${this.users.find((user) => user.id === me.id)?.script}`;
       this.workers.get(me.id)?.postMessage(script);
     }

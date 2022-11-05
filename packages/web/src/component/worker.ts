@@ -15,21 +15,23 @@ interface Portion extends Entity {
 }
 
 interface Weapon extends Entity {
+  id: number;
   firingRange: number;
-  attackRange: number;
+  bulletScale: number;
   speed: number;
   reloadFrame: number;
   staminaRequired: number;
 }
 
 type MessageToMainThread = {
-  type: "walkTo" | "runTo" | "punch";
+  type: "walkTo" | "runTo" | "punch" | "pickUp";
   target: Vector2 | Entity;
 };
 
 let player: Fighter;
 let enemies: Fighter[];
 let portions: Portion[];
+let weapons: Weapon[];
 
 onmessage = (e: MessageEvent<string>) => {
   try {
@@ -75,6 +77,16 @@ function punch(target: Fighter) {
     target,
   };
   postMessage(JSON.stringify(message));
+  throw new Error();
+}
+
+function pickUp(target: Weapon) {
+  const message: MessageToMainThread = {
+    type: "pickUp",
+    target,
+  };
+  postMessage(JSON.stringify(message));
+  throw new Error();
 }
 
 function calculateDistance(
@@ -83,9 +95,7 @@ function calculateDistance(
 ) {
   const vector1 = "x" in thing ? thing : thing.location;
   const vector2 = "x" in destination ? destination : destination.location;
-  return Number(
-    Math.sqrt((vector2.x - vector1.x) ** 2 + (vector2.y - vector1.y) ** 2)
-  );
+  return Math.sqrt((vector2.x - vector1.x) ** 2 + (vector2.y - vector1.y) ** 2);
 }
 
 function getClosestEnemy() {
@@ -122,9 +132,27 @@ function getClosestPortion() {
   return closestPortion;
 }
 
+function getClosestWeapon() {
+  const closestWeapon = weapons.reduce(
+    (previousWeapon: Weapon, currentWeapon: Weapon) => {
+      const previousDistance = calculateDistance(
+        player,
+        previousWeapon.location
+      );
+      const currentDistance = calculateDistance(player, currentWeapon.location);
+      return previousDistance < currentDistance
+        ? previousWeapon
+        : currentWeapon;
+    }
+  );
+  return closestWeapon;
+}
+
 // eval内で呼ばれる関数だがコードだけ見るとどこにも呼ばれてないように見えるのでeslintのエラーを消すための処理
 walkTo.toString();
 runTo.toString();
 punch.toString();
+pickUp.toString();
 getClosestEnemy.toString();
 getClosestPortion.toString();
+getClosestWeapon.toString();
