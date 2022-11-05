@@ -81,8 +81,6 @@ class Fighter implements Entity {
 
   readonly size: Vector2 = { x: 20, y: 20 };
 
-  isAlive = true;
-
   HP = 100;
 
   speed = 2; // 1 フレームの移動
@@ -260,7 +258,7 @@ class World {
   checkFightersHP() {
     for (const fighter of this.fighters) {
       if (fighter.HP <= 0) {
-        fighter.isAlive = false;
+        this.fighters.splice(this.fighters.indexOf(fighter), 1);
       }
     }
   }
@@ -520,13 +518,21 @@ class WorldRenderer {
 
   render() {
     // ファイター
-    for (const [fighter, fighterRenderer] of this.fighterRenderers) {
-      if (fighter.isAlive) {
-        fighterRenderer.render();
+    const unusedFighterRenderers = new Set(this.fighterRenderers.values());
+    for (const fighter of this.world.fighters) {
+      const existingRenderer = this.fighterRenderers.get(fighter);
+      if (!existingRenderer) {
+        this.fighterRenderers.set(
+          fighter,
+          new FighterRenderer(fighter, this.#pixi)
+        );
       } else {
-        fighterRenderer.destroy();
-        this.fighterRenderers.delete(fighter);
+        existingRenderer.render();
+        unusedFighterRenderers.delete(existingRenderer);
       }
+    }
+    for (const renderer of unusedFighterRenderers) {
+      renderer.destroy();
     }
 
     // ポーション
