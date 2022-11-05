@@ -2,28 +2,39 @@ import { useEffect, useRef } from "react";
 import * as PIXI from "pixi.js";
 
 interface Result {
-  first: string;
-  second: string;
-  third: string;
-  forth: string;
+  firstId: number;
+  secondId: number;
+  thirdId: number;
+  forthId: number;
+}
+
+interface User {
+  username: string;
+  id: number;
+  script: string;
 }
 
 class Game {
   canvas: HTMLCanvasElement;
 
-  scripts: string[];
+  users: User[];
 
   pixi: PIXI.Application;
 
   onCompleted?: () => void;
 
-  constructor(scripts: string[], canvas: HTMLCanvasElement) {
+  constructor(users: User[], canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.scripts = scripts;
+    this.users = users;
     this.pixi = new PIXI.Application({
       view: this.canvas,
       backgroundColor: 0xffffff,
     });
+    this.start();
+    setTimeout(() => {
+      this.end({ firstId: 1, secondId: 2, thirdId: 3, forthId: 4 });
+      this.onCompleted?.();
+    }, 3000);
   }
 
   start() {
@@ -32,10 +43,18 @@ class Game {
 
   end(result: Result) {
     this.pixi.stage.removeChildren();
-    const text1 = new PIXI.Text(`1st ${result.first}`);
-    const text2 = new PIXI.Text(`2nd ${result.second}`);
-    const text3 = new PIXI.Text(`3rd ${result.third}`);
-    const text4 = new PIXI.Text(`4th ${result.forth}`);
+    const text1 = new PIXI.Text(
+      `1st ${this.users.find((user) => user.id === result.firstId)?.username}`
+    );
+    const text2 = new PIXI.Text(
+      `2nd ${this.users.find((user) => user.id === result.secondId)?.username}`
+    );
+    const text3 = new PIXI.Text(
+      `3rd ${this.users.find((user) => user.id === result.thirdId)?.username}`
+    );
+    const text4 = new PIXI.Text(
+      `4th ${this.users.find((user) => user.id === result.forthId)?.username}`
+    );
     text1.position.set(100, 100);
     text2.position.set(100, 200);
     text3.position.set(100, 300);
@@ -48,16 +67,12 @@ class Game {
   }
 }
 
-export default function EmulatorMock(props: { scripts: string[] }) {
+export default function EmulatorMock(props: { users: User[] }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (!ref.current) throw new Error();
-    const { scripts } = props;
-    const game = new Game(scripts, ref.current);
-    game.start();
-    setTimeout(() => {
-      game.end({ first: "a", second: "b", third: "c", forth: "d" });
-    }, 3000);
+    const { users } = props;
+    const game = new Game(users, ref.current);
     return () => {
       game.destroy();
     };
