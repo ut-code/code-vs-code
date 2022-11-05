@@ -14,6 +14,12 @@ import explosion8 from "../../resources/explosion8.png";
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
 
+interface User {
+  username: string;
+  id: number;
+  script: string;
+}
+
 interface Vector2 {
   x: number;
   y: number;
@@ -93,7 +99,7 @@ class Fighter implements Entity {
 
   isShortOfStamina = false;
 
-  static armLength = 50;
+  static armLength = 40;
 
   constructor(id: number, location: Vector2) {
     this.id = id;
@@ -124,42 +130,48 @@ class Portion implements Entity {
 }
 
 class World {
-  fighters: Fighter[] = [
-    new Fighter(0, { x: 100, y: 100 }),
-    new Fighter(1, { x: 200, y: 200 }),
-    new Fighter(2, { x: 300, y: 300 }),
-    new Fighter(3, { x: 400, y: 400 }),
-  ];
+  fighters: Fighter[];
 
   portions: Portion[] = [];
 
   weapons: Weapon[] = [];
 
+  constructor(fighterIds: number[]) {
+    const id1 = fighterIds[0];
+    const id2 = fighterIds[1];
+    const id3 = fighterIds[2];
+    const id4 = fighterIds[3];
+    if (!id1 || !id2 || !id3 || !id4) throw new Error();
+    const player1 = new Fighter(id1, { x: 100, y: 100 });
+    const player2 = new Fighter(id2, { x: 500, y: 100 });
+    const player3 = new Fighter(id3, { x: 100, y: 500 });
+    const player4 = new Fighter(id4, { x: 500, y: 500 });
+    this.fighters = [player1, player2, player3, player4];
+  }
+
   setRandomPortion() {
     const size = { x: 20, y: 20 };
     const checkOverlapWithPortions = (location: Vector2) => {
-      for (let i = 0; i < this.fighters.length; i += 1) {
-        const player = this.fighters[i];
-        if (!player) throw new Error("Cannot find a player");
+      for (const fighter of this.fighters) {
+        if (!fighter) throw new Error("Cannot find a player");
         if (
-          location.x + size.x > player.location.x &&
-          location.x < player.location.x + player.size.x &&
-          location.y + size.y > player.location.y &&
-          location.y < player.location.y + player.size.y
+          location.x + size.x > fighter.location.x &&
+          location.x < fighter.location.x + fighter.size.x &&
+          location.y + size.y > fighter.location.y &&
+          location.y < fighter.location.y + fighter.size.y
         )
           return true;
       }
       return false;
     };
     const checkOverlapWithPlayers = (location: Vector2) => {
-      for (let i = 0; i < this.portions.length; i += 1) {
-        const OtherPortion = this.portions[i];
-        if (!OtherPortion) throw new Error("Cannot find a portion");
+      for (const otherPortion of this.portions) {
+        if (!otherPortion) throw new Error("Cannot find a portion");
         if (
-          location.x + size.x > OtherPortion.location.x &&
-          location.x < OtherPortion.location.x + OtherPortion.size.x &&
-          location.y + size.y > OtherPortion.location.y &&
-          location.y < OtherPortion.location.y + OtherPortion.size.y
+          location.x + size.x > otherPortion.location.x &&
+          location.x < otherPortion.location.x + otherPortion.size.x &&
+          location.y + size.y > otherPortion.location.y &&
+          location.y < otherPortion.location.y + otherPortion.size.y
         )
           return true;
       }
@@ -247,8 +259,9 @@ class World {
 
   checkFightersHP() {
     for (const fighter of this.fighters) {
-      if (fighter.HP <= 0) fighter.isAlive = false;
-      this.fighters.splice(this.fighters.indexOf(fighter), 1);
+      if (fighter.HP <= 0) {
+        fighter.isAlive = false;
+      }
     }
   }
 }
@@ -370,10 +383,9 @@ class FighterRenderer {
     this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
     this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
     const radian =
-      Math.atan(this.fighter.direction.y / this.fighter.direction.x) -
+      Math.atan2(this.fighter.direction.y, this.fighter.direction.x) -
       Math.PI / 2;
-    this.sprite.rotation =
-      this.fighter.direction.x <= 0 ? radian : radian + Math.PI;
+    this.sprite.rotation = radian + Math.PI;
 
     // HPバー・スタミナバー
     this.statusBarGraphics.clear();
@@ -570,12 +582,13 @@ export default class GameManager {
 
   workers: Map<number, Worker>;
 
-  scripts: string[];
+  users: User[];
 
-  constructor(scripts: string[], canvas: HTMLCanvasElement) {
-    this.world = new World();
+  constructor(users: User[], canvas: HTMLCanvasElement) {
+    this.users = users;
+    const ids = users.map((user) => user.id);
+    this.world = new World(ids);
     this.worldRenderer = new WorldRenderer(this.world, canvas);
-    this.scripts = scripts;
     this.workers = new Map<number, Worker>();
     this.run();
   }
@@ -603,54 +616,50 @@ export default class GameManager {
   }
 
   buildWorkers() {
-    for (let i = 0; i < this.world.fighters.length; i += 1) {
+    for (const me of this.world.fighters) {
       const worker = new Worker(new URL("./worker.ts", import.meta.url), {
         type: "module",
       });
       worker.onmessage = (e: MessageEvent<string>) => {
         const data: DataFromWorker = JSON.parse(e.data);
-        const player = this.world.fighters.find((fighter) => fighter.id === i);
-        if (player === undefined) {
-          worker.terminate();
-          this.workers.delete(i);
-        } else {
-          if (data.type === "walkTo") {
-            player.action = new WalkToAction(player, data.target);
-          }
-          if (data.type === "runTo") {
-            player.action = new RunToAction(player, data.target);
-          }
-          if (data.type === "punch") {
-            const target = this.world.fighters[data.target.id];
-            if (!target) throw new Error();
-            player.action = new PunchAction(player, target);
-          }
+        if (data.type === "walkTo") {
+          me.action = new WalkToAction(me, data.target);
+        }
+        if (data.type === "runTo") {
+          me.action = new RunToAction(me, data.target);
+        }
+        if (data.type === "punch") {
+          const target = this.world.fighters.find(
+            (fighter) => fighter.id === data.target.id
+          );
+          if (!target) throw new Error();
+          me.action = new PunchAction(me, target);
         }
       };
-      this.workers.set(i, worker);
+      this.workers.set(me.id, worker);
     }
   }
 
   sendScriptsToWorkers() {
     const { portions } = this.world;
-    for (const player of this.world.fighters) {
-      if (!player) throw new Error();
+    for (const me of this.world.fighters) {
+      if (!me) throw new Error();
       const enemies: Fighter[] = this.world.fighters.filter(
-        (fighter) => fighter !== player
+        (fighter) => fighter !== me
       );
       const script = `player = ${JSON.stringify({
-        location: player.location,
-        HP: player.HP,
-        id: player.id,
-        speed: player.speed,
-        stamina: player.stamina,
+        location: me.location,
+        HP: me.HP,
+        id: me.id,
+        speed: me.speed,
+        stamina: me.stamina,
         armLength: Fighter.armLength,
         weapon: {
-          firingRange: player.weapon?.firingRange,
-          attackRange: player.weapon?.attackRange,
-          speed: player.weapon?.speed,
-          reloadFrame: player.weapon?.reloadFrame,
-          staminaRequired: player.weapon?.staminaRequired,
+          firingRange: me.weapon?.firingRange,
+          attackRange: me.weapon?.attackRange,
+          speed: me.weapon?.speed,
+          reloadFrame: me.weapon?.reloadFrame,
+          staminaRequired: me.weapon?.staminaRequired,
         },
       })}
           enemies = ${JSON.stringify(
@@ -682,8 +691,8 @@ export default class GameManager {
             })
           )}
           const weapons = ${JSON.stringify(this.world.weapons)}
-          ${this.scripts[player.id]}`;
-      this.workers.get(player.id)?.postMessage(script);
+          ${this.users.find((user) => user.id === me.id)?.script}`;
+      this.workers.get(me.id)?.postMessage(script);
     }
   }
 

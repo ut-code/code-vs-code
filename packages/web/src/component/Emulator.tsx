@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import Game from "./game";
 
+interface User {
+  username: string;
+  id: number;
+  script: string;
+}
+
 const scripts: string[] = [
   `let target = null; 
   let closestPortion = portions[0]; 
@@ -35,16 +41,25 @@ const scripts: string[] = [
     const currentDistance = calculateDistance( player, enemy );
     if(previousDistance > currentDistance){closestEnemy = enemy}
   } 
-    if(calculateDistance(player,closestEnemy)<=player.armLength){
+    if(calculateDistance(player,closestEnemy)<player.armLength){
       punch(closestEnemy)
     }else{walkTo(closestEnemy)}`,
 ];
+
+// とりあえずここではテストコードとしてusersを生成しています。
+const users: User[] = scripts.map((script) => {
+  return {
+    id: scripts.indexOf(script) + 1,
+    username: String(scripts.indexOf(script)),
+    script,
+  };
+});
 
 export default function Emulator() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (!ref.current) throw new Error();
-    const game = new Game(scripts, ref.current);
+    const game = new Game(users, ref.current);
     return () => {
       game.destroy();
     };
