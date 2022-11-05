@@ -64,12 +64,23 @@ interface TargetData extends Entity {
   armLength: number;
   weapon: Weapon | null;
 }
-interface Weapon extends Entity {
+class Weapon extends Entity {
+  type = "handgun";
+
   firingRange: number;
-  attackRange: number;
+
+  bulletSize: number;
+
   speed: number;
+
   reloadFrame: number;
+
   staminaRequired: number;
+
+  constructor() {
+    this.firingRange = 200;
+    this.bulletSize = 100;
+  }
 }
 
 //  ドメインオブジェクト
@@ -662,7 +673,7 @@ export default class GameManager {
         armLength: Fighter.armLength,
         weapon: {
           firingRange: me.weapon?.firingRange,
-          attackRange: me.weapon?.attackRange,
+          attackRange: me.weapon?.bulletSize,
           speed: me.weapon?.speed,
           reloadFrame: me.weapon?.reloadFrame,
           staminaRequired: me.weapon?.staminaRequired,
@@ -679,7 +690,7 @@ export default class GameManager {
                 armLength: Fighter.armLength,
                 weapon: {
                   firingRange: enemy.weapon?.firingRange,
-                  attackRange: enemy.weapon?.attackRange,
+                  attackRange: enemy.weapon?.bulletSize,
                   speed: enemy.weapon?.speed,
                   reloadFrame: enemy.weapon?.reloadFrame,
                   requiredStamina: enemy.weapon?.staminaRequired,
