@@ -37,7 +37,7 @@ const scripts: string[] = [
   } 
     if(calculateDistance(player,closestEnemy)<=player.armLength){
       punch(closestEnemy)
-    }else{runTo(closestEnemy)}`,
+    }else{walkTo(closestEnemy)}`,
 ];
 
 export default function Emulator() {

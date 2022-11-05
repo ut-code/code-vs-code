@@ -248,6 +248,7 @@ class World {
   checkFightersHP() {
     for (const fighter of this.fighters) {
       if (fighter.HP <= 0) fighter.isAlive = false;
+      this.fighters.splice(this.fighters.indexOf(fighter), 1);
     }
   }
 }
