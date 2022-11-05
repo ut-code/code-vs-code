@@ -9,7 +9,7 @@ interface Result {
 }
 
 interface User {
-  username: string;
+  name: string;
   id: number;
   script: string;
 }
@@ -44,16 +44,16 @@ class Game {
   end(result: Result) {
     this.pixi.stage.removeChildren();
     const text1 = new PIXI.Text(
-      `1st ${this.users.find((user) => user.id === result.firstId)?.username}`
+      `1st ${this.users.find((user) => user.id === result.firstId)?.name}`
     );
     const text2 = new PIXI.Text(
-      `2nd ${this.users.find((user) => user.id === result.secondId)?.username}`
+      `2nd ${this.users.find((user) => user.id === result.secondId)?.name}`
     );
     const text3 = new PIXI.Text(
-      `3rd ${this.users.find((user) => user.id === result.thirdId)?.username}`
+      `3rd ${this.users.find((user) => user.id === result.thirdId)?.name}`
     );
     const text4 = new PIXI.Text(
-      `4th ${this.users.find((user) => user.id === result.forthId)?.username}`
+      `4th ${this.users.find((user) => user.id === result.forthId)?.name}`
     );
     text1.position.set(100, 100);
     text2.position.set(100, 200);
