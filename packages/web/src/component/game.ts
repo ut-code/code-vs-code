@@ -144,6 +144,8 @@ class Weapon implements Entity {
 
   firingRange: number;
 
+  damage: number;
+
   bulletScale: number;
 
   bulletSpeed: number;
@@ -160,7 +162,8 @@ class Weapon implements Entity {
     this.id = id;
     this.location = location;
     this.size = size;
-    this.firingRange = 200;
+    this.firingRange = 400;
+    this.damage = 15;
     this.bulletScale = Math.sqrt(10 ** 2 + 20 ** 2);
     this.bulletSpeed = 10;
     this.reloadFrame = 10;
@@ -170,6 +173,8 @@ class Weapon implements Entity {
 }
 
 class Bullet implements Entity {
+  owner: Fighter;
+
   location: Vector2;
 
   startLocation: Vector2;
@@ -182,22 +187,37 @@ class Bullet implements Entity {
 
   firingRange: number;
 
+  damage: number;
+
   speed: number;
 
   constructor(
+    owner: Fighter,
     location: Vector2,
     size: Vector2,
     direction: Vector2,
     firingRange: number,
+    damage: number,
     speed: number
   ) {
+    this.owner = owner;
     this.location = location;
     this.startLocation = { x: location.x, y: location.y };
     this.size = size;
     this.direction = direction;
     this.firingRange = firingRange;
+    this.damage = damage;
     this.speed = speed;
   }
+}
+
+function checkOverlap(entity1: Entity, entity2: Entity) {
+  return (
+    entity1.location.x + entity1.size.x > entity2.location.x &&
+    entity1.location.x < entity2.location.x + entity2.size.x &&
+    entity1.location.y + entity1.size.y > entity2.location.y &&
+    entity1.location.y < entity2.location.y + entity2.size.y
+  );
 }
 
 function setAppropriateLocation(
@@ -206,50 +226,32 @@ function setAppropriateLocation(
   portions: Portion[],
   weapons: Weapon[]
 ) {
-  const checkOverlapWithPortions = (location: Vector2) => {
+  const checkOverlapWithPortions = (entity: Entity) => {
     for (const fighter of fighters) {
       if (!fighter) throw new Error("Cannot find a player");
-      if (
-        location.x + size.x > fighter.location.x &&
-        location.x < fighter.location.x + fighter.size.x &&
-        location.y + size.y > fighter.location.y &&
-        location.y < fighter.location.y + fighter.size.y
-      )
-        return true;
+      if (checkOverlap(entity, fighter)) return true;
     }
     return false;
   };
-  const checkOverlapWithPlayers = (location: Vector2) => {
+  const checkOverlapWithPlayers = (entity: Entity) => {
     for (const portion of portions) {
       if (!portion) throw new Error("Cannot find a portion");
-      if (
-        location.x + size.x > portion.location.x &&
-        location.x < portion.location.x + portion.size.x &&
-        location.y + size.y > portion.location.y &&
-        location.y < portion.location.y + portion.size.y
-      )
-        return true;
+      if (checkOverlap(entity, portion)) return true;
     }
     return false;
   };
-  const checkOverlapWithWeapons = (location: Vector2) => {
+  const checkOverlapWithWeapons = (entity: Entity) => {
     for (const weapon of weapons) {
       if (!weapon) throw new Error("Cannot find a portion");
-      if (
-        location.x + size.x > weapon.location.x &&
-        location.x < weapon.location.x + weapon.size.x &&
-        location.y + size.y > weapon.location.y &&
-        location.y < weapon.location.y + weapon.size.y
-      )
-        return true;
+      if (checkOverlap(entity, weapon)) return true;
     }
     return false;
   };
   const location = { x: Math.random() * 800, y: Math.random() * 600 };
   while (
-    checkOverlapWithPortions(location) ||
-    checkOverlapWithPlayers(location) ||
-    checkOverlapWithWeapons(location)
+    checkOverlapWithPortions({ size, location }) ||
+    checkOverlapWithPlayers({ size, location }) ||
+    checkOverlapWithWeapons({ size, location })
   ) {
     location.x = Math.random() * 800;
     location.y = Math.random() * 600;
@@ -288,6 +290,7 @@ class World {
       this.portions,
       this.weapons
     );
+
     const portion = new Portion(location, size, "speedUp", 1);
     this.portions.push(portion);
   }
@@ -354,13 +357,8 @@ class World {
   detectCollision() {
     // ポーションとの当たり判定
     for (const fighter of this.fighters) {
-      this.portions.forEach((portion) => {
-        if (
-          fighter.location.x + fighter.size.x > portion.location.x &&
-          fighter.location.x < portion.location.x + portion.size.x &&
-          fighter.location.y + fighter.size.y > portion.location.y &&
-          fighter.location.y < portion.location.y + portion.size.y
-        ) {
+      for (const portion of this.portions) {
+        if (checkOverlap(fighter, portion)) {
           this.portions.splice(this.portions.indexOf(portion), 1);
           if (fighter.speed < 8) {
             setTimeout(() => {
@@ -369,7 +367,7 @@ class World {
           }
           fighter.speed = Math.min(fighter.speed + 0.5, 8);
         }
-      });
+      }
     }
 
     // 壁との当たり判定
@@ -378,6 +376,18 @@ class World {
         x: Math.min(fighter.location.x, 800 - fighter.size.x),
         y: Math.min(fighter.location.y, 600 - fighter.size.y),
       };
+    }
+
+    // 弾との当たり判定
+    for (const fighter of this.fighters) {
+      for (const bullet of this.bullets) {
+        if (bullet.owner !== fighter) {
+          if (checkOverlap(fighter, bullet)) {
+            this.bullets.splice(this.bullets.indexOf(bullet), 1);
+            fighter.HP -= bullet.damage;
+          }
+        }
+      }
     }
   }
 
@@ -391,6 +401,7 @@ class World {
       });
 
       const newBullet = new Bullet(
+        action.actor,
         {
           x: action.actor.location.x + vector.x,
           y: action.actor.location.y + vector.y,
@@ -398,6 +409,7 @@ class World {
         { x: 10, y: 20 },
         vector,
         weapon.firingRange,
+        weapon.damage,
         weapon.bulletSpeed
       );
       this.bullets.push(newBullet);
