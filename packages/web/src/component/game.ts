@@ -15,6 +15,8 @@ import bulletFire from "../../resources/bulletFire.png";
 
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
+const STAGE_WIDTH = 800;
+const STAGE_HEIGHT = 600;
 
 interface User {
   username: string;
@@ -22,7 +24,7 @@ interface User {
   script: string;
 }
 
-type Result = (string | undefined)[];
+type Result = (number | undefined)[];
 
 interface Vector2 {
   x: number;
@@ -58,26 +60,8 @@ type DataFromWorker =
       type: "walkTo" | "runTo" | "useWeapon";
       target: Vector2;
     }
-  | { type: "punch"; target: FighterData }
-  | { type: "pickUp"; target: WeaponData };
-
-interface FighterData extends Entity {
-  HP: number;
-  id: number;
-  speed: number;
-  stamina: number;
-  armLength: number;
-  weapon: WeaponData | null;
-}
-
-interface WeaponData extends Entity {
-  id: number;
-  firingRange: number;
-  bulletScale: number;
-  speed: number;
-  reloadFrame: number;
-  staminaRequired: number;
-}
+  | { type: "punch"; targetId: number }
+  | { type: "pickUp"; targetId: number };
 
 //  ドメインオブジェクト
 
@@ -142,8 +126,6 @@ class Weapon implements Entity {
 
   readonly size: Vector2;
 
-  type = "fire";
-
   firingRange: number;
 
   damage: number;
@@ -164,7 +146,6 @@ class Weapon implements Entity {
     this.id = id;
     this.location = location;
     this.size = size;
-
     this.firingRange = 400;
     this.damage = 15;
     this.bulletScale = Math.sqrt(10 ** 2 + 20 ** 2);
@@ -183,8 +164,6 @@ class Bullet implements Entity {
   startLocation: Vector2;
 
   readonly size: Vector2;
-
-  type = "fire";
 
   direction: Vector2;
 
@@ -212,9 +191,14 @@ class Bullet implements Entity {
     this.damage = damage;
     this.speed = speed;
   }
+
+  move() {
+    this.location.x += this.direction.x * this.speed;
+    this.location.y += this.direction.y * this.speed;
+  }
 }
 
-function checkOverlap(entity1: Entity, entity2: Entity) {
+function isOverlap(entity1: Entity, entity2: Entity) {
   return (
     entity1.location.x + entity1.size.x > entity2.location.x &&
     entity1.location.x < entity2.location.x + entity2.size.x &&
@@ -223,44 +207,6 @@ function checkOverlap(entity1: Entity, entity2: Entity) {
   );
 }
 
-function setAppropriateLocation(
-  size: Vector2,
-  fighters: Fighter[],
-  portions: Portion[],
-  weapons: Weapon[]
-) {
-  const checkOverlapWithPortions = (entity: Entity) => {
-    for (const fighter of fighters) {
-      if (!fighter) throw new Error("Cannot find a player");
-      if (checkOverlap(entity, fighter)) return true;
-    }
-    return false;
-  };
-  const checkOverlapWithPlayers = (entity: Entity) => {
-    for (const portion of portions) {
-      if (!portion) throw new Error("Cannot find a portion");
-      if (checkOverlap(entity, portion)) return true;
-    }
-    return false;
-  };
-  const checkOverlapWithWeapons = (entity: Entity) => {
-    for (const weapon of weapons) {
-      if (!weapon) throw new Error("Cannot find a portion");
-      if (checkOverlap(entity, weapon)) return true;
-    }
-    return false;
-  };
-  const location = { x: Math.random() * 800, y: Math.random() * 600 };
-  while (
-    checkOverlapWithPortions({ size, location }) ||
-    checkOverlapWithPlayers({ size, location }) ||
-    checkOverlapWithWeapons({ size, location })
-  ) {
-    location.x = Math.random() * 800;
-    location.y = Math.random() * 600;
-  }
-  return location;
-}
 class World {
   fighters: Fighter[];
 
@@ -287,27 +233,17 @@ class World {
     this.fighters = [player1, player2, player3, player4];
   }
 
-  setRandomPortion() {
+  placeRandomPortion() {
     const size = { x: 20, y: 20 };
-    const location = setAppropriateLocation(
-      size,
-      this.fighters,
-      this.portions,
-      this.weapons
-    );
+    const location = this.findEmptySpace(size);
 
     const portion = new Portion(location, size, "speedUp", 1);
     this.portions.push(portion);
   }
 
-  setRandomWeapon() {
+  placeRandomWeapon() {
     const size = { x: 15, y: 20 };
-    const location = setAppropriateLocation(
-      size,
-      this.fighters,
-      this.portions,
-      this.weapons
-    );
+    const location = this.findEmptySpace(size);
     const weapon = new Weapon(this.nextWeaponId, location, size);
     this.weapons.push(weapon);
     this.nextWeaponId += 1;
@@ -319,39 +255,7 @@ class World {
       if (fighter.stamina < MAX_STAMINA) fighter.stamina += 1;
       // スタミナ不足か判断後、アクションによってはスタミナ消費し実行
       if (!fighter.isShortOfStamina) {
-        const { action } = fighter;
-        if (action) {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          if (action instanceof PunchAction) {
-            if (!action.isCompleted) {
-              action.tick();
-              fighter.stamina = Math.max(
-                fighter.stamina - action.requiredStamina,
-                0
-              );
-              action.isCompleted = true;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          } else if (action instanceof RunToAction) {
-            action.tick();
-            fighter.stamina = Math.max(
-              fighter.stamina - action.requiredStamina,
-              0
-            );
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          } else if (action instanceof PickUpAction) {
-            if (!action.target.isPickedUp) action.tick();
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          } else if (action instanceof UseWeaponAction) {
-            if (!action.isCompleted) {
-              this.createBullets(action);
-              action.tick();
-              action.isCompleted = true;
-            }
-          } else {
-            action.tick();
-          }
-        }
+        fighter.action?.tick();
         if (fighter.stamina === 0) fighter.isShortOfStamina = true;
       } else if (fighter.stamina > MAX_STAMINA / 2) {
         fighter.isShortOfStamina = false;
@@ -363,7 +267,7 @@ class World {
     // ポーションとの当たり判定
     for (const fighter of this.fighters) {
       for (const portion of this.portions) {
-        if (checkOverlap(fighter, portion)) {
+        if (isOverlap(fighter, portion)) {
           this.portions.splice(this.portions.indexOf(portion), 1);
           if (fighter.speed < 8) {
             setTimeout(() => {
@@ -378,8 +282,8 @@ class World {
     // 壁との当たり判定
     for (const fighter of this.fighters) {
       fighter.location = {
-        x: Math.min(fighter.location.x, 800 - fighter.size.x),
-        y: Math.min(fighter.location.y, 600 - fighter.size.y),
+        x: Math.min(fighter.location.x, STAGE_WIDTH - fighter.size.x),
+        y: Math.min(fighter.location.y, STAGE_HEIGHT - fighter.size.y),
       };
     }
 
@@ -387,7 +291,7 @@ class World {
     for (const fighter of this.fighters) {
       for (const bullet of this.bullets) {
         if (bullet.owner !== fighter) {
-          if (checkOverlap(fighter, bullet)) {
+          if (isOverlap(fighter, bullet)) {
             this.bullets.splice(this.bullets.indexOf(bullet), 1);
             fighter.HP -= bullet.damage;
           }
@@ -396,38 +300,9 @@ class World {
     }
   }
 
-  createBullets(action: UseWeaponAction) {
-    const { weapon } = action.actor;
-    if (weapon) {
-      const { target } = action;
-      const vector = normalizeVector2({
-        x: target.x - action.actor.location.x,
-        y: target.y - action.actor.location.y,
-      });
-      if (weapon.type === "fire") {
-        const newBullet = new Bullet(
-          action.actor,
-          {
-            x: action.actor.location.x + vector.x,
-            y: action.actor.location.y + vector.y,
-          },
-          { x: 10, y: 20 },
-          vector,
-          weapon.firingRange,
-          weapon.damage,
-          weapon.bulletSpeed
-        );
-        this.bullets.push(newBullet);
-      }
-    }
-  }
-
   moveBullets() {
     for (const bullet of this.bullets) {
-      if (bullet.type === "fire") {
-        bullet.location.x += bullet.direction.x * bullet.speed;
-        bullet.location.y += bullet.direction.y * bullet.speed;
-      }
+      bullet.move();
     }
   }
 
@@ -441,7 +316,7 @@ class World {
     }
   }
 
-  deleteFightersDead() {
+  removeDeadFighters() {
     for (const fighter of this.fighters) {
       if (fighter.HP <= 0) {
         this.fighters.splice(this.fighters.indexOf(fighter), 1);
@@ -451,11 +326,7 @@ class World {
   }
 
   deleteWeaponsPickedUp() {
-    for (const weapon of this.weapons) {
-      if (weapon.isPickedUp) {
-        this.weapons.splice(this.weapons.indexOf(weapon), 1);
-      }
-    }
+    this.weapons = this.weapons.filter((weapon) => !weapon.isPickedUp);
   }
 
   clear() {
@@ -464,13 +335,29 @@ class World {
     this.portions = [];
     this.weapons = [];
   }
+
+  findEmptySpace(size: Vector2) {
+    const location = {
+      x: Math.random() * STAGE_WIDTH,
+      y: Math.random() * STAGE_HEIGHT,
+    };
+    while (
+      this.fighters.some((fighter) => isOverlap(fighter, { size, location })) ||
+      this.portions.some((portion) => isOverlap(portion, { size, location })) ||
+      this.weapons.some((weapon) => isOverlap(weapon, { size, location }))
+    ) {
+      location.x = Math.random() * STAGE_WIDTH;
+      location.y = Math.random() * STAGE_HEIGHT;
+    }
+    return location;
+  }
 }
 // アクション
 
 interface FighterAction {
   actor: Fighter;
 
-  readonly requiredStamina: number;
+  readonly requiredStamina?: number;
 
   tick(): void;
 }
@@ -479,8 +366,6 @@ class WalkToAction implements FighterAction {
   actor: Fighter;
 
   destination: Vector2;
-
-  requiredStamina = 0;
 
   constructor(fighter: Fighter, destination: Vector2) {
     this.actor = fighter;
@@ -511,6 +396,7 @@ class RunToAction implements FighterAction {
   }
 
   tick() {
+    if (this.actor.stamina <= 0) return;
     const vector2 = {
       x: this.destination.x - this.actor.location.x,
       y: this.destination.y - this.actor.location.y,
@@ -518,6 +404,7 @@ class RunToAction implements FighterAction {
     this.actor.direction = normalizeVector2(vector2);
     this.actor.location.x += this.actor.direction.x * (this.actor.speed + 1);
     this.actor.location.y += this.actor.direction.y * (this.actor.speed + 1);
+    this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
   }
 }
 
@@ -528,7 +415,7 @@ class PunchAction implements FighterAction {
 
   isCompleted = false;
 
-  requiredStamina = 11;
+  requiredStamina = 21;
 
   constructor(actor: Fighter, target: Fighter) {
     this.actor = actor;
@@ -536,6 +423,7 @@ class PunchAction implements FighterAction {
   }
 
   tick() {
+    if (this.actor.stamina <= 0 || this.isCompleted) return;
     const distance = calculateDistance(this.actor, this.target);
     if (distance <= Fighter.armLength) {
       this.target.HP -= 10;
@@ -545,6 +433,8 @@ class PunchAction implements FighterAction {
       });
       this.actor.direction = vector2;
     }
+    this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
+    this.isCompleted = true;
   }
 }
 
@@ -552,8 +442,6 @@ class PickUpAction implements FighterAction {
   actor: Fighter;
 
   target: Weapon;
-
-  requiredStamina = 0;
 
   constructor(actor: Fighter, target: Weapon) {
     this.actor = actor;
@@ -579,18 +467,42 @@ class UseWeaponAction implements FighterAction {
 
   target: Vector2;
 
+  bullets: Bullet[];
+
   requiredStamina = 0;
 
   isCompleted = false;
 
-  constructor(actor: Fighter, target: Vector2) {
+  constructor(actor: Fighter, target: Vector2, bullets: Bullet[]) {
     this.actor = actor;
+    this.bullets = bullets;
     const requiredStamina = this.actor.weapon?.requiredStamina;
-    if (requiredStamina) this.requiredStamina = requiredStamina;
+    if (requiredStamina !== undefined) this.requiredStamina = requiredStamina;
     this.target = target;
   }
 
-  tick(): void {
+  tick() {
+    if (this.actor.stamina <= 0 || this.isCompleted) return;
+    const { weapon } = this.actor;
+    if (weapon) {
+      const vector = normalizeVector2({
+        x: this.target.x - this.actor.location.x,
+        y: this.target.y - this.actor.location.y,
+      });
+      const newBullet = new Bullet(
+        this.actor,
+        {
+          x: this.actor.location.x + vector.x,
+          y: this.actor.location.y + vector.y,
+        },
+        { x: 10, y: 20 },
+        vector,
+        weapon.firingRange,
+        weapon.damage,
+        weapon.bulletSpeed
+      );
+      this.bullets.push(newBullet);
+    }
     if (this.actor.weapon) {
       if (this.actor.weapon.bulletsLeft > 1) {
         this.actor.weapon.bulletsLeft -= 1;
@@ -602,6 +514,8 @@ class UseWeaponAction implements FighterAction {
         y: this.target.y - this.actor.location.y,
       });
     }
+    this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
+    this.isCompleted = true;
   }
 }
 
@@ -914,19 +828,6 @@ class WorldRenderer {
     }
   }
 
-  showResult(result: Result) {
-    this.#pixi.stage.removeChildren();
-    const text1 = new PIXI.Text(`１位 ${result[0]}`);
-    const text2 = new PIXI.Text(`２位 ${result[1]}`);
-    const text3 = new PIXI.Text(`３位 ${result[2]}`);
-    const text4 = new PIXI.Text(`４位 ${result[3]}`);
-    text1.position.set(100, 100);
-    text2.position.set(100, 200);
-    text3.position.set(100, 300);
-    text4.position.set(100, 400);
-    this.#pixi.stage.addChild(text1, text2, text3, text4);
-  }
-
   destroy() {
     this.#pixi.destroy();
   }
@@ -942,6 +843,10 @@ export default class GameManager {
   isDestroyed = false;
 
   isEnded = false;
+
+  result?: Result;
+
+  isCompleted?: () => void;
 
   workers: Map<number, Worker>;
 
@@ -959,8 +864,8 @@ export default class GameManager {
   run() {
     this.buildWorkers();
     this.worldRenderer.run();
-    let previousTime1 = Date.now();
-    const previousTime2 = Date.now();
+    let previousTime = Date.now();
+    const startTime = Date.now();
     const callback = () => {
       if (this.isDestroyed || this.isEnded) return;
       const currentTime = Date.now();
@@ -969,18 +874,18 @@ export default class GameManager {
       // worldクラスのメソッド実行
       this.world.runFightersAction();
       this.world.detectCollision();
-      this.world.deleteFightersDead();
+      this.world.removeDeadFighters();
       this.world.deleteWeaponsPickedUp();
-      this.world.moveBullets();
       this.world.deleteBullets();
+      this.world.moveBullets();
       // タイムラグが必要な処理実行
-      if (currentTime - previousTime1 >= 500) {
-        previousTime1 = Date.now();
-        this.world.setRandomPortion();
-        this.world.setRandomWeapon();
+      if (currentTime - previousTime >= 500) {
+        previousTime = Date.now();
+        this.world.placeRandomPortion();
+        this.world.placeRandomWeapon();
         this.sendScriptsToWorkers();
       }
-      if (currentTime - previousTime2 >= 120000) {
+      if (currentTime - startTime >= 120000) {
         this.end();
       }
       requestAnimationFrame(callback);
@@ -1003,20 +908,20 @@ export default class GameManager {
         }
         if (data.type === "punch") {
           const target = this.world.fighters.find(
-            (fighter) => fighter.id === data.target.id
+            (fighter) => fighter.id === data.targetId
           );
           if (!target) throw new Error();
           me.action = new PunchAction(me, target);
         }
         if (data.type === "pickUp") {
           const target = this.world.weapons.find(
-            (weapon) => weapon.id === data.target.id
+            (weapon) => weapon.id === data.targetId
           );
           if (!target) throw new Error();
           me.action = new PickUpAction(me, target);
         }
         if (data.type === "useWeapon") {
-          me.action = new UseWeaponAction(me, data.target);
+          me.action = new UseWeaponAction(me, data.target, this.world.bullets);
         }
       };
       this.workers.set(me.id, worker);
@@ -1037,13 +942,15 @@ export default class GameManager {
         speed: me.speed,
         stamina: me.stamina,
         armLength: Fighter.armLength,
-        weapon: {
-          firingRange: me.weapon?.firingRange,
-          attackRange: me.weapon?.bulletScale,
-          speed: me.weapon?.bulletSpeed,
-          reloadFrame: me.weapon?.reloadFrame,
-          staminaRequired: me.weapon?.requiredStamina,
-        },
+        weapon: me.weapon
+          ? {
+              firingRange: me.weapon?.firingRange,
+              attackRange: me.weapon?.bulletScale,
+              speed: me.weapon?.bulletSpeed,
+              reloadFrame: me.weapon?.reloadFrame,
+              staminaRequired: me.weapon?.requiredStamina,
+            }
+          : null,
       })}
           enemies = ${JSON.stringify(
             enemies.map((enemy) => {
@@ -1092,25 +999,22 @@ export default class GameManager {
   }
 
   end() {
-    const losersNames: (string | undefined)[] = this.world.losers
+    const losersIds: (number | undefined)[] = this.world.losers
       .reverse()
-      .map(
-        (fighter) => this.users.find((user) => fighter.id === user.id)?.username
-      );
-    const winnersNames: (string | undefined)[] =
+      .map((fighter) => this.users.find((user) => fighter.id === user.id)?.id);
+    const winnersIds: (number | undefined)[] =
       this.world.fighters.length !== 1
         ? this.world.fighters
             .sort((fighter1, fighter2) => fighter2.HP - fighter1.HP)
             .map(
-              (fighter) =>
-                this.users.find((user) => fighter.id === user.id)?.username
+              (fighter) => this.users.find((user) => fighter.id === user.id)?.id
             )
         : [
             this.users.find((user) => user.id === this.world.fighters[0]?.id)
-              ?.username,
+              ?.id,
           ];
-    const result = winnersNames.concat(losersNames);
-    this.worldRenderer.showResult(result);
+    const result: Result = winnersIds.concat(losersIds);
+    this.result = result;
     this.world.clear();
     this.isEnded = true;
   }
@@ -1125,4 +1029,4 @@ export default class GameManager {
   }
 }
 
-export type { Vector2, Entity };
+export type { Vector2, Entity, Result };

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { cos } from "mathjs";
 import type { Vector2, Entity } from "./game";
 
 interface Fighter extends Entity {
@@ -23,10 +24,15 @@ interface Weapon extends Entity {
   staminaRequired: number;
 }
 
-type MessageToMainThread = {
-  type: "walkTo" | "runTo" | "punch" | "pickUp" | "useWeapon";
-  target: Vector2 | Entity;
-};
+type MessageToMainThread =
+  | {
+      type: "walkTo" | "runTo" | "useWeapon";
+      target: Vector2;
+    }
+  | {
+      type: "punch" | "pickUp";
+      targetId: number;
+    };
 
 let player: Fighter;
 let enemies: Fighter[];
@@ -38,8 +44,7 @@ onmessage = (e: MessageEvent<string>) => {
     // eslint-disable-next-line no-eval
     eval(e.data) as void;
   } catch (error) {
-    const done = () => 1;
-    done();
+    console.error(error);
   }
 };
 
@@ -74,7 +79,7 @@ function runTo(target: Vector2 | Entity) {
 function punch(target: Fighter) {
   const message: MessageToMainThread = {
     type: "punch",
-    target,
+    targetId: target.id,
   };
   postMessage(JSON.stringify(message));
   throw new Error();
@@ -83,7 +88,7 @@ function punch(target: Fighter) {
 function pickUp(target: Weapon) {
   const message: MessageToMainThread = {
     type: "pickUp",
-    target,
+    targetId: target.id,
   };
   postMessage(JSON.stringify(message));
   throw new Error();
@@ -115,51 +120,31 @@ function calculateDistance(
 
 function getClosestEnemy() {
   if (!player) throw new Error();
-  const closestEnemy = enemies.reduce(
-    (previousEnemy: Fighter, currentEnemy: Fighter) => {
-      const previousDistance = calculateDistance(
-        player,
-        previousEnemy.location
-      );
-      const currentDistance = calculateDistance(player, currentEnemy.location);
-      return previousDistance < currentDistance ? previousEnemy : currentEnemy;
-    }
-  );
+  const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
+    const previousDistance = calculateDistance(player, previousEnemy);
+    const currentDistance = calculateDistance(player, currentEnemy);
+    return previousDistance < currentDistance ? previousEnemy : currentEnemy;
+  });
   return closestEnemy;
 }
 
 function getClosestPortion() {
-  const closestPortion = portions.reduce(
-    (previousPortion: Portion, currentPortion: Portion) => {
-      const previousDistance = calculateDistance(
-        player,
-        previousPortion.location
-      );
-      const currentDistance = calculateDistance(
-        player,
-        currentPortion.location
-      );
-      return previousDistance < currentDistance
-        ? previousPortion
-        : currentPortion;
-    }
-  );
+  const closestPortion = portions.reduce((previousPortion, currentPortion) => {
+    const previousDistance = calculateDistance(player, previousPortion);
+    const currentDistance = calculateDistance(player, currentPortion);
+    return previousDistance < currentDistance
+      ? previousPortion
+      : currentPortion;
+  });
   return closestPortion;
 }
 
 function getClosestWeapon() {
-  const closestWeapon = weapons.reduce(
-    (previousWeapon: Weapon, currentWeapon: Weapon) => {
-      const previousDistance = calculateDistance(
-        player,
-        previousWeapon.location
-      );
-      const currentDistance = calculateDistance(player, currentWeapon.location);
-      return previousDistance < currentDistance
-        ? previousWeapon
-        : currentWeapon;
-    }
-  );
+  const closestWeapon = weapons.reduce((previousWeapon, currentWeapon) => {
+    const previousDistance = calculateDistance(player, previousWeapon);
+    const currentDistance = calculateDistance(player, currentWeapon);
+    return previousDistance < currentDistance ? previousWeapon : currentWeapon;
+  });
   return closestWeapon;
 }
 

@@ -18,7 +18,7 @@ const scripts: string[] = [
   target = closestPortion 
   walkTo(target)`,
   `let closestWeapon = weapons[0];
-  if(player.weapon.firingRange>1){
+  if(player.weapon){
     let closestEnemy = enemies[0] 
   for ( const enemy of enemies ) {
     const previousDistance = calculateDistance( player, closestEnemy ); 
@@ -74,6 +74,7 @@ export default function Emulator() {
   useEffect(() => {
     if (!ref.current) throw new Error();
     const game = new Game(users, ref.current);
+    game.isCompleted = () => game.result;
     return () => {
       game.destroy();
     };
