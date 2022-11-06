@@ -24,7 +24,7 @@ interface Weapon extends Entity {
 }
 
 type MessageToMainThread = {
-  type: "walkTo" | "runTo" | "punch" | "pickUp";
+  type: "walkTo" | "runTo" | "punch" | "pickUp" | "useWeapon";
   target: Vector2 | Entity;
 };
 
@@ -85,6 +85,21 @@ function pickUp(target: Weapon) {
     type: "pickUp",
     target,
   };
+  postMessage(JSON.stringify(message));
+  throw new Error();
+}
+
+function useWeapon(target: Vector2 | Entity) {
+  const message: MessageToMainThread =
+    "x" in target
+      ? {
+          type: "useWeapon",
+          target,
+        }
+      : {
+          type: "useWeapon",
+          target: { x: target.location.x, y: target.location.y },
+        };
   postMessage(JSON.stringify(message));
   throw new Error();
 }
@@ -153,6 +168,7 @@ walkTo.toString();
 runTo.toString();
 punch.toString();
 pickUp.toString();
+useWeapon.toString();
 getClosestEnemy.toString();
 getClosestPortion.toString();
 getClosestWeapon.toString();

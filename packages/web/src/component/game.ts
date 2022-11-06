@@ -11,6 +11,7 @@ import explosion6 from "../../resources/explosion6.png";
 import explosion7 from "../../resources/explosion7.png";
 import explosion8 from "../../resources/explosion8.png";
 import itemFire from "../../resources/itemFire.png";
+import bulletFire from "../../resources/bulletFire.png";
 
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
@@ -52,7 +53,7 @@ function calculateDistance(
 
 type DataFromWorker =
   | {
-      type: "walkTo" | "runTo";
+      type: "walkTo" | "runTo" | "useWeapon";
       target: Vector2;
     }
   | { type: "punch"; target: FighterData }
@@ -137,7 +138,7 @@ class Weapon implements Entity {
 
   location: Vector2;
 
-  size: Vector2;
+  readonly size: Vector2;
 
   type = "fire";
 
@@ -145,11 +146,13 @@ class Weapon implements Entity {
 
   bulletScale: number;
 
-  speed: number;
+  bulletSpeed: number;
 
   reloadFrame: number;
 
-  staminaRequired: number;
+  bulletsLeft: number;
+
+  requiredStamina: number;
 
   isPickedUp = false;
 
@@ -159,9 +162,41 @@ class Weapon implements Entity {
     this.size = size;
     this.firingRange = 200;
     this.bulletScale = Math.sqrt(10 ** 2 + 20 ** 2);
-    this.speed = 10;
+    this.bulletSpeed = 10;
     this.reloadFrame = 10;
-    this.staminaRequired = 10;
+    this.bulletsLeft = 3;
+    this.requiredStamina = 10;
+  }
+}
+
+class Bullet implements Entity {
+  location: Vector2;
+
+  startLocation: Vector2;
+
+  readonly size: Vector2;
+
+  type = "fire";
+
+  direction: Vector2;
+
+  firingRange: number;
+
+  speed: number;
+
+  constructor(
+    location: Vector2,
+    size: Vector2,
+    direction: Vector2,
+    firingRange: number,
+    speed: number
+  ) {
+    this.location = location;
+    this.startLocation = { x: location.x, y: location.y };
+    this.size = size;
+    this.direction = direction;
+    this.firingRange = firingRange;
+    this.speed = speed;
   }
 }
 
@@ -227,6 +262,8 @@ class World {
   portions: Portion[] = [];
 
   weapons: Weapon[] = [];
+
+  bullets: Bullet[] = [];
 
   nextWeaponId = 1;
 
@@ -296,6 +333,13 @@ class World {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
           } else if (action instanceof PickUpAction) {
             if (!action.target.isPickedUp) action.tick();
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          } else if (action instanceof UseWeaponAction) {
+            if (!action.isCompleted) {
+              this.createBullets(action);
+              action.tick();
+              action.isCompleted = true;
+            }
           } else {
             action.tick();
           }
@@ -334,6 +378,48 @@ class World {
         x: Math.min(fighter.location.x, 800 - fighter.size.x),
         y: Math.min(fighter.location.y, 600 - fighter.size.y),
       };
+    }
+  }
+
+  createBullets(action: UseWeaponAction) {
+    const { weapon } = action.actor;
+    if (weapon) {
+      const { target } = action;
+      const vector = normalizeVector2({
+        x: target.x - action.actor.location.x,
+        y: target.y - action.actor.location.y,
+      });
+
+      const newBullet = new Bullet(
+        {
+          x: action.actor.location.x + vector.x,
+          y: action.actor.location.y + vector.y,
+        },
+        { x: 10, y: 20 },
+        vector,
+        weapon.firingRange,
+        weapon.bulletSpeed
+      );
+      this.bullets.push(newBullet);
+    }
+  }
+
+  moveBullets() {
+    for (const bullet of this.bullets) {
+      if (bullet.type === "fire") {
+        bullet.location.x += bullet.direction.x * bullet.speed;
+        bullet.location.y += bullet.direction.y * bullet.speed;
+      }
+    }
+  }
+
+  deleteBullets() {
+    for (const bullet of this.bullets) {
+      if (
+        calculateDistance(bullet, bullet.startLocation) > bullet.firingRange
+      ) {
+        this.bullets.splice(this.bullets.indexOf(bullet), 1);
+      }
     }
   }
 
@@ -462,6 +548,37 @@ class PickUpAction implements FighterAction {
   }
 }
 
+class UseWeaponAction implements FighterAction {
+  actor: Fighter;
+
+  target: Vector2;
+
+  requiredStamina = 0;
+
+  isCompleted = false;
+
+  constructor(actor: Fighter, target: Vector2) {
+    this.actor = actor;
+    const requiredStamina = this.actor.weapon?.requiredStamina;
+    if (requiredStamina) this.requiredStamina = requiredStamina;
+    this.target = target;
+  }
+
+  tick(): void {
+    if (this.actor.weapon) {
+      if (this.actor.weapon.bulletsLeft > 1) {
+        this.actor.weapon.bulletsLeft -= 1;
+      } else if (this.actor.weapon.bulletsLeft === 1) {
+        this.actor.weapon = null;
+      }
+      this.actor.direction = normalizeVector2({
+        x: this.target.x - this.actor.location.x,
+        y: this.target.y - this.actor.location.y,
+      });
+    }
+  }
+}
+
 // レンダラー
 
 class FighterRenderer {
@@ -493,8 +610,10 @@ class FighterRenderer {
 
   render(): void {
     // 機体画像
-    this.sprite.x = this.fighter.location.x + this.fighter.size.x / 2;
-    this.sprite.y = this.fighter.location.y + this.fighter.size.y / 2;
+    this.sprite.position.set(
+      this.fighter.location.x + this.fighter.size.x / 2,
+      this.fighter.location.y + this.fighter.size.y / 2
+    );
     const radian =
       Math.atan2(this.fighter.direction.y, this.fighter.direction.x) -
       Math.PI / 2;
@@ -571,6 +690,32 @@ class WeaponRenderer {
   }
 }
 
+class BulletRenderer {
+  bullet: Bullet;
+
+  pixi: PIXI.Application;
+
+  sprite: PIXI.Sprite;
+
+  constructor(bullet: Bullet, pixi: PIXI.Application) {
+    this.bullet = bullet;
+    this.pixi = pixi;
+    this.sprite = PIXI.Sprite.from(bulletFire);
+    this.sprite.position.set(this.bullet.location.x, this.bullet.location.y);
+    this.sprite.width = this.bullet.size.x;
+    this.sprite.height = this.bullet.size.y;
+    this.pixi.stage.addChild(this.sprite);
+  }
+
+  render() {
+    this.sprite.position.set(this.bullet.location.x, this.bullet.location.y);
+  }
+
+  destroy() {
+    this.pixi.stage.removeChild(this.sprite);
+  }
+}
+
 class PunchEffectRenderer {
   punchAction: PunchAction;
 
@@ -622,6 +767,8 @@ class WorldRenderer {
   portionRenderers = new Map<Portion, PortionRenderer>();
 
   weaponRenderers = new Map<Weapon, WeaponRenderer>();
+
+  bulletRenderers = new Map<Bullet, BulletRenderer>();
 
   punchEffectRenderers = new Map<PunchAction, PunchEffectRenderer>();
 
@@ -700,6 +847,24 @@ class WorldRenderer {
       renderer.destroy();
     }
 
+    // 弾
+    const unusedBulletRenderers = new Set(this.bulletRenderers.values());
+    for (const bullet of this.world.bullets) {
+      const existingRenderer = this.bulletRenderers.get(bullet);
+      if (!existingRenderer) {
+        this.bulletRenderers.set(
+          bullet,
+          new BulletRenderer(bullet, this.#pixi)
+        );
+      } else {
+        existingRenderer.render();
+        unusedBulletRenderers.delete(existingRenderer);
+      }
+    }
+    for (const renderer of unusedBulletRenderers) {
+      renderer.destroy();
+    }
+
     // エフェクト
     for (const fighter of this.world.fighters) {
       const { action } = fighter;
@@ -758,6 +923,8 @@ export default class GameManager {
       this.world.detectCollision();
       this.world.deleteFightersDead();
       this.world.deleteWeaponsPickedUp();
+      this.world.moveBullets();
+      this.world.deleteBullets();
       // タイムラグが必要な処理実行
       if (currentTime - previousTime >= 500) {
         previousTime = Date.now();
@@ -797,6 +964,9 @@ export default class GameManager {
           if (!target) throw new Error();
           me.action = new PickUpAction(me, target);
         }
+        if (data.type === "useWeapon") {
+          me.action = new UseWeaponAction(me, data.target);
+        }
       };
       this.workers.set(me.id, worker);
     }
@@ -819,9 +989,9 @@ export default class GameManager {
         weapon: {
           firingRange: me.weapon?.firingRange,
           attackRange: me.weapon?.bulletScale,
-          speed: me.weapon?.speed,
+          speed: me.weapon?.bulletSpeed,
           reloadFrame: me.weapon?.reloadFrame,
-          staminaRequired: me.weapon?.staminaRequired,
+          staminaRequired: me.weapon?.requiredStamina,
         },
       })}
           enemies = ${JSON.stringify(
@@ -836,9 +1006,9 @@ export default class GameManager {
                 weapon: {
                   firingRange: enemy.weapon?.firingRange,
                   attackRange: enemy.weapon?.bulletScale,
-                  speed: enemy.weapon?.speed,
+                  speed: enemy.weapon?.bulletSpeed,
                   reloadFrame: enemy.weapon?.reloadFrame,
-                  requiredStamina: enemy.weapon?.staminaRequired,
+                  requiredStamina: enemy.weapon?.requiredStamina,
                 },
               };
             })
@@ -859,9 +1029,9 @@ export default class GameManager {
                 location: weapon.location,
                 firingRange: weapon.firingRange,
                 bulletScale: weapon.bulletScale,
-                speed: weapon.speed,
+                speed: weapon.bulletSpeed,
                 reloadFrame: weapon.reloadFrame,
-                staminaRequired: weapon.staminaRequired,
+                staminaRequired: weapon.requiredStamina,
               };
             })
           )}
