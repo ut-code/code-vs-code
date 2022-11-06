@@ -293,6 +293,9 @@ class World {
               fighter.stamina - action.requiredStamina,
               0
             );
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          } else if (action instanceof PickUpAction) {
+            if (!action.target.isPickedUp) action.tick();
           } else {
             action.tick();
           }

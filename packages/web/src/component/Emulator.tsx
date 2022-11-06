@@ -21,7 +21,7 @@ const scripts: string[] = [
   for ( const weapon of weapons ) {
     const previousDistance = calculateDistance( player, closestWeapon ) 
     const currentDistance = calculateDistance( player, weapon );
-    if(previousDistance > currentDistance){closestPortion = portion}
+    if(previousDistance > currentDistance){closestWeapon = weapon}
   }
   if(calculateDistance(player, closestWeapon)<player.armLength){
     pickUp(closestWeapon)
