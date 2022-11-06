@@ -22,6 +22,8 @@ interface User {
   script: string;
 }
 
+type Result = (string | undefined)[];
+
 interface Vector2 {
   x: number;
   y: number;
@@ -162,6 +164,7 @@ class Weapon implements Entity {
     this.id = id;
     this.location = location;
     this.size = size;
+
     this.firingRange = 400;
     this.damage = 15;
     this.bulletScale = Math.sqrt(10 ** 2 + 20 ** 2);
@@ -268,6 +271,8 @@ class World {
   bullets: Bullet[] = [];
 
   nextWeaponId = 1;
+
+  losers: Fighter[] = [];
 
   constructor(fighterIds: number[]) {
     const id1 = fighterIds[0];
@@ -399,20 +404,21 @@ class World {
         x: target.x - action.actor.location.x,
         y: target.y - action.actor.location.y,
       });
-
-      const newBullet = new Bullet(
-        action.actor,
-        {
-          x: action.actor.location.x + vector.x,
-          y: action.actor.location.y + vector.y,
-        },
-        { x: 10, y: 20 },
-        vector,
-        weapon.firingRange,
-        weapon.damage,
-        weapon.bulletSpeed
-      );
-      this.bullets.push(newBullet);
+      if (weapon.type === "fire") {
+        const newBullet = new Bullet(
+          action.actor,
+          {
+            x: action.actor.location.x + vector.x,
+            y: action.actor.location.y + vector.y,
+          },
+          { x: 10, y: 20 },
+          vector,
+          weapon.firingRange,
+          weapon.damage,
+          weapon.bulletSpeed
+        );
+        this.bullets.push(newBullet);
+      }
     }
   }
 
@@ -439,6 +445,7 @@ class World {
     for (const fighter of this.fighters) {
       if (fighter.HP <= 0) {
         this.fighters.splice(this.fighters.indexOf(fighter), 1);
+        this.losers.push(fighter);
       }
     }
   }
@@ -449,6 +456,13 @@ class World {
         this.weapons.splice(this.weapons.indexOf(weapon), 1);
       }
     }
+  }
+
+  clear() {
+    this.fighters = [];
+    this.bullets = [];
+    this.portions = [];
+    this.weapons = [];
   }
 }
 // アクション
@@ -713,9 +727,13 @@ class BulletRenderer {
     this.bullet = bullet;
     this.pixi = pixi;
     this.sprite = PIXI.Sprite.from(bulletFire);
-    this.sprite.position.set(this.bullet.location.x, this.bullet.location.y);
+    this.sprite.anchor.set(0.5);
     this.sprite.width = this.bullet.size.x;
     this.sprite.height = this.bullet.size.y;
+    this.sprite.position.set(
+      this.bullet.location.x + this.bullet.size.x,
+      this.bullet.location.y + this.bullet.size.y
+    );
     this.pixi.stage.addChild(this.sprite);
   }
 
@@ -896,6 +914,19 @@ class WorldRenderer {
     }
   }
 
+  showResult(result: Result) {
+    this.#pixi.stage.removeChildren();
+    const text1 = new PIXI.Text(`１位 ${result[0]}`);
+    const text2 = new PIXI.Text(`２位 ${result[1]}`);
+    const text3 = new PIXI.Text(`３位 ${result[2]}`);
+    const text4 = new PIXI.Text(`４位 ${result[3]}`);
+    text1.position.set(100, 100);
+    text2.position.set(100, 200);
+    text3.position.set(100, 300);
+    text4.position.set(100, 400);
+    this.#pixi.stage.addChild(text1, text2, text3, text4);
+  }
+
   destroy() {
     this.#pixi.destroy();
   }
@@ -909,6 +940,8 @@ export default class GameManager {
   worldRenderer: WorldRenderer;
 
   isDestroyed = false;
+
+  isEnded = false;
 
   workers: Map<number, Worker>;
 
@@ -926,10 +959,13 @@ export default class GameManager {
   run() {
     this.buildWorkers();
     this.worldRenderer.run();
-    let previousTime = Date.now();
+    let previousTime1 = Date.now();
+    const previousTime2 = Date.now();
     const callback = () => {
-      if (this.isDestroyed) return;
+      if (this.isDestroyed || this.isEnded) return;
       const currentTime = Date.now();
+      // ゲームが終わりか判断
+      if (this.world.fighters.length === 1) this.end();
       // worldクラスのメソッド実行
       this.world.runFightersAction();
       this.world.detectCollision();
@@ -938,11 +974,14 @@ export default class GameManager {
       this.world.moveBullets();
       this.world.deleteBullets();
       // タイムラグが必要な処理実行
-      if (currentTime - previousTime >= 500) {
-        previousTime = Date.now();
+      if (currentTime - previousTime1 >= 500) {
+        previousTime1 = Date.now();
         this.world.setRandomPortion();
         this.world.setRandomWeapon();
         this.sendScriptsToWorkers();
+      }
+      if (currentTime - previousTime2 >= 120000) {
+        this.end();
       }
       requestAnimationFrame(callback);
     };
@@ -1050,6 +1089,30 @@ export default class GameManager {
           ${this.users.find((user) => user.id === me.id)?.script}`;
       this.workers.get(me.id)?.postMessage(script);
     }
+  }
+
+  end() {
+    const losersNames: (string | undefined)[] = this.world.losers
+      .reverse()
+      .map(
+        (fighter) => this.users.find((user) => fighter.id === user.id)?.username
+      );
+    const winnersNames: (string | undefined)[] =
+      this.world.fighters.length !== 1
+        ? this.world.fighters
+            .sort((fighter1, fighter2) => fighter2.HP - fighter1.HP)
+            .map(
+              (fighter) =>
+                this.users.find((user) => fighter.id === user.id)?.username
+            )
+        : [
+            this.users.find((user) => user.id === this.world.fighters[0]?.id)
+              ?.username,
+          ];
+    const result = winnersNames.concat(losersNames);
+    this.worldRenderer.showResult(result);
+    this.world.clear();
+    this.isEnded = true;
   }
 
   destroy() {
