@@ -167,7 +167,7 @@ class Bullet implements Entity {
 
   direction: Vector2;
 
-  firingRange: number;
+  rangeLimit: number;
 
   damage: number;
 
@@ -178,7 +178,7 @@ class Bullet implements Entity {
     location: Vector2,
     size: Vector2,
     direction: Vector2,
-    firingRange: number,
+    rangeLimit: number,
     damage: number,
     speed: number
   ) {
@@ -187,7 +187,7 @@ class Bullet implements Entity {
     this.startLocation = { x: location.x, y: location.y };
     this.size = size;
     this.direction = direction;
-    this.firingRange = firingRange;
+    this.rangeLimit = rangeLimit;
     this.damage = damage;
     this.speed = speed;
   }
@@ -308,9 +308,7 @@ class World {
 
   deleteBullets() {
     for (const bullet of this.bullets) {
-      if (
-        calculateDistance(bullet, bullet.startLocation) > bullet.firingRange
-      ) {
+      if (calculateDistance(bullet, bullet.startLocation) > bullet.rangeLimit) {
         this.bullets.splice(this.bullets.indexOf(bullet), 1);
       }
     }
