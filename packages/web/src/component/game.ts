@@ -848,7 +848,7 @@ export default class GameManager {
 
   isEnded = false;
 
-  result?: (number | undefined)[];
+  result?: Result;
 
   isCompleted?: () => void;
 
