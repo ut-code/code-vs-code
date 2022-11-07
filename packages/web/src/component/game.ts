@@ -19,7 +19,7 @@ const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 600;
 
 interface User {
-  username: string;
+  name: string;
   id: number;
   script: string;
 }
@@ -1023,4 +1023,4 @@ export default class Game {
   }
 }
 
-export type { Vector2, Entity, Result };
+export type { Vector2, Entity, Result, User };
