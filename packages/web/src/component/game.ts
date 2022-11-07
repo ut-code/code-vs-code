@@ -839,7 +839,7 @@ class WorldRenderer {
 
 // 全体を管理するやつ
 
-export default class GameManager {
+export default class Game {
   world: World;
 
   worldRenderer: WorldRenderer;
@@ -850,7 +850,7 @@ export default class GameManager {
 
   result?: Result;
 
-  isCompleted?: () => void;
+  onCompleted?: (result: Result) => void;
 
   workers: Map<number, Worker>;
 
@@ -1012,6 +1012,7 @@ export default class GameManager {
     this.result = result;
     this.world.clear();
     this.isEnded = true;
+    this.onCompleted?.(this.result);
   }
 
   destroy() {
@@ -1024,4 +1025,4 @@ export default class GameManager {
   }
 }
 
-export type { Vector2, Entity };
+export type { Vector2, Entity, Result };

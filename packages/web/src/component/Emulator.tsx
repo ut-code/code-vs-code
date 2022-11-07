@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import Game from "./game";
+import type { Result } from "./game";
 
 interface User {
   username: string;
@@ -74,7 +75,12 @@ export default function Emulator() {
   useEffect(() => {
     if (!ref.current) throw new Error();
     const game = new Game(users, ref.current);
-    game.isCompleted = () => game.result;
+    let userIds: number[] = [];
+    // この一行テキトウ
+    userIds.slice();
+    game.onCompleted = (result: Result) => {
+      userIds = result;
+    };
     return () => {
       game.destroy();
     };
