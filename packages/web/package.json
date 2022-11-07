@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "blockly": "^8.0.5",
-    "flatted": "^3.2.7",
     "mathjs": "^11.2.1",
     "path": "^0.12.7",
     "pixi.js": "^6.5.4",
