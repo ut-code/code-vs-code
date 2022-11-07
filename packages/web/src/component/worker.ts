@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { cos } from "mathjs";
 import type { Vector2, Entity } from "./game";
 
 interface Fighter extends Entity {

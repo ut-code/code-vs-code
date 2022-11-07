@@ -24,7 +24,7 @@ interface User {
   script: string;
 }
 
-type Result = (number | undefined)[];
+type Result = number[];
 
 interface Vector2 {
   x: number;
@@ -357,7 +357,7 @@ class World {
 interface FighterAction {
   actor: Fighter;
 
-  readonly requiredStamina?: number;
+  readonly requiredStamina: number;
 
   tick(): void;
 }
@@ -366,6 +366,8 @@ class WalkToAction implements FighterAction {
   actor: Fighter;
 
   destination: Vector2;
+
+  requiredStamina = 0;
 
   constructor(fighter: Fighter, destination: Vector2) {
     this.actor = fighter;
@@ -442,6 +444,8 @@ class PickUpAction implements FighterAction {
   actor: Fighter;
 
   target: Weapon;
+
+  requiredStamina = 0;
 
   constructor(actor: Fighter, target: Weapon) {
     this.actor = actor;
@@ -844,7 +848,7 @@ export default class GameManager {
 
   isEnded = false;
 
-  result?: Result;
+  result?: (number | undefined)[];
 
   isCompleted?: () => void;
 
@@ -944,11 +948,11 @@ export default class GameManager {
         armLength: Fighter.armLength,
         weapon: me.weapon
           ? {
-              firingRange: me.weapon?.firingRange,
-              attackRange: me.weapon?.bulletScale,
-              speed: me.weapon?.bulletSpeed,
-              reloadFrame: me.weapon?.reloadFrame,
-              staminaRequired: me.weapon?.requiredStamina,
+              firingRange: me.weapon.firingRange,
+              attackRange: me.weapon.bulletScale,
+              speed: me.weapon.bulletSpeed,
+              reloadFrame: me.weapon.reloadFrame,
+              staminaRequired: me.weapon.requiredStamina,
             }
           : null,
       })}
@@ -999,20 +1003,11 @@ export default class GameManager {
   }
 
   end() {
-    const losersIds: (number | undefined)[] = this.world.losers
-      .reverse()
-      .map((fighter) => this.users.find((user) => fighter.id === user.id)?.id);
-    const winnersIds: (number | undefined)[] =
-      this.world.fighters.length !== 1
-        ? this.world.fighters
-            .sort((fighter1, fighter2) => fighter2.HP - fighter1.HP)
-            .map(
-              (fighter) => this.users.find((user) => fighter.id === user.id)?.id
-            )
-        : [
-            this.users.find((user) => user.id === this.world.fighters[0]?.id)
-              ?.id,
-          ];
+    const losersCopy = this.world.losers.slice();
+    const losersIds = losersCopy.reverse().map((fighter) => fighter.id);
+    const winnersIds = this.world.fighters
+      .sort((fighter1, fighter2) => fighter2.HP - fighter1.HP)
+      .map((fighter) => fighter.id);
     const result: Result = winnersIds.concat(losersIds);
     this.result = result;
     this.world.clear();
@@ -1029,4 +1024,4 @@ export default class GameManager {
   }
 }
 
-export type { Vector2, Entity, Result };
+export type { Vector2, Entity };
