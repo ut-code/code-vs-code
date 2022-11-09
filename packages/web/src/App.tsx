@@ -10,10 +10,10 @@ import {
   AccordionSummary,
   AppBar,
   Avatar,
+  Box,
   Button,
   Card,
   Chip,
-  createTheme,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,18 +28,21 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Toolbar,
+  Typography,
 } from "@mui/material";
+import { FileUpload, Person } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
-import { Box, ThemeProvider } from "@mui/system";
 import { FaFortAwesome } from "react-icons/fa";
 import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
 import { SlControlPause, SlControlPlay, SlReload } from "react-icons/sl";
 import { IconContext } from "react-icons";
+import iconURL from "./icon1.svg";
+import logoURL from "./logo.da3597da.svg";
 import options from "./options";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -51,22 +54,6 @@ Blockly.HSV_SATURATION = 0.6;
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 Blockly.HSV_VALUE = 1;
-
-const appbarTheme = createTheme({
-  palette: {
-    secondary: {
-      main: grey[50],
-    },
-  },
-});
-
-const buttonTheme = createTheme({
-  palette: {
-    secondary: {
-      main: grey[900],
-    },
-  },
-});
 
 function Injection() {
   const [code, setCode] = useState("");
@@ -83,7 +70,7 @@ function Injection() {
   }, []);
 
   return (
-    <>
+    <div>
       <div className="blocklyDiv" ref={workspaceDivRef} />
       <button
         type="button"
@@ -94,51 +81,46 @@ function Injection() {
         出力
       </button>
       {code}
-    </>
+    </div>
   );
 }
 
 function ButtonAppBar() {
   return (
-    <ThemeProvider theme={appbarTheme}>
-      <AppBar className="appbarDiv" position="sticky" color="secondary">
-        <Toolbar variant="dense">
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
+    <AppBar position="sticky" sx={{ color: grey[900], bgcolor: grey[50] }}>
+      <Toolbar variant="dense">
+        <IconButton
+          size="large"
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          sx={{ mr: 2 }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Box sx={{ height: 32 }}>
           <a href="https://utcode.net/" target="_blank" rel="noreferrer">
-            <img
-              className="logo"
-              src="image/logo.da3597da.svg"
-              alt=""
-              height="32px"
-            />
+            <img src={logoURL} alt="" height="100%" />
           </a>
-          <div className="title">Code vs Code</div>
-        </Toolbar>
-      </AppBar>
-    </ThemeProvider>
+        </Box>
+        <Typography sx={{ ml: 2 }}>Code vs Code</Typography>
+      </Toolbar>
+    </AppBar>
   );
 }
 
 function Welcome() {
   const [open, setOpen] = useState(true);
   const [name, setName] = useState("");
-  const [icon, setIcon] = useState(0);
+  const [selectedIcon, setSelectedIcon] = useState(0);
 
-  const iconSources = [
-    "image/icon1.svg",
-    "image/icon1.svg",
-    "image/icon1.svg",
-    "image/icon1.svg",
-    "image/icon1.svg",
-    "image/icon1.svg",
+  const icons = [
+    { src: iconURL, name: "icon1" },
+    { src: iconURL, name: "icon2" },
+    { src: iconURL, name: "icon3" },
+    { src: iconURL, name: "icon4" },
+    { src: iconURL, name: "icon5" },
+    { src: iconURL, name: "icon6" },
   ];
 
   const handleClose = () => {
@@ -154,33 +136,33 @@ function Welcome() {
     newIcon: number | null
   ) => {
     if (newIcon !== null) {
-      setIcon(newIcon);
+      setSelectedIcon(newIcon);
     }
   };
 
   return (
     <div>
-      <Dialog className="welcomeDialog" open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>ようこそ</DialogTitle>
         <DialogContent>
-          <div className="text">ニックネーム</div>
+          <Typography sx={{ color: grey[600], my: 1 }}>ニックネーム</Typography>
           <TextField
             onChange={handleChangeName}
             autoFocus
             fullWidth
             variant="outlined"
           />
-          <div className="text">アイコン</div>
+          <Typography sx={{ color: grey[600], my: 1 }}>アイコン</Typography>
           <div>
             <ToggleButtonGroup
-              value={icon}
+              value={selectedIcon}
               onChange={handleChangeIcon}
               exclusive
               size="small"
             >
-              {iconSources.map((src, index) => (
-                <ToggleButton value={index}>
-                  <Avatar src={src} />
+              {icons.map((icon, index) => (
+                <ToggleButton value={index} key={icon.name}>
+                  <Avatar src={icon.src} />
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
@@ -202,13 +184,9 @@ function Arena() {
   const numberOfUsers = 125;
 
   return (
-    <div className="arenaDiv">
-      <Accordion sx={{ width: 600 }}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
-        >
+    <div>
+      <Accordion sx={{ position: "absolute", top: 48, right: 480, width: 600 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           闘技場
         </AccordionSummary>
         <AccordionDetails>
@@ -221,25 +199,77 @@ function Arena() {
             }}
           >
             <Card
-              className="rank"
-              sx={{ gridColumn: "1", gridRow: "1 / 5" }}
+              sx={{ position: "relative", gridColumn: "1", gridRow: "1 / 5" }}
               variant="outlined"
             >
-              <div className="name">{userName}</div>
+              <Typography sx={{ position: "absolute", ml: 2, mt: 1.5 }}>
+                {userName}
+              </Typography>
               <IconContext.Provider value={{ size: "25%" }}>
-                <div className="icon">
+                <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
                   <FaFortAwesome />
-                </div>
+                </Box>
               </IconContext.Provider>
-              <div className="userRank">{userRank}</div>
-              <div className="numberOfUsers">{numberOfUsers}</div>
-              <div className="line" />
+              <Typography
+                sx={{
+                  position: "absolute",
+                  ml: 11,
+                  mt: 3.5,
+                  fontSize: 60,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  width: 4 / 10,
+                }}
+              >
+                {userRank}
+              </Typography>
+              <Typography
+                sx={{
+                  position: "absolute",
+                  ml: 23,
+                  mt: 12,
+                  fontSize: 35,
+                  color: grey[600],
+                  textAlign: "center",
+                  width: 1 / 4,
+                }}
+              >
+                {numberOfUsers}
+              </Typography>
+              <Box
+                sx={{
+                  position: "absolute",
+                  ml: 13,
+                  mt: 13,
+                  borderTop: "grey solid",
+                  width: 150,
+                  transform: "rotate(-25deg)",
+                }}
+              />
             </Card>
-            <Button sx={{ gridColumn: "2", gridRow: "1" }} variant="outlined">
-              プログラムのアップロード
+            <Button
+              sx={{
+                gridColumn: "2",
+                gridRow: "1",
+                color: grey[900],
+                borderColor: grey[300],
+              }}
+              variant="outlined"
+            >
+              <FileUpload />
+              &nbsp; プログラムのアップロード
             </Button>
-            <Button sx={{ gridColumn: "2", gridRow: "2" }} variant="outlined">
-              ニックネームの変更…
+            <Button
+              sx={{
+                gridColumn: "2",
+                gridRow: "2",
+                color: grey[900],
+                borderColor: grey[300],
+              }}
+              variant="outlined"
+            >
+              <Person />
+              &nbsp; ニックネームの変更…
             </Button>
           </Box>
         </AccordionDetails>
@@ -250,81 +280,101 @@ function Arena() {
 
 interface EnemyDialogProps {
   open: boolean;
-  selectedValue: number[];
-  onClose: (value: number[]) => void;
+  enemyIds: number[];
+  setEnemyIds: (value: number[]) => void;
+  handleCloseConfirm: () => void;
+  handleCloseCancel: (value: number[]) => void;
 }
 
 function EnemyDialog(props: EnemyDialogProps) {
-  const { onClose, selectedValue, open } = props;
-  const enemies = ["ユーティー一郎", "ユーティー二郎", "ユーティー三郎"];
-  const [selectedEnemy, setSelectedEnemy] = useState("");
-  const [selectedEnemies, setSelectedEnemies] = useState([
-    "ユーティー一郎",
-    "ユーティー二郎",
-    "ユーティー三郎",
-  ]);
+  const { enemyIds, setEnemyIds, open, handleCloseConfirm, handleCloseCancel } =
+    props;
+  const enemies = [
+    { id: 1, name: "ユーザー1" },
+    { id: 2, name: "ユーザー2" },
+    { id: 3, name: "ユーザー3" },
+  ];
 
-  const handleClose = () => {
-    onClose(selectedValue);
+  const previousEnemyIds = enemyIds;
+  const [selectedEnemy, setSelectedEnemy] = useState({
+    id: 1,
+    name: "ユーザー1",
+  });
+
+  const handleClickCancel = () => {
+    handleCloseCancel(previousEnemyIds);
+  };
+
+  const handleClickConfirm = () => {
+    handleCloseConfirm();
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedEnemy(event.target.value);
+    const enemy = enemies[Number(event.target.value) - 1];
+    if (enemy) setSelectedEnemy(enemy);
   };
 
   return (
-    <Dialog className="enemyDialog" onClose={handleClose} open={open}>
+    <Dialog open={open}>
       <DialogTitle>対戦相手の選択</DialogTitle>
       <DialogContent>
         <DialogContentText>
           闘技場の対戦相手を3人まで呼び出して対戦できます。
         </DialogContentText>
         <Box
-          className="enemyInput"
           sx={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
             gap: 2,
+            mt: 1,
           }}
         >
           <TextField
             select
-            value={selectedEnemy}
+            value={selectedEnemy.id}
             onChange={handleChange}
             variant="outlined"
             size="small"
             sx={{ gridColumn: "1/4" }}
           >
             {enemies.map((enemy) => (
-              <MenuItem key={enemy} value={enemy}>
-                {enemy}
+              <MenuItem key={enemy.id} value={enemy.id}>
+                {enemy.name}
               </MenuItem>
             ))}
           </TextField>
-          <ThemeProvider theme={buttonTheme}>
-            <Button variant="outlined" color="secondary">
-              追加
-            </Button>
-          </ThemeProvider>
+          <Button
+            variant="outlined"
+            sx={{ color: grey[900], borderColor: grey[400] }}
+          >
+            追加
+          </Button>
         </Box>
         <List>
-          {selectedEnemies.map((enemy) => (
-            <ListItem className="listItem" key={enemy} dense divider>
-              {enemy}
+          {enemyIds.map((enemyId) => (
+            <ListItem
+              sx={{ display: "grid", gridTemplateColumns: "1fr 40px" }}
+              key={enemyId}
+              dense
+              divider
+            >
+              {enemies[enemyId - 1]?.name}
               <IconButton>
                 <DeleteIcon />
               </IconButton>
             </ListItem>
           ))}
         </List>
-        <div className="buttons">
-          <Button variant="text" onClick={handleClose}>
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", mt: 1, gap: 1 }}
+        >
+          <Button variant="text" onClick={handleClickCancel}>
             キャンセル
           </Button>
-          <Button variant="outlined" onClick={handleClose}>
+          <Button variant="outlined" onClick={handleClickConfirm}>
             OK
           </Button>
-        </div>
+        </Box>
       </DialogContent>
     </Dialog>
   );
@@ -343,33 +393,45 @@ function TestPlay() {
   ];
 
   const [open, setOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState([0, 1, 2]);
+  const [enemyIds, setEnemyIds] = useState([1, 2, 3]);
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (value: number[]) => {
+  const handleCloseConfirm = () => {
     setOpen(false);
-    setSelectedValue(value);
+  };
+
+  const handleCloseCancel = (value: number[]) => {
+    setOpen(false);
+    setEnemyIds(value);
   };
 
   return (
-    <div className="testPlayDiv">
-      <Accordion sx={{ width: 480 }}>
+    <div>
+      <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 480 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           実行
         </AccordionSummary>
         <AccordionDetails sx={{ height: 600 }}>
-          <div className="emulator" />
-          <div className="testPlayInterface">
-            <div className="playerStatus">
-              <div className="text">HP</div>
+          <Box sx={{ border: "solid", height: 0.6 }} />
+          <Box sx={{ m: 1 }}>
+            <Box>
+              <Typography>HP</Typography>
               <LinearProgress variant="determinate" value={playerHp} />
-              <div className="text">元気</div>
+              <Typography sx={{ mt: 1 }}>元気</Typography>
               <LinearProgress variant="determinate" value={playerEnergy} />
-            </div>
-            <div className="itemEffect">
+            </Box>
+            <Box
+              sx={{
+                mt: 1,
+                mb: 2,
+                display: "grid",
+                gridTemplateColumns: "100px 100px auto 140px",
+                gap: 0.5,
+              }}
+            >
               <Chip
                 icon={<DirectionsRunIcon />}
                 label={`移動: x${speed}`}
@@ -383,7 +445,7 @@ function TestPlay() {
                   size="small"
                   variant="outlined"
                 />
-                <div />
+                <Box />
                 <Chip
                   icon={<HiOutlineScale />}
                   label={`装備: ${weaponName}`}
@@ -391,58 +453,66 @@ function TestPlay() {
                   variant="outlined"
                 />
               </IconContext.Provider>
-            </div>
+            </Box>
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
                 gap: 2,
               }}
-              className="enemyStatus"
             >
               {enemies.map((enemy) => (
-                <div>
-                  <div className="text">{enemy.name}</div>
+                <Box key={enemy.name}>
+                  <Typography>{enemy.name}</Typography>
                   <LinearProgress
                     variant="determinate"
                     value={enemy.hp}
                     color="error"
                   />
-                </div>
+                </Box>
               ))}
             </Box>
-            <div className="selectEnemy">
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button variant="text" size="small" onClick={handleClickOpen}>
                 対戦相手の選択...
               </Button>
-            </div>
+            </Box>
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
                 gap: 2,
+                mt: 2,
               }}
-              className="controlButton"
             >
-              <ThemeProvider theme={buttonTheme}>
-                <Button variant="outlined" color="secondary">
-                  <SlControlPlay /> &nbsp; 実行
-                </Button>
-                <Button variant="outlined" color="secondary">
-                  <SlControlPause /> &nbsp; 一時停止
-                </Button>
-                <Button variant="outlined" color="secondary">
-                  <SlReload /> &nbsp; リセット
-                </Button>
-              </ThemeProvider>
+              <Button
+                variant="outlined"
+                sx={{ color: grey[900], borderColor: grey[400] }}
+              >
+                <SlControlPlay /> &nbsp; 実行
+              </Button>
+              <Button
+                variant="outlined"
+                sx={{ color: grey[900], borderColor: grey[400] }}
+              >
+                <SlControlPause /> &nbsp; 一時停止
+              </Button>
+              <Button
+                variant="outlined"
+                sx={{ color: grey[900], borderColor: grey[400] }}
+              >
+                <SlReload /> &nbsp; リセット
+              </Button>
             </Box>
-          </div>
+          </Box>
         </AccordionDetails>
       </Accordion>
       <EnemyDialog
-        selectedValue={selectedValue}
+        enemyIds={enemyIds}
+        setEnemyIds={setEnemyIds}
         open={open}
-        onClose={handleClose}
+        handleCloseConfirm={handleCloseConfirm}
+        handleCloseCancel={handleCloseCancel}
       />
     </div>
   );
@@ -451,12 +521,20 @@ function TestPlay() {
 export default function App() {
   return (
     <>
-      <div className="container">
+      <Box
+        sx={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: 1,
+          height: 1,
+          display: "grid",
+          gridTemplateRows: "48px auto",
+        }}
+      >
         <ButtonAppBar />
-        <div>
-          <Injection />
-        </div>
-      </div>
+        <Injection />
+      </Box>
       <Welcome />
       <Arena />
       <TestPlay />
