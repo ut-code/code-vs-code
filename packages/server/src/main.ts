@@ -21,18 +21,15 @@ type PostUserRequest = {
 };
 
 type PostUserResponse = {
-  id: number;
   name: string;
 };
 
 app.post("/user", async (request, response) => {
   const requestBody: PostUserRequest = request.body;
-  const UserNumber: number = await client.user.count();
   await client.user.create({
     data: { name: requestBody.name },
   });
   const responseBody: PostUserResponse = {
-    id: UserNumber + 1,
     name: requestBody.name,
   };
   response.json(responseBody);
@@ -47,15 +44,21 @@ app.get("/user", async (_, response) => {
 
 // 名前の変更
 
-type PutUserRequest = {
-  name: string;
+type PutUserParams = {
   id: number;
 };
 
-app.put("/user", async (request, response) => {
+type PutUserRequest = {
+  name: string;
+};
+
+app.put("/user/:userId([0-9]+)", async (request, response) => {
+  const requestParams: PutUserParams = {
+    id: Number(request.params["userId"]),
+  };
   const requestBody: PutUserRequest = request.body;
   await client.user.update({
-    where: { id: requestBody.id },
+    where: { id: requestParams.id },
     data: { name: requestBody.name },
   });
   response.send();
@@ -63,14 +66,16 @@ app.put("/user", async (request, response) => {
 
 // Get user by ID
 
-type GetUserIdRequest = {
-  userId: number;
+type GetUserParams = {
+  id: number;
 };
 
-app.get("/user/userId", async (request, response) => {
-  const requestBody: GetUserIdRequest = request.body;
+app.get("/user/:userId([0-9]+)", async (request, response) => {
+  const requestParams: GetUserParams = {
+    id: Number(request.params["userId"]),
+  };
   const user = await client.user.findUnique({
-    where: { id: requestBody.userId },
+    where: { id: requestParams.id },
   });
   response.json(user);
 });
