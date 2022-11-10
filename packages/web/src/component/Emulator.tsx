@@ -22,6 +22,6 @@ export default function Emulator(props: { users: User[] }) {
     return () => {
       game.destroy();
     };
-  }, [props]);
+  }, []);
   return <canvas ref={ref} style={{ border: "solid" }} />;
 }
