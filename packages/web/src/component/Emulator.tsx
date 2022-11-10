@@ -9,8 +9,8 @@ interface User {
 }
 export default function Emulator(props: { users: User[] }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const { users } = props;
   useEffect(() => {
-    const { users } = props;
     if (!ref.current) throw new Error();
     const game = new Game(users, ref.current);
     let userIds: number[] = [];
@@ -22,6 +22,6 @@ export default function Emulator(props: { users: User[] }) {
     return () => {
       game.destroy();
     };
-  }, []);
+  }, [users]);
   return <canvas ref={ref} style={{ border: "solid" }} />;
 }

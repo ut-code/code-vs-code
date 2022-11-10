@@ -4,7 +4,7 @@ import type { User } from "./component/game";
 import Injection from "./component/Injection";
 
 // サンプルコード
-const users: [User, User, User, User] = [
+const sampleUsers: [User, User, User, User] = [
   {
     name: "fooBarBaz",
     id: 1,
@@ -74,16 +74,21 @@ walkTo(target)`,
 ];
 
 export default function App() {
-  const [isActive, setIsActive] = useState(false);
+  const [users, setUsers] = useState(sampleUsers);
   return (
     <>
       <Injection
-        onProgramSubmitted={(code: string) => {
-          users[0].script = code;
-          setIsActive(code !== "");
+        onProgramSubmitted={(code) => {
+          const newUsers = users.map((user) => {
+            if (user.id === 1) {
+              return { name: user.name, id: user.id, script: code };
+            }
+            return user;
+          }) as [User, User, User, User];
+          setUsers(newUsers);
         }}
       />
-      {isActive && <Emulator users={users} />}
+      <Emulator users={users} />
     </>
   );
 }

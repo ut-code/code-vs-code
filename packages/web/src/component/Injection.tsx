@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Blockly from "blockly";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
@@ -16,7 +16,6 @@ export default function Injection(props: {
   onProgramSubmitted: (code: string) => void;
 }) {
   const { onProgramSubmitted } = props;
-  const [code, setCode] = useState("");
   const workspaceDivRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg>();
   useEffect(() => {
@@ -28,9 +27,6 @@ export default function Injection(props: {
       workspace.dispose();
     };
   }, []);
-  useEffect(() => {
-    onProgramSubmitted(code);
-  }, [code]);
 
   return (
     <>
@@ -38,12 +34,13 @@ export default function Injection(props: {
       <button
         type="button"
         onClick={() => {
-          setCode(Blockly.JavaScript.workspaceToCode(workspaceRef.current));
+          onProgramSubmitted(
+            Blockly.JavaScript.workspaceToCode(workspaceRef.current)
+          );
         }}
       >
         出力
       </button>
-      {code}
     </>
   );
 }
