@@ -43,7 +43,8 @@ onmessage = (e: MessageEvent<string>) => {
     // eslint-disable-next-line no-eval
     eval(e.data) as void;
   } catch (error) {
-    console.error(error);
+    const done = () => 1;
+    done();
   }
 };
 

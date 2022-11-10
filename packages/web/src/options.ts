@@ -1,5 +1,5 @@
 import {
-  ATTACK,
+  PUNCH,
   ENEMIES,
   GET_PROPERTY_OF_FIGHTER,
   PICK_UP,
@@ -199,7 +199,7 @@ const options: any = {
           },
           {
             kind: "block",
-            type: ATTACK,
+            type: PUNCH,
           },
           {
             kind: "block",
