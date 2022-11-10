@@ -45,7 +45,7 @@ app.get("/user", async (_, response) => {
 // 名前の変更
 
 type PutUserParams = {
-  id: number;
+  userId: number;
 };
 
 type PutUserRequest = {
@@ -54,11 +54,11 @@ type PutUserRequest = {
 
 app.put("/user/:userId([0-9]+)", async (request, response) => {
   const requestParams: PutUserParams = {
-    id: Number(request.params["userId"]),
+    userId: Number(request.params["userId"]),
   };
   const requestBody: PutUserRequest = request.body;
   await client.user.update({
-    where: { id: requestParams.id },
+    where: { id: requestParams.userId },
     data: { name: requestBody.name },
   });
   response.send();
@@ -67,15 +67,13 @@ app.put("/user/:userId([0-9]+)", async (request, response) => {
 // Get user by ID
 
 type GetUserParams = {
-  id: number;
+  userId: string;
 };
 
 app.get("/user/:userId([0-9]+)", async (request, response) => {
-  const requestParams: GetUserParams = {
-    id: Number(request.params["userId"]),
-  };
+  const requestParams = request.params as GetUserParams;
   const user = await client.user.findUnique({
-    where: { id: requestParams.id },
+    where: { id: Number(requestParams.userId) },
   });
   response.json(user);
 });
@@ -95,6 +93,52 @@ app.put("/program", async (request, response) => {
       userId: requestBody.userId,
       program: requestBody.program,
       league: Math.floor((participantNumber + 5) / 4), // 作成された順にリーグ番号が割り振られる
+      rank: requestBody.userId, // ひとまずidと同じ番号を挿入
+    },
+  });
+  response.send();
+});
+
+// 順位の入れ替え
+
+type PostSwapRankRequest = {
+  userId1: number;
+  userId2: number;
+};
+
+app.post("/swap-rank", async (request, response) => {
+  const requestBody: PostSwapRankRequest = request.body;
+  const user1 = await client.userBattleIdentity.findUniqueOrThrow({
+    where: { id: requestBody.userId1 },
+  });
+  const user2 = await client.userBattleIdentity.findUniqueOrThrow({
+    where: { id: requestBody.userId2 },
+  });
+  await client.userBattleIdentity.update({
+    where: { id: requestBody.userId2 },
+    data: {
+      userId: user2.userId,
+      program: user2.program,
+      league: user2.league,
+      rank: 0, // rankのuniqueを保つため
+    },
+  });
+  await client.userBattleIdentity.update({
+    where: { id: requestBody.userId1 },
+    data: {
+      userId: user1.userId,
+      program: user1.program,
+      league: user1.league,
+      rank: user2.rank,
+    },
+  });
+  await client.userBattleIdentity.update({
+    where: { id: requestBody.userId2 },
+    data: {
+      userId: user2.userId,
+      program: user2.program,
+      league: user2.league,
+      rank: user1.rank,
     },
   });
   response.send();
