@@ -30,7 +30,13 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { FileUpload, Person } from "@mui/icons-material";
+import {
+  FileUpload,
+  Pause,
+  Person,
+  PlayArrow,
+  RestartAlt,
+} from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
@@ -39,10 +45,8 @@ import { grey } from "@mui/material/colors";
 import { FaFortAwesome } from "react-icons/fa";
 import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
-import { SlControlPause, SlControlPlay, SlReload } from "react-icons/sl";
-import { IconContext } from "react-icons";
 import iconURL from "./icon1.svg";
-import logoURL from "./logo.da3597da.svg";
+import logoURL from "./logo.svg";
 import options from "./options";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -54,6 +58,51 @@ Blockly.HSV_SATURATION = 0.6;
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 Blockly.HSV_VALUE = 1;
+
+type User = {
+  id: number;
+  name: string;
+  rank: number;
+};
+
+type Program = {
+  id: number;
+  code: string;
+}
+
+async function fetchUser(id: number) {
+  // const response = await fetch(`https://api.code-vs-code.com/user?id=${id}`);
+  // const json = await response.json();
+  return { id, name: `ユーザー${id}`, rank: 1 };
+}
+
+async function updateUser(user: User) {
+  /* const body = JSON.stringify(user);
+  const response = await fetch("https://api.code-vs-code.com/user", {
+    method: "put",
+    body, 
+  });
+  const json = await response.json(); */
+  return user;
+}
+
+async function createUser(name: string) {
+  /* const body = JSON.stringify({ name });
+  const response = await fetch("https://api.code-vs-code.com/user", {
+    method: "post",
+    body,
+  });
+  const json = await response.json(); */
+  return { id: 1, name, rank: 1 };
+}
+
+async function uploadProgram(program: Program) {
+  /* const body = JSON.stringify(program);
+  await fetch("https://api.code-vs-code.com/program", {
+    method: "post",
+    body,
+  }); */
+}
 
 function Injection() {
   const [code, setCode] = useState("");
@@ -70,8 +119,8 @@ function Injection() {
   }, []);
 
   return (
-    <div>
-      <div className="blocklyDiv" ref={workspaceDivRef} />
+    <Box>
+      <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />
       <button
         type="button"
         onClick={() => {
@@ -81,7 +130,7 @@ function Injection() {
         出力
       </button>
       {code}
-    </div>
+    </Box>
   );
 }
 
@@ -145,14 +194,18 @@ function Welcome() {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>ようこそ</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: grey[600], my: 1 }}>ニックネーム</Typography>
+          <Typography color="text.secondary" sx={{ my: 1 }}>
+            ニックネーム
+          </Typography>
           <TextField
             onChange={handleChangeName}
             autoFocus
             fullWidth
             variant="outlined"
           />
-          <Typography sx={{ color: grey[600], my: 1 }}>アイコン</Typography>
+          <Typography color="text.secondary" sx={{ my: 1 }}>
+            アイコン
+          </Typography>
           <div>
             <ToggleButtonGroup
               value={selectedIcon}
@@ -192,24 +245,18 @@ function Arena() {
         <AccordionDetails>
           <Box
             sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gridTemplateRows: "repeat(4, 1fr)",
+              position: "relative",
+              display: "flex",
               gap: 1,
             }}
           >
-            <Card
-              sx={{ position: "relative", gridColumn: "1", gridRow: "1 / 5" }}
-              variant="outlined"
-            >
+            <Card sx={{ width: 1 / 2, height: 170 }} variant="outlined">
               <Typography sx={{ position: "absolute", ml: 2, mt: 1.5 }}>
                 {userName}
               </Typography>
-              <IconContext.Provider value={{ size: "25%" }}>
-                <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
-                  <FaFortAwesome />
-                </Box>
-              </IconContext.Provider>
+              <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
+                <FaFortAwesome size="25%" />
+              </Box>
               <Typography
                 sx={{
                   position: "absolute",
@@ -218,20 +265,20 @@ function Arena() {
                   fontSize: 60,
                   fontWeight: "bold",
                   textAlign: "center",
-                  width: 4 / 10,
+                  width: 1 / 5,
                 }}
               >
                 {userRank}
               </Typography>
               <Typography
+                color="text.secondary"
                 sx={{
                   position: "absolute",
                   ml: 23,
                   mt: 12,
                   fontSize: 35,
-                  color: grey[600],
                   textAlign: "center",
-                  width: 1 / 4,
+                  width: 1 / 8,
                 }}
               >
                 {numberOfUsers}
@@ -247,30 +294,31 @@ function Arena() {
                 }}
               />
             </Card>
-            <Button
-              sx={{
-                gridColumn: "2",
-                gridRow: "1",
-                color: grey[900],
-                borderColor: grey[300],
-              }}
-              variant="outlined"
-            >
-              <FileUpload />
-              &nbsp; プログラムのアップロード
-            </Button>
-            <Button
-              sx={{
-                gridColumn: "2",
-                gridRow: "2",
-                color: grey[900],
-                borderColor: grey[300],
-              }}
-              variant="outlined"
-            >
-              <Person />
-              &nbsp; ニックネームの変更…
-            </Button>
+            <Box sx={{ width: 1 / 2 }}>
+              <Button
+                sx={{
+                  color: grey[900],
+                  borderColor: grey[300],
+                }}
+                fullWidth
+                variant="outlined"
+                startIcon={<FileUpload />}
+              >
+                プログラムのアップロード
+              </Button>
+              <Button
+                sx={{
+                  color: grey[900],
+                  borderColor: grey[300],
+                  mt: 1,
+                }}
+                fullWidth
+                variant="outlined"
+                startIcon={<Person />}
+              >
+                ニックネームの変更…
+              </Button>
+            </Box>
           </Box>
         </AccordionDetails>
       </Accordion>
@@ -324,8 +372,8 @@ function EnemyDialog(props: EnemyDialogProps) {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 2,
+            gridTemplateColumns: "1fr max-content",
+            gap: 1,
             mt: 1,
           }}
         >
@@ -335,7 +383,7 @@ function EnemyDialog(props: EnemyDialogProps) {
             onChange={handleChange}
             variant="outlined"
             size="small"
-            sx={{ gridColumn: "1/4" }}
+            sx={{ gridColumn: "1" }}
           >
             {enemies.map((enemy) => (
               <MenuItem key={enemy.id} value={enemy.id}>
@@ -427,8 +475,7 @@ function TestPlay() {
               sx={{
                 mt: 1,
                 mb: 2,
-                display: "grid",
-                gridTemplateColumns: "100px 100px auto 140px",
+                display: "flex",
                 gap: 0.5,
               }}
             >
@@ -437,22 +484,22 @@ function TestPlay() {
                 label={`移動: x${speed}`}
                 size="small"
                 variant="outlined"
+                sx={{ width: 100 }}
               />
-              <IconContext.Provider value={{ size: "0.8em" }}>
-                <Chip
-                  icon={<GiCrossedSwords />}
-                  label={`攻撃: x${strength}`}
-                  size="small"
-                  variant="outlined"
-                />
-                <Box />
-                <Chip
-                  icon={<HiOutlineScale />}
-                  label={`装備: ${weaponName}`}
-                  size="small"
-                  variant="outlined"
-                />
-              </IconContext.Provider>
+              <Chip
+                icon={<GiCrossedSwords size="0.8em" />}
+                label={`攻撃: x${strength}`}
+                size="small"
+                variant="outlined"
+                sx={{ width: 100 }}
+              />
+              <Chip
+                icon={<HiOutlineScale size="0.8em" />}
+                label={`装備: ${weaponName}`}
+                size="small"
+                variant="outlined"
+                sx={{ width: 140, ml: "auto" }}
+              />
             </Box>
             <Box
               sx={{
@@ -488,20 +535,23 @@ function TestPlay() {
               <Button
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
+                startIcon={<PlayArrow />}
               >
-                <SlControlPlay /> &nbsp; 実行
+                実行
               </Button>
               <Button
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
+                startIcon={<Pause />}
               >
-                <SlControlPause /> &nbsp; 一時停止
+                一時停止
               </Button>
               <Button
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
+                startIcon={<RestartAlt />}
               >
-                <SlReload /> &nbsp; リセット
+                リセット
               </Button>
             </Box>
           </Box>
@@ -523,9 +573,6 @@ export default function App() {
     <>
       <Box
         sx={{
-          position: "absolute",
-          left: 0,
-          top: 0,
           width: 1,
           height: 1,
           display: "grid",
