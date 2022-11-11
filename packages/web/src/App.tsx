@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import {
   Accordion,
@@ -36,7 +35,6 @@ import { FaFortAwesome } from "react-icons/fa";
 import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
 import { SlControlPause, SlControlPlay, SlReload } from "react-icons/sl";
-import { IconContext } from "react-icons";
 import type { User } from "./component/game";
 import Emulator from "./component/Emulator";
 import iconURL from "./icon1.svg";
@@ -141,6 +139,8 @@ function Welcome() {
   const [open, setOpen] = useState(true);
   const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState(0);
+
+  setName(name); // 仮
 
   const icons = [
     { src: iconURL, name: "icon1" },
@@ -320,6 +320,8 @@ function EnemyDialog(props: EnemyDialogProps) {
     { id: 2, name: "ユーザー2" },
     { id: 3, name: "ユーザー3" },
   ];
+
+  setEnemyIds(enemyIds); // 仮
 
   const previousEnemyIds = enemyIds;
   const [selectedEnemy, setSelectedEnemy] = useState({
