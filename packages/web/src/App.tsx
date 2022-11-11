@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Blockly from "blockly";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -46,10 +46,10 @@ import { FaFortAwesome } from "react-icons/fa";
 import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
 import type { User } from "./component/game";
+import Injection from "./component/Injection";
 import Emulator from "./component/Emulator";
 import iconURL from "./icon1.svg";
 import logoURL from "./logo.svg";
-import options from "./options";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -61,16 +61,10 @@ Blockly.HSV_SATURATION = 0.6;
 // @ts-ignore
 Blockly.HSV_VALUE = 1;
 
-type User = {
-  id: number;
-  name: string;
-  rank: number;
-};
-
 type Program = {
   id: number;
   code: string;
-}
+};
 
 async function fetchUser(id: number) {
   // const response = await fetch(`https://api.code-vs-code.com/user?id=${id}`);
@@ -175,36 +169,6 @@ walkTo(target)`,
       }else{walkTo(closestEnemy)}`,
   },
 ];
-
-function Injection() {
-  const [code, setCode] = useState("");
-  const workspaceDivRef = useRef<HTMLDivElement>(null);
-  const workspaceRef = useRef<Blockly.WorkspaceSvg>();
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const workspace = Blockly.inject(workspaceDivRef.current, options);
-    workspaceRef.current = workspace;
-    return () => {
-      workspace.dispose();
-    };
-  }, []);
-
-  return (
-    <Box>
-      <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />
-      <button
-        type="button"
-        onClick={() => {
-          setCode(Blockly.JavaScript.workspaceToCode(workspaceRef.current));
-        }}
-      >
-        出力
-      </button>
-      {code}
-    </Box>
-  );
-}
 
 function ButtonAppBar() {
   return (
@@ -664,7 +628,7 @@ export default function App() {
             setUsers(newUsers);
           }}
         />
-        <Emulator users={users} />
+        {/* <Emulator users={users} /> */}
       </Box>
       <Welcome />
       <Arena />

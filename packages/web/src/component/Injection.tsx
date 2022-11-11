@@ -4,6 +4,7 @@ import Blockly from "blockly";
 // @ts-expect-error
 import Ja from "blockly/msg/ja";
 import "../style.css";
+import { Box } from "@mui/material";
 import options from "../options";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -29,8 +30,8 @@ export default function Injection(props: {
   }, []);
 
   return (
-    <>
-      <div ref={workspaceDivRef} />
+    <Box>
+      <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />
       <button
         type="button"
         onClick={() => {
@@ -41,6 +42,6 @@ export default function Injection(props: {
       >
         出力
       </button>
-    </>
+    </Box>
   );
 }
