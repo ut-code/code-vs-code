@@ -22,6 +22,7 @@ model UserBattleIdentity {
   createdAt DateTime @default(now())
   program   String
   league    Int
+  rank      Int      @unique
 }
 
 model Battle {
