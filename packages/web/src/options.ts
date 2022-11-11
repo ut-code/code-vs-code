@@ -255,6 +255,18 @@ const options: any = {
       },
     ],
   },
+  grid: {
+    spacing: 20,
+    length: 3,
+    colour: "#ccc",
+    snap: true,
+  },
+  move: {
+    wheel: true,
+  },
+  zoom: {
+    controls: true,
+  },
 };
 
 export default options;

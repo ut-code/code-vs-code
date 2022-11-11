@@ -11,12 +11,16 @@
     "type-check:watch": "tsc --watch"
   },
   "dependencies": {
+    "@mui/icons-material": "^5.10.9",
+    "@mui/material": "^5.10.10",
+    "@mui/system": "^5.10.10",
     "blockly": "^8.0.5",
     "mathjs": "^11.2.1",
     "path": "^0.12.7",
     "pixi.js": "^6.5.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.6.0"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^1.0.1",
