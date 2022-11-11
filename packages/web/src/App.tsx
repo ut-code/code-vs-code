@@ -196,7 +196,7 @@ function ButtonAppBar() {
 
 function Welcome() {
   const [open, setOpen] = useState(true);
-  const [name, setName] = useState("");
+  const [, /* name */ setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState(0);
 
   const icons = [
@@ -365,14 +365,18 @@ function Arena() {
 interface EnemyDialogProps {
   open: boolean;
   enemyIds: number[];
-  setEnemyIds: (value: number[]) => void;
+  /* setEnemyIds: (value: number[]) => void; */
   handleCloseConfirm: () => void;
   handleCloseCancel: (value: number[]) => void;
 }
 
 function EnemyDialog(props: EnemyDialogProps) {
-  const { enemyIds, setEnemyIds, open, handleCloseConfirm, handleCloseCancel } =
-    props;
+  const {
+    enemyIds,
+    /* setEnemyIds , */ open,
+    handleCloseConfirm,
+    handleCloseCancel,
+  } = props;
   const enemies = [
     { id: 1, name: "ユーザー1" },
     { id: 2, name: "ユーザー2" },
@@ -595,7 +599,7 @@ function TestPlay() {
       </Accordion>
       <EnemyDialog
         enemyIds={enemyIds}
-        setEnemyIds={setEnemyIds}
+        /* setEnemyIds={setEnemyIds} */
         open={open}
         handleCloseConfirm={handleCloseConfirm}
         handleCloseCancel={handleCloseCancel}
