@@ -3,11 +3,7 @@ body {
 }
 
 /* ut-code/school-festival/src/grobal.css */
-
-  html {
-    overflow: hidden;
-  }
-
+  
   html, body, #root {
     width: 100%;
     height: 100%;

@@ -1,86 +1,159 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as math from "mathjs";
-import type { Entities, Entity, Vector2, Weapon } from "./game";
+import type { Vector2, Entity } from "./game";
 
-interface Status {
-  location: Vector2;
+interface Fighter extends Entity {
   HP: number;
+  id: number;
   speed: number;
   stamina: number;
+  armLength: number;
   weapon: Weapon | null;
-  direction: Vector2;
+}
+interface Portion extends Entity {
+  type: "speedUp" | "attackUp";
+  effect: number;
 }
 
-let id: number;
-let players: Status[];
-let entities: Entities;
-let enemies: Status[];
-let target: Entity | Vector2;
+interface Weapon extends Entity {
+  id: number;
+  firingRange: number;
+  bulletScale: number;
+  speed: number;
+  reloadFrame: number;
+  staminaRequired: number;
+}
 
-onmessage = (e) => {
-  // eslint-disable-next-line no-eval
-  eval(e.data);
+type MessageToMainThread =
+  | {
+      type: "walkTo" | "runTo" | "useWeapon";
+      target: Vector2;
+    }
+  | {
+      type: "punch" | "pickUp";
+      targetId: number;
+    };
+
+let player: Fighter;
+let enemies: Fighter[];
+let portions: Portion[];
+let weapons: Weapon[];
+
+onmessage = (e: MessageEvent<string>) => {
+  try {
+    // eslint-disable-next-line no-eval
+    eval(e.data) as void;
+  } catch (error) {
+    const done = () => 1;
+    done();
+  }
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function moveTo(destination: Vector2 | Entity) {
-  postMessage(JSON.stringify({ type: "moveTo", id, target }));
-  throw new Error();
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function runTo(destination: Vector2 | Entity) {
-  postMessage(JSON.stringify({ type: "runTo", id, target }));
-  throw new Error();
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-function calculateDistance(destination: Vector2 | Entity) {
-  const player = players[id];
-  if (!player) throw new Error("A player is undefined");
-  if ("x" in destination) {
-    return Number(
-      math.sqrt(
-        (destination.x - player.location.x) ** 2 +
-          (destination.y - player.location.y) ** 2
-      )
-    );
+function walkTo(target: Vector2 | Entity) {
+  if ("x" in target) {
+    const message: MessageToMainThread = { type: "walkTo", target };
+    postMessage(JSON.stringify(message));
+  } else {
+    const message: MessageToMainThread = {
+      type: "walkTo",
+      target: { x: target.location.x, y: target.location.y },
+    };
+    postMessage(JSON.stringify(message));
   }
-  return Number(
-    math.sqrt(
-      (destination.location.x - player.location.x) ** 2 +
-        (destination.location.y - player.location.y) ** 2
-    )
-  );
+  throw new Error();
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+function runTo(target: Vector2 | Entity) {
+  if ("x" in target) {
+    const message: MessageToMainThread = { type: "runTo", target };
+    postMessage(JSON.stringify(message));
+  } else {
+    const message: MessageToMainThread = {
+      type: "runTo",
+      target: { x: target.location.x, y: target.location.y },
+    };
+    postMessage(JSON.stringify(message));
+  }
+  throw new Error();
+}
+
+function punch(target: Fighter) {
+  const message: MessageToMainThread = {
+    type: "punch",
+    targetId: target.id,
+  };
+  postMessage(JSON.stringify(message));
+  throw new Error();
+}
+
+function pickUp(target: Weapon) {
+  const message: MessageToMainThread = {
+    type: "pickUp",
+    targetId: target.id,
+  };
+  postMessage(JSON.stringify(message));
+  throw new Error();
+}
+
+function useWeapon(target: Vector2 | Entity) {
+  const message: MessageToMainThread =
+    "x" in target
+      ? {
+          type: "useWeapon",
+          target,
+        }
+      : {
+          type: "useWeapon",
+          target: { x: target.location.x, y: target.location.y },
+        };
+  postMessage(JSON.stringify(message));
+  throw new Error();
+}
+
+function calculateDistance(
+  thing: Vector2 | Entity,
+  destination: Vector2 | Entity
+) {
+  const vector1 = "x" in thing ? thing : thing.location;
+  const vector2 = "x" in destination ? destination : destination.location;
+  return Math.sqrt((vector2.x - vector1.x) ** 2 + (vector2.y - vector1.y) ** 2);
+}
+
 function getClosestEnemy() {
-  const player = players[id];
   if (!player) throw new Error();
   const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
-    const previousDistance = calculateDistance(previousEnemy.location);
-    const currentDistance = calculateDistance(currentEnemy.location);
+    const previousDistance = calculateDistance(player, previousEnemy);
+    const currentDistance = calculateDistance(player, currentEnemy);
     return previousDistance < currentDistance ? previousEnemy : currentEnemy;
   });
   return closestEnemy;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 function getClosestPortion() {
-  const closestPortion = entities.portions.reduce(
-    (previousPortion, currentPortion) => {
-      const previousDistance = calculateDistance(previousPortion.location);
-      const currentDistance = calculateDistance(currentPortion.location);
-      return previousDistance < currentDistance
-        ? previousPortion
-        : currentPortion;
-    }
-  );
+  const closestPortion = portions.reduce((previousPortion, currentPortion) => {
+    const previousDistance = calculateDistance(player, previousPortion);
+    const currentDistance = calculateDistance(player, currentPortion);
+    return previousDistance < currentDistance
+      ? previousPortion
+      : currentPortion;
+  });
   return closestPortion;
 }
+
+function getClosestWeapon() {
+  const closestWeapon = weapons.reduce((previousWeapon, currentWeapon) => {
+    const previousDistance = calculateDistance(player, previousWeapon);
+    const currentDistance = calculateDistance(player, currentWeapon);
+    return previousDistance < currentDistance ? previousWeapon : currentWeapon;
+  });
+  return closestWeapon;
+}
+
+// eval内で呼ばれる関数だがコードだけ見るとどこにも呼ばれてないように見えるのでeslintのエラーを消すための処理
+walkTo.toString();
+runTo.toString();
+punch.toString();
+pickUp.toString();
+useWeapon.toString();
+getClosestEnemy.toString();
+getClosestPortion.toString();
+getClosestWeapon.toString();

@@ -25,6 +25,7 @@ interface ポーション {
 
 interface 武器 extends 存在 {
   射程: number;
+  威力: number;
   弾の大きさ: number;
   弾速: number;
   リロードフレーム: number;

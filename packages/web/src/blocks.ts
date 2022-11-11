@@ -25,15 +25,15 @@ Blockly.Blocks[MATH_VECTOR2] = {
   },
 };
 Blockly.JavaScript[MATH_VECTOR2] = (block: Blockly.Block) => [
-  `[${Blockly.JavaScript.valueToCode(
+  `{x: ${Blockly.JavaScript.valueToCode(
     block,
     X,
     Blockly.JavaScript.ORDER_COMMA
-  )}, ${Blockly.JavaScript.valueToCode(
+  )}, y: ${Blockly.JavaScript.valueToCode(
     block,
     Y,
     Blockly.JavaScript.ORDER_COMMA
-  )}]`,
+  )}}`,
   Blockly.JavaScript.ORDER_MEMBER,
 ];
 
@@ -213,7 +213,7 @@ Blockly.JavaScript[GET_PROPERTY_OF_WEAPON] = (block: Blockly.Block) => [
 
 const TARGET = "target";
 
-export const WALK_TO = "walk_to";
+export const WALK_TO = "walkTo";
 Blockly.Blocks[WALK_TO] = {
   init(this: Blockly.Block) {
     this.appendValueInput(TARGET).setCheck(ExistenceOrVector2D);
@@ -230,7 +230,7 @@ Blockly.JavaScript[WALK_TO] = (block: Blockly.Block) =>
     Blockly.JavaScript.ORDER_NONE
   )});`;
 
-export const RUN_TO = "run_to";
+export const RUN_TO = "runTo";
 Blockly.Blocks[RUN_TO] = {
   init(this: Blockly.Block) {
     this.appendValueInput(TARGET).setCheck(ExistenceOrVector2D);
@@ -247,8 +247,8 @@ Blockly.JavaScript[RUN_TO] = (block: Blockly.Block) =>
     Blockly.JavaScript.ORDER_NONE
   )});`;
 
-export const ATTACK = "attack";
-Blockly.Blocks[ATTACK] = {
+export const PUNCH = "punch";
+Blockly.Blocks[PUNCH] = {
   init(this: Blockly.Block) {
     this.appendValueInput(TARGET).setCheck(Fighter);
     this.appendDummyInput().appendField("を殴る");
@@ -257,14 +257,14 @@ Blockly.Blocks[ATTACK] = {
     this.setTooltip("");
   },
 };
-Blockly.JavaScript[ATTACK] = (block: Blockly.Block) =>
-  `${ATTACK}(${Blockly.JavaScript.valueToCode(
+Blockly.JavaScript[PUNCH] = (block: Blockly.Block) =>
+  `${PUNCH}(${Blockly.JavaScript.valueToCode(
     block,
     TARGET,
     Blockly.JavaScript.ORDER_NONE
   )});`;
 
-export const USE_WEAPON = "use_weapon";
+export const USE_WEAPON = "useWeapon";
 Blockly.Blocks[USE_WEAPON] = {
   init(this: Blockly.Block) {
     this.appendValueInput(TARGET).setCheck(ExistenceOrVector2D);
@@ -281,7 +281,7 @@ Blockly.JavaScript[USE_WEAPON] = (block: Blockly.Block) =>
     Blockly.JavaScript.ORDER_NONE
   )});`;
 
-export const PICK_UP = "pick_up";
+export const PICK_UP = "pickUp";
 Blockly.Blocks[PICK_UP] = {
   init(this: Blockly.Block) {
     this.appendValueInput(TARGET).setCheck(Weapon);
