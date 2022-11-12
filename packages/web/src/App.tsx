@@ -422,9 +422,7 @@ function TestPlay() {
 
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([1, 2, 3]);
-  const [isActive, setIsActive] = useState(false);
-  const [resetId, setResetId] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
+
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -445,12 +443,7 @@ function TestPlay() {
           実行
         </AccordionSummary>
         <AccordionDetails sx={{ height: 600 }}>
-          <Emulator
-            users={sampleUsers}
-            HasGameStarted={isActive}
-            isPaused={isPaused}
-            resetId={resetId}
-          />
+          <Box sx={{ border: "solid", height: 0.6 }} />
           <Box sx={{ m: 1 }}>
             <Box>
               <Typography>HP</Typography>
@@ -521,29 +514,18 @@ function TestPlay() {
               <Button
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
-                onClick={() => {
-                  setIsActive(true);
-                  setIsPaused(false);
-                }}
               >
                 <SlControlPlay /> &nbsp; 実行
               </Button>
               <Button
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
-                onClick={() => {
-                  setIsPaused(true);
-                }}
               >
                 <SlControlPause /> &nbsp; 一時停止
               </Button>
               <Button
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
-                onClick={() => {
-                  setResetId((previous) => previous + 1);
-                  setIsActive(false);
-                }}
               >
                 <SlReload /> &nbsp; リセット
               </Button>
@@ -563,6 +545,7 @@ function TestPlay() {
 }
 
 export default function App() {
+  const [users, setUsers] = useState(sampleUsers);
   return (
     <>
       <Box
@@ -577,7 +560,18 @@ export default function App() {
         }}
       >
         <ButtonAppBar />
-        <Injection />
+        <Injection
+          onProgramSubmitted={(code) => {
+            const newUsers = users.map((user) => {
+              if (user.id === 1) {
+                return { name: user.name, id: user.id, script: code };
+              }
+              return user;
+            }) as [User, User, User, User];
+            setUsers(newUsers);
+          }}
+        />
+        <Emulator users={users} />
       </Box>
       <Welcome />
       <Arena />
