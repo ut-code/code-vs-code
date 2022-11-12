@@ -26,7 +26,7 @@ export default function Injection(props: {
     return () => {
       workspace.dispose();
     };
-  }, []);
+  }, [workspaceRef]);
 
   return <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />;
 }

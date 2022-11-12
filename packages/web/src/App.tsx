@@ -46,7 +46,6 @@ import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
 import type { User } from "./component/game";
 import Injection from "./component/Injection";
-import Emulator from "./component/Emulator";
 import iconURL from "./icon1.svg";
 import logoURL from "./logo.svg";
 
@@ -127,7 +126,7 @@ async function uploadProgram(program: Program) {
     method: "post",
     body,
   }); */
-  console.log(program.code);
+  return program;
 }
 
 // サンプルコード
@@ -837,7 +836,6 @@ export default function App() {
     script: "",
     rank: 0,
   });
-  const [users, setUsers] = useState(sampleUsers);
   const workspaceRef = useRef<Blockly.WorkspaceSvg>();
 
   return (
