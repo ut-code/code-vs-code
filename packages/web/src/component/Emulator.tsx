@@ -7,21 +7,44 @@ interface User {
   id: number;
   script: string;
 }
-export default function Emulator(props: { users: User[] }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const { users } = props;
+export default function Emulator(props: {
+  users: User[];
+  HasGameStarted: boolean;
+  isPaused: boolean;
+  resetId: number;
+}) {
+  const { users, HasGameStarted, isPaused, resetId } = props;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gameRef = useRef<Game>();
   useEffect(() => {
-    if (!ref.current) throw new Error();
-    const game = new Game(users, ref.current);
-    let userIds: number[] = [];
-    // この一行テキトウ
-    userIds.slice();
-    game.onCompleted = (result: Result) => {
-      userIds = result;
-    };
+    if (!canvasRef.current) throw new Error();
+    const game = new Game(users, canvasRef.current);
+    gameRef.current = game;
     return () => {
       game.destroy();
     };
-  }, [users]);
-  return <canvas ref={ref} style={{ border: "solid" }} />;
+  }, [users, resetId]);
+  useEffect(() => {
+    let userIds: number[] = [];
+    // この一行テキトウ
+    userIds.slice();
+    if (!gameRef.current) throw new Error();
+    gameRef.current.onCompleted = (result: Result) => {
+      userIds = result;
+    };
+    if (HasGameStarted) {
+      if (!isPaused) {
+        gameRef.current.resume();
+        gameRef.current.start();
+      } else {
+        gameRef.current.pause();
+      }
+    }
+  }, [HasGameStarted, isPaused]);
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ border: "solid", width: "600px", height: "450px" }}
+    />
+  );
 }

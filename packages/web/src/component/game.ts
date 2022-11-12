@@ -18,6 +18,8 @@ const MAX_STAMINA = 100;
 const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 600;
 
+PIXI.settings.RESOLUTION = window.devicePixelRatio;
+
 interface User {
   name: string;
   id: number;
@@ -227,9 +229,9 @@ class World {
     const id4 = fighterIds[3];
     if (!id1 || !id2 || !id3 || !id4) throw new Error();
     const player1 = new Fighter(id1, { x: 100, y: 100 });
-    const player2 = new Fighter(id2, { x: 500, y: 100 });
+    const player2 = new Fighter(id2, { x: 700, y: 100 });
     const player3 = new Fighter(id3, { x: 100, y: 500 });
-    const player4 = new Fighter(id4, { x: 500, y: 500 });
+    const player4 = new Fighter(id4, { x: 700, y: 500 });
     this.fighters = [player1, player2, player3, player4];
   }
 
@@ -846,6 +848,8 @@ export default class Game {
 
   isEnded = false;
 
+  isPaused = false;
+
   result?: Result;
 
   onCompleted?: (result: Result) => void;
@@ -860,12 +864,11 @@ export default class Game {
     this.world = new World(ids);
     this.worldRenderer = new WorldRenderer(this.world, canvas);
     this.workers = new Map<number, Worker>();
-    this.run();
-  }
-
-  run() {
     this.buildWorkers();
     this.worldRenderer.run();
+  }
+
+  start() {
     let previousTime = Date.now();
     const startTime = Date.now();
     const callback = () => {
@@ -890,9 +893,17 @@ export default class Game {
       if (currentTime - startTime >= 120000) {
         this.end();
       }
-      requestAnimationFrame(callback);
+      if (!this.isPaused) requestAnimationFrame(callback);
     };
     callback();
+  }
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  resume() {
+    this.isPaused = false;
   }
 
   buildWorkers() {

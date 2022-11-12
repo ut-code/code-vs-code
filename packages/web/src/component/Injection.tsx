@@ -12,10 +12,7 @@ import options from "../options";
 (Blockly as any).HSV_VALUE = 1;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export default function Injection(props: {
-  onProgramSubmitted: (code: string) => void;
-}) {
-  const { onProgramSubmitted } = props;
+export default function Injection() {
   const workspaceDivRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg>();
   useEffect(() => {
@@ -28,19 +25,5 @@ export default function Injection(props: {
     };
   }, []);
 
-  return (
-    <>
-      <div ref={workspaceDivRef} />
-      <button
-        type="button"
-        onClick={() => {
-          onProgramSubmitted(
-            Blockly.JavaScript.workspaceToCode(workspaceRef.current)
-          );
-        }}
-      >
-        出力
-      </button>
-    </>
-  );
+  return <div ref={workspaceDivRef} className="blocklyDiv" />;
 }
