@@ -6,6 +6,7 @@ interface User {
   name: string;
   id: number;
   script: string;
+  rank: number;
 }
 export default function Emulator(props: {
   users: User[];

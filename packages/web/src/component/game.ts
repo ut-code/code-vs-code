@@ -24,6 +24,7 @@ interface User {
   name: string;
   id: number;
   script: string;
+  rank: number;
 }
 
 type Result = number[];
