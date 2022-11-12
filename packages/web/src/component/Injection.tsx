@@ -14,11 +14,10 @@ import options from "../options";
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export default function Injection(props: {
-  onProgramSubmitted: (code: string) => void;
+  workspaceRef: React.MutableRefObject<Blockly.WorkspaceSvg | undefined>;
 }) {
-  const { onProgramSubmitted } = props;
+  const { workspaceRef } = props;
   const workspaceDivRef = useRef<HTMLDivElement>(null);
-  const workspaceRef = useRef<Blockly.WorkspaceSvg>();
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -29,19 +28,5 @@ export default function Injection(props: {
     };
   }, []);
 
-  return (
-    <Box>
-      <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />
-      <button
-        type="button"
-        onClick={() => {
-          onProgramSubmitted(
-            Blockly.JavaScript.workspaceToCode(workspaceRef.current)
-          );
-        }}
-      >
-        出力
-      </button>
-    </Box>
-  );
+  return <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />;
 }

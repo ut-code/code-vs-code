@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Blockly from "blockly";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -37,7 +37,6 @@ import {
   PlayArrow,
   RestartAlt,
 } from "@mui/icons-material";
-import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -66,13 +65,41 @@ type Program = {
   code: string;
 };
 
-async function fetchUser(id: number) {
-  // const response = await fetch(`https://api.code-vs-code.com/user?id=${id}`);
+async function getUsers(): Promise<User[]> {
+  // const response = await fetch("https://api.code-vs-code.com//user");
   // const json = await response.json();
-  return { id, name: `ユーザー${id}`, rank: 1 };
+  // return json;
+  const array = new Array(10);
+  for (let i = 0; i < 10; i += 1) array[i] = i + 1;
+  return new Promise((resolve) => {
+    setTimeout(
+      () =>
+        resolve(
+          array.map((id) => ({
+            id: 11 - id,
+            name: `ユーザー${id}`,
+            script: "",
+            rank: 1,
+          }))
+        ),
+      1000
+    );
+  });
 }
 
-async function updateUser(user: User) {
+async function getUser(id: number): Promise<User> {
+  // const response = await fetch(`https://api.code-vs-code.com/user/${id}`);
+  // const json = await response.json();
+  // return json;
+  return new Promise((resolve) => {
+    setTimeout(
+      () => resolve({ id, name: `ユーザー${id}`, script: "", rank: 1 }),
+      1000
+    );
+  });
+}
+
+async function updateUser(user: User): Promise<User> {
   /* const body = JSON.stringify(user);
   const response = await fetch("https://api.code-vs-code.com/user", {
     method: "put",
@@ -82,14 +109,16 @@ async function updateUser(user: User) {
   return user;
 }
 
-async function createUser(name: string) {
+async function createUser(name: string): Promise<User> {
   /* const body = JSON.stringify({ name });
   const response = await fetch("https://api.code-vs-code.com/user", {
     method: "post",
     body,
   });
   const json = await response.json(); */
-  return { id: 1, name, rank: 1 };
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ id: 1, name, script: "", rank: 1 }), 1000);
+  });
 }
 
 async function uploadProgram(program: Program) {
@@ -98,6 +127,7 @@ async function uploadProgram(program: Program) {
     method: "post",
     body,
   }); */
+  console.log(program.code);
 }
 
 // サンプルコード
@@ -114,6 +144,7 @@ const sampleUsers: [User, User, User, User] = [
     } 
     target = closestPortion 
     walkTo(target)`,
+    rank: 1,
   },
   {
     name: "吾輩は猫",
@@ -141,6 +172,7 @@ const sampleUsers: [User, User, User, User] = [
     }else{walkTo(closestWeapon)}
   }
   `,
+    rank: 2,
   },
   {
     name: "テスト",
@@ -154,6 +186,7 @@ for ( const portion of portions ) {
 } 
 target = closestPortion 
 walkTo(target)`,
+    rank: 3,
   },
   {
     name: "UTC",
@@ -167,6 +200,7 @@ walkTo(target)`,
       if(calculateDistance(player,closestEnemy)<player.armLength){
         punch(closestEnemy)
       }else{walkTo(closestEnemy)}`,
+    rank: 4,
   },
 ];
 
@@ -174,15 +208,6 @@ function ButtonAppBar() {
   return (
     <AppBar position="sticky" sx={{ color: grey[900], bgcolor: grey[50] }}>
       <Toolbar variant="dense">
-        <IconButton
-          size="large"
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          sx={{ mr: 2 }}
-        >
-          <MenuIcon />
-        </IconButton>
         <Box sx={{ height: 32 }}>
           <a href="https://utcode.net/" target="_blank" rel="noreferrer">
             <img src={logoURL} alt="" height="100%" />
@@ -194,10 +219,17 @@ function ButtonAppBar() {
   );
 }
 
-function Welcome() {
+interface WelcomeProps {
+  currentUser: User;
+  setCurrentUser: (value: User) => void;
+}
+
+function Welcome(props: WelcomeProps) {
+  const { currentUser, setCurrentUser } = props;
   const [open, setOpen] = useState(true);
-  const [, /* name */ setName] = useState("");
+  const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(" ");
 
   const icons = [
     { src: iconURL, name: "icon1" },
@@ -208,8 +240,14 @@ function Welcome() {
     { src: iconURL, name: "icon6" },
   ];
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleClose = async () => {
+    if (name !== "" && name.match(/\S/g)) {
+      setOpen(false);
+      const user = await createUser(name);
+      setCurrentUser(user);
+    } else {
+      setErrorMessage("ニックネームを入力してください");
+    }
   };
 
   const handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,54 +265,171 @@ function Welcome() {
 
   return (
     <div>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>ようこそ</DialogTitle>
-        <DialogContent>
-          <Typography color="text.secondary" sx={{ my: 1 }}>
-            ニックネーム
-          </Typography>
-          <TextField
-            onChange={handleChangeName}
-            autoFocus
-            fullWidth
-            variant="outlined"
-          />
-          <Typography color="text.secondary" sx={{ my: 1 }}>
-            アイコン
-          </Typography>
-          <div>
-            <ToggleButtonGroup
-              value={selectedIcon}
-              onChange={handleChangeIcon}
-              exclusive
-              size="small"
-            >
-              {icons.map((icon, index) => (
-                <ToggleButton value={index} key={icon.name}>
-                  <Avatar src={icon.src} />
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} variant="outlined">
-            開始
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {currentUser.id === 0 && (
+        <Dialog open={open}>
+          <DialogTitle>ようこそ</DialogTitle>
+          <DialogContent>
+            <Typography color="text.secondary" sx={{ my: 1 }}>
+              ニックネーム
+            </Typography>
+            <TextField
+              onChange={handleChangeName}
+              autoFocus
+              fullWidth
+              variant="outlined"
+              error={errorMessage !== " "}
+              helperText={errorMessage}
+            />
+            <Typography color="text.secondary" sx={{ my: 1 }}>
+              アイコン
+            </Typography>
+            <div>
+              <ToggleButtonGroup
+                value={selectedIcon}
+                onChange={handleChangeIcon}
+                exclusive
+                size="small"
+              >
+                {icons.map((icon, index) => (
+                  <ToggleButton value={index} key={icon.name}>
+                    <Avatar src={icon.src} />
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} variant="outlined">
+              開始
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </div>
   );
 }
 
-function Arena() {
-  const userName = "ユーティー太郎";
-  const userRank = 24;
-  const numberOfUsers = 125;
+interface ChangeNameDialogProps {
+  currentUser: User;
+  setCurrentUser: (value: User) => void;
+  open: boolean;
+  setOpen: (value: boolean) => void;
+  errorMessage: string;
+  setErrorMessage: (value: string) => void;
+  name: string;
+  setName: (value: string) => void;
+}
+
+function ChangeNameDialog(props: ChangeNameDialogProps) {
+  const {
+    currentUser,
+    setCurrentUser,
+    open,
+    setOpen,
+    errorMessage,
+    setErrorMessage,
+    name,
+    setName,
+  } = props;
+
+  const handleClose = async (newName: string) => {
+    if (newName !== "" && newName.match(/\S/g)) {
+      const newCurrentUser = {
+        id: currentUser.id,
+        name: newName,
+        script: currentUser.script,
+        rank: currentUser.rank,
+      };
+      const user = await updateUser(newCurrentUser);
+      setCurrentUser(user);
+      setOpen(false);
+    } else {
+      setErrorMessage("ニックネームを入力してください");
+    }
+  };
+  const handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value);
+  };
+
+  return (
+    <Dialog open={open}>
+      <DialogTitle>ニックネームの変更</DialogTitle>
+      <DialogContent>
+        <Typography color="text.secondary" sx={{ my: 1 }}>
+          ニックネーム
+        </Typography>
+        <TextField
+          onChange={handleChangeName}
+          autoFocus
+          variant="outlined"
+          error={errorMessage !== " "}
+          helperText={errorMessage}
+          sx={{ width: 300 }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={() => {
+            handleClose(currentUser.name);
+          }}
+          variant="text"
+        >
+          キャンセル
+        </Button>
+        <Button
+          onClick={() => {
+            handleClose(name);
+          }}
+          variant="outlined"
+        >
+          変更
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+interface ArenaProps {
+  currentUser: User;
+  setCurrentUser: (value: User) => void;
+  workspaceRef: React.MutableRefObject<Blockly.WorkspaceSvg | undefined>;
+}
+
+function Arena(props: ArenaProps) {
+  const { currentUser, setCurrentUser, workspaceRef } = props;
+  const [numberOfUsers, setNumberOfUsers] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(" ");
+  const [name, setName] = useState("");
+
+  const handleChange = async (_: React.SyntheticEvent, expanded: boolean) => {
+    if (expanded) {
+      setCurrentUser(await getUser(currentUser.id));
+      setNumberOfUsers((await getUsers()).length);
+      setLoaded(true);
+    } else setLoaded(false);
+  };
+
+  const handleUpload = () => {
+    uploadProgram({
+      id: currentUser.id,
+      code: Blockly.JavaScript.workspaceToCode(workspaceRef.current),
+    });
+  };
+
+  const handleClickOpen = () => {
+    setName("");
+    setErrorMessage(" ");
+    setOpen(true);
+  };
 
   return (
     <div>
-      <Accordion sx={{ position: "absolute", top: 48, right: 480, width: 600 }}>
+      <Accordion
+        onChange={handleChange}
+        sx={{ position: "absolute", top: 48, right: 480, width: 600 }}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           闘技場
         </AccordionSummary>
@@ -287,51 +442,56 @@ function Arena() {
             }}
           >
             <Card sx={{ width: 1 / 2, height: 170 }} variant="outlined">
-              <Typography sx={{ position: "absolute", ml: 2, mt: 1.5 }}>
-                {userName}
-              </Typography>
-              <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
-                <FaFortAwesome size="25%" />
-              </Box>
-              <Typography
-                sx={{
-                  position: "absolute",
-                  ml: 11,
-                  mt: 3.5,
-                  fontSize: 60,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  width: 1 / 5,
-                }}
-              >
-                {userRank}
-              </Typography>
-              <Typography
-                color="text.secondary"
-                sx={{
-                  position: "absolute",
-                  ml: 23,
-                  mt: 12,
-                  fontSize: 35,
-                  textAlign: "center",
-                  width: 1 / 8,
-                }}
-              >
-                {numberOfUsers}
-              </Typography>
-              <Box
-                sx={{
-                  position: "absolute",
-                  ml: 13,
-                  mt: 13,
-                  borderTop: "grey solid",
-                  width: 150,
-                  transform: "rotate(-25deg)",
-                }}
-              />
+              {loaded && (
+                <>
+                  <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
+                    <FaFortAwesome size="25%" />
+                  </Box>
+                  <Typography sx={{ position: "absolute", ml: 2, mt: 1.5 }}>
+                    {currentUser.name}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      position: "absolute",
+                      ml: 11,
+                      mt: 3.5,
+                      fontSize: 60,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                      width: 1 / 5,
+                    }}
+                  >
+                    {currentUser.rank}
+                  </Typography>
+                  <Typography
+                    color="text.secondary"
+                    sx={{
+                      position: "absolute",
+                      ml: 23,
+                      mt: 12,
+                      fontSize: 35,
+                      textAlign: "center",
+                      width: 1 / 8,
+                    }}
+                  >
+                    {numberOfUsers}
+                  </Typography>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      ml: 13,
+                      mt: 13,
+                      borderTop: "grey solid",
+                      width: 150,
+                      transform: "rotate(-25deg)",
+                    }}
+                  />
+                </>
+              )}
             </Card>
             <Box sx={{ width: 1 / 2 }}>
               <Button
+                onClick={handleUpload}
                 sx={{
                   color: grey[900],
                   borderColor: grey[300],
@@ -343,6 +503,7 @@ function Arena() {
                 プログラムのアップロード
               </Button>
               <Button
+                onClick={handleClickOpen}
                 sx={{
                   color: grey[900],
                   borderColor: grey[300],
@@ -358,48 +519,69 @@ function Arena() {
           </Box>
         </AccordionDetails>
       </Accordion>
+      <ChangeNameDialog
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        open={open}
+        setOpen={setOpen}
+        errorMessage={errorMessage}
+        setErrorMessage={setErrorMessage}
+        name={name}
+        setName={setName}
+      />
     </div>
   );
 }
 
 interface EnemyDialogProps {
   open: boolean;
+  users: User[];
   enemyIds: number[];
-  /* setEnemyIds: (value: number[]) => void; */
-  handleCloseConfirm: () => void;
-  handleCloseCancel: (value: number[]) => void;
+  selectedEnemyIds: number[];
+  setSelectedEnemyIds: (value: number[]) => void;
+  handleClose: (value: number[]) => void;
+  isConfirmDisabled: boolean;
+  setIsConfirmDisabled: (value: boolean) => void;
 }
 
 function EnemyDialog(props: EnemyDialogProps) {
   const {
+    users,
     enemyIds,
-    /* setEnemyIds , */ open,
-    handleCloseConfirm,
-    handleCloseCancel,
+    selectedEnemyIds,
+    setSelectedEnemyIds,
+    open,
+    handleClose,
+    isConfirmDisabled,
+    setIsConfirmDisabled,
   } = props;
-  const enemies = [
-    { id: 1, name: "ユーザー1" },
-    { id: 2, name: "ユーザー2" },
-    { id: 3, name: "ユーザー3" },
-  ];
 
-  const previousEnemyIds = enemyIds;
-  const [selectedEnemy, setSelectedEnemy] = useState({
+  const [selectedUser, setSelectedUser] = useState({
     id: 1,
     name: "ユーザー1",
   });
 
-  const handleClickCancel = () => {
-    handleCloseCancel(previousEnemyIds);
+  const handleClickAdd = async () => {
+    if (!selectedEnemyIds.includes(selectedUser.id)) {
+      if (selectedEnemyIds.length === 2) setIsConfirmDisabled(false);
+      if (selectedEnemyIds.length < 3) {
+        setSelectedEnemyIds(selectedEnemyIds.concat(selectedUser.id));
+      }
+    }
   };
 
-  const handleClickConfirm = () => {
-    handleCloseConfirm();
+  const deleteEnemy = (deleteIndex: number) => {
+    setIsConfirmDisabled(true);
+    setSelectedEnemyIds(
+      selectedEnemyIds.filter((_, index) => index !== deleteIndex)
+    );
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const enemy = enemies[Number(event.target.value) - 1];
-    if (enemy) setSelectedEnemy(enemy);
+    const user = users.find(
+      (element) => element.id === Number(event.target.value)
+    );
+    if (user) setSelectedUser(user);
   };
 
   return (
@@ -407,7 +589,7 @@ function EnemyDialog(props: EnemyDialogProps) {
       <DialogTitle>対戦相手の選択</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          闘技場の対戦相手を3人まで呼び出して対戦できます。
+          闘技場の対戦相手を3人呼び出して対戦できます。
         </DialogContentText>
         <Box
           sx={{
@@ -419,19 +601,20 @@ function EnemyDialog(props: EnemyDialogProps) {
         >
           <TextField
             select
-            value={selectedEnemy.id}
+            value={selectedUser.id}
             onChange={handleChange}
             variant="outlined"
             size="small"
             sx={{ gridColumn: "1" }}
           >
-            {enemies.map((enemy) => (
-              <MenuItem key={enemy.id} value={enemy.id}>
-                {enemy.name}
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                {user.name}
               </MenuItem>
             ))}
           </TextField>
           <Button
+            onClick={handleClickAdd}
             variant="outlined"
             sx={{ color: grey[900], borderColor: grey[400] }}
           >
@@ -439,15 +622,19 @@ function EnemyDialog(props: EnemyDialogProps) {
           </Button>
         </Box>
         <List>
-          {enemyIds.map((enemyId) => (
+          {selectedEnemyIds.map((enemyId, index) => (
             <ListItem
               sx={{ display: "grid", gridTemplateColumns: "1fr 40px" }}
               key={enemyId}
               dense
               divider
             >
-              {enemies[enemyId - 1]?.name}
-              <IconButton>
+              {users.find((user) => user.id === enemyId)?.name}
+              <IconButton
+                onClick={() => {
+                  deleteEnemy(index);
+                }}
+              >
                 <DeleteIcon />
               </IconButton>
             </ListItem>
@@ -456,10 +643,21 @@ function EnemyDialog(props: EnemyDialogProps) {
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", mt: 1, gap: 1 }}
         >
-          <Button variant="text" onClick={handleClickCancel}>
+          <Button
+            variant="text"
+            onClick={() => {
+              handleClose(enemyIds);
+            }}
+          >
             キャンセル
           </Button>
-          <Button variant="outlined" onClick={handleClickConfirm}>
+          <Button
+            variant="outlined"
+            disabled={isConfirmDisabled}
+            onClick={() => {
+              handleClose(selectedEnemyIds);
+            }}
+          >
             OK
           </Button>
         </Box>
@@ -468,33 +666,54 @@ function EnemyDialog(props: EnemyDialogProps) {
   );
 }
 
-function TestPlay() {
+interface TestPlayProps {
+  currentUser: User;
+}
+
+function TestPlay(props: TestPlayProps) {
+  const { currentUser } = props;
   const playerHp = 20;
   const playerEnergy = 20;
   const speed = 2.5;
   const strength = 1.2;
   const weaponName = "クロスボウ";
-  const enemies = [
-    { name: "CPU1", hp: 50 },
-    { name: "CPU2", hp: 50 },
-    { name: "CPU3", hp: 50 },
-  ];
+  const enemyHps = [50, 50, 50];
+  const InitialEnemies = [sampleUsers[0], sampleUsers[1], sampleUsers[2]];
 
+  const [users, setUsers] = useState([currentUser]);
+  const [enemies, setEnemies] = useState(InitialEnemies);
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([1, 2, 3]);
+  const [selectedEnemyIds, setSelectedEnemyIds] = useState(enemyIds);
+  const [isConfirmDisabled, setIsConfirmDisabled] = useState(false);
 
-  const handleClickOpen = () => {
+  const handleClickOpen = async () => {
+    setUsers(await getUsers());
+    setSelectedEnemyIds(enemyIds);
+    setIsConfirmDisabled(false);
     setOpen(true);
   };
 
-  const handleCloseConfirm = () => {
-    setOpen(false);
+  const handleClose = (returnedEnemyIds: number[]) => {
+    if (returnedEnemyIds.length === 3) {
+      setEnemyIds(returnedEnemyIds);
+      setOpen(false);
+    }
   };
 
-  const handleCloseCancel = (value: number[]) => {
-    setOpen(false);
-    setEnemyIds(value);
+  useEffect(() => {
+    const newEnemies: User[] = Array(3);
+    for (let i = 0; i < 3; i += 1) {
+      const enemy = users.find((element) => element.id === enemyIds[i]);
+      if (enemy) newEnemies[i] = enemy;
+    }
+    setEnemies(newEnemies);
+  }, [enemyIds, users]);
+
+  const fetchUsers = async () => {
+    setUsers(await getUsers());
   };
+  fetchUsers();
 
   return (
     <div>
@@ -548,12 +767,12 @@ function TestPlay() {
                 gap: 2,
               }}
             >
-              {enemies.map((enemy) => (
+              {enemies.map((enemy, index) => (
                 <Box key={enemy.name}>
                   <Typography>{enemy.name}</Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={enemy.hp}
+                    value={Number(enemyHps[index])}
                     color="error"
                   />
                 </Box>
@@ -598,18 +817,29 @@ function TestPlay() {
         </AccordionDetails>
       </Accordion>
       <EnemyDialog
+        users={users}
         enemyIds={enemyIds}
-        /* setEnemyIds={setEnemyIds} */
+        selectedEnemyIds={selectedEnemyIds}
+        setSelectedEnemyIds={setSelectedEnemyIds}
         open={open}
-        handleCloseConfirm={handleCloseConfirm}
-        handleCloseCancel={handleCloseCancel}
+        handleClose={handleClose}
+        isConfirmDisabled={isConfirmDisabled}
+        setIsConfirmDisabled={setIsConfirmDisabled}
       />
     </div>
   );
 }
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState({
+    id: 0,
+    name: "",
+    script: "",
+    rank: 0,
+  });
   const [users, setUsers] = useState(sampleUsers);
+  const workspaceRef = useRef<Blockly.WorkspaceSvg>();
+
   return (
     <>
       <Box
@@ -621,22 +851,16 @@ export default function App() {
         }}
       >
         <ButtonAppBar />
-        <Injection
-          onProgramSubmitted={(code) => {
-            const newUsers = users.map((user) => {
-              if (user.id === 1) {
-                return { name: user.name, id: user.id, script: code };
-              }
-              return user;
-            }) as [User, User, User, User];
-            setUsers(newUsers);
-          }}
-        />
+        <Injection workspaceRef={workspaceRef} />
         {/* <Emulator users={users} /> */}
       </Box>
-      <Welcome />
-      <Arena />
-      <TestPlay />
+      <Welcome currentUser={currentUser} setCurrentUser={setCurrentUser} />
+      <Arena
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        workspaceRef={workspaceRef}
+      />
+      <TestPlay currentUser={currentUser} />
     </>
   );
 }
