@@ -7,17 +7,17 @@ function Projector1() {
         sx={{
           bgcolor: "background.paper",
           boxShadow: 1,
-          borderRadius: 2,
           p: 2,
           minWidth: 300,
           width: 1920,
           height: 120,
+          borderBottom: 20,
         }}
       >
         <Box
           sx={{
-            color: "success.dark",
             display: "inline",
+            fontSize: 80,
           }}
         >
           ut.code();
@@ -27,6 +27,8 @@ function Projector1() {
             color: "text.primary",
             fontWeight: "bolder",
             display: "inline",
+            fontSize: 80,
+            ml: 60,
           }}
         >
           第7リーグ
@@ -52,12 +54,12 @@ function Projector1() {
               color: "white",
               bgcolor: "black",
               fontweigt: "bold",
+              fontSize: 60,
               width: 160,
               height: 80,
               mt: 6,
               ml: 4,
               textAlign: "center",
-              verticalAlign: "middle",
             }}
           >
             1P
@@ -66,6 +68,7 @@ function Projector1() {
             sx={{
               color: "black",
               fontweigt: "bold",
+              fontSize: 200,
             }}
           >
             FooBarBaz
@@ -74,6 +77,7 @@ function Projector1() {
             sx={{
               color: "text.secondary",
               fontweight: "medium",
+              fontSize: 40,
             }}
           >
             11/18 11:43参戦
@@ -89,6 +93,12 @@ function Projector1() {
               color: "white",
               bgcolor: "black",
               fontweigt: "bold",
+              fontSize: 60,
+              width: 160,
+              height: 80,
+              mt: 6,
+              ml: 4,
+              textAlign: "center",
             }}
           >
             2P
@@ -97,6 +107,7 @@ function Projector1() {
             sx={{
               color: "black",
               fontweigt: "bold",
+              fontSize: 200,
             }}
           >
             吾輩は猫
@@ -105,6 +116,7 @@ function Projector1() {
             sx={{
               color: "text.secondary",
               fontweight: "medium",
+              fontSize: 40,
             }}
           >
             11/18 11:43参戦
@@ -117,17 +129,45 @@ function Projector1() {
         >
           <Box
             sx={{
-              color: "white",
-              bgcolor: "black",
-              fontweigt: "bold",
+              display: "grid",
+              columGap: 5,
+              rowGap: 0,
+              gridTemplateColumns: "repeat(2, 0fr)",
+              gap: 5,
+              mt: 6,
             }}
           >
-            3P
+            <Box
+              sx={{
+                color: "white",
+                bgcolor: "black",
+                fontweigt: "bold",
+                fontSize: 60,
+                width: 160,
+                height: 80,
+                mt: 6,
+                ml: 4,
+                textAlign: "center",
+              }}
+            >
+              3P
+            </Box>
+            <Box
+              sx={{
+                fontSize: 30,
+                fontWeight: "bold",
+                width: 500,
+                mt: 6,
+              }}
+            >
+              🔥リーグ初参加
+            </Box>
           </Box>
           <Box
             sx={{
               color: "black",
               fontweigt: "bold",
+              fontSize: 200,
             }}
           >
             テスト
@@ -136,6 +176,7 @@ function Projector1() {
             sx={{
               color: "text.secondary",
               fontweight: "medium",
+              fontSize: 40,
             }}
           >
             11/18 11:43参戦
@@ -151,6 +192,12 @@ function Projector1() {
               color: "white",
               bgcolor: "black",
               fontweigt: "bold",
+              fontSize: 60,
+              width: 160,
+              height: 80,
+              mt: 6,
+              ml: 4,
+              textAlign: "center",
             }}
           >
             4P
@@ -159,6 +206,7 @@ function Projector1() {
             sx={{
               color: "black",
               fontweigt: "bold",
+              fontSize: 200,
             }}
           >
             UTC
@@ -167,6 +215,7 @@ function Projector1() {
             sx={{
               color: "text.secondary",
               fontweight: "medium",
+              fontSize: 40,
             }}
           >
             11/18 11:43参戦
