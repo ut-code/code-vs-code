@@ -262,6 +262,15 @@ export default function TestPlay(props: TestPlayProps) {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const newEnemies: User[] = Array(3);
+    for (let i = 0; i < 3; i += 1) {
+      const enemy = users.find((element) => element.id === enemyIds[i]);
+      if (enemy) newEnemies[i] = enemy;
+    }
+    setEnemies(newEnemies);
+  }, [enemyIds, users]);
+
   const [isActive, setIsActive] = useState(false);
   const [resetId, setResetId] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -280,12 +289,6 @@ export default function TestPlay(props: TestPlayProps) {
       setEnemyIds(returnedEnemyIds);
       setOpen(false);
     }
-    const newEnemies: User[] = Array(3);
-    for (let i = 0; i < 3; i += 1) {
-      const enemy = users.find((element) => element.id === enemyIds[i]);
-      if (enemy) newEnemies[i] = enemy;
-    }
-    setEnemies(newEnemies);
   };
 
   return (

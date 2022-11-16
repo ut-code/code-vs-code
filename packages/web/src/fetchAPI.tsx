@@ -47,7 +47,7 @@ export async function getUser(id: number): Promise<User> {
 }
 
 export async function createUser(name: string): Promise<User> {
-  const body = JSON.stringify({ name });
+  /* const body = JSON.stringify({ name });
   const response = await fetch(
     `${import.meta.env["VITE_SERVER_ORIGIN"]}/user`,
     {
@@ -57,10 +57,10 @@ export async function createUser(name: string): Promise<User> {
     }
   );
   const json = await response.json();
-  return json;
-  /* return new Promise((resolve) => {
-    setTimeout(() => resolve({ id: 1, name, script: "", rank: 1 }), 1000);
-  }); */
+  return json; */
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ id: 1, name, script: "", rank: 1 }), 100);
+  });
 }
 
 export async function changeUserName(id: number, name: string) {
