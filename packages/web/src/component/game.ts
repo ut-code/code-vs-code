@@ -894,6 +894,11 @@ export default class Game {
         previousTime = Date.now();
         this.world.placeRandomPortion();
         this.world.placeRandomWeapon();
+        this.workers.forEach((worker) => {
+          worker.terminate();
+        });
+        this.workers.clear();
+        this.buildWorkers();
         this.sendScriptsToWorkers();
       }
       if (currentTime - startTime >= 120000) {
