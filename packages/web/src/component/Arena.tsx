@@ -197,7 +197,7 @@ export default function Arena(props: ArenaProps) {
     <div>
       <Accordion
         onChange={handleChange}
-        sx={{ position: "absolute", top: 48, right: 480, width: 600 }}
+        sx={{ position: "absolute", top: 48, right: 640, width: 600 }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           闘技場

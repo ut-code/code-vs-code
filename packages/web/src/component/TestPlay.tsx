@@ -308,15 +308,13 @@ export default function TestPlay(props: TestPlayProps) {
     setUsers(await getUsers());
   };
   fetchUsers();
-  console.log(enemyUsers);
-  console.log(enemyHPs);
   return (
     <div>
-      <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 480 }}>
+      <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           実行
         </AccordionSummary>
-        <AccordionDetails sx={{ height: 600 }}>
+        <AccordionDetails sx={{ height: 800 }}>
           <Emulator
             users={sampleUsers}
             currentUserId={currentUser.id}
