@@ -23,9 +23,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
-import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
-import Emulator from "./Emulator";
+import Emulator, { Status, HPWithId } from "./Emulator";
 import type { User } from "./game";
 
 const sampleUsers: [User, User, User, User] = [
@@ -262,24 +261,25 @@ interface TestPlayProps {
 
 export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
-  const playerHp = 20;
-  const playerEnergy = 20;
-  const speed = 2.5;
-  const strength = 1.2;
-  const weaponName = "クロスボウ";
-  const enemyHps = [50, 50, 50];
-  const InitialEnemies = [sampleUsers[0], sampleUsers[1], sampleUsers[2]];
+  const [enemyHPs, setEnemyHPs] = useState<HPWithId[]>([{ id: 0, HP: 0 }]);
+  const InitialEnemyUsers = [sampleUsers[0], sampleUsers[1], sampleUsers[2]];
 
   const [users, setUsers] = useState([currentUser]);
-  const [enemies, setEnemies] = useState(InitialEnemies);
+  const [enemyUsers, setEnemyUsers] = useState(InitialEnemyUsers);
   const [open, setOpen] = useState(false);
-  const [enemyIds, setEnemyIds] = useState([1, 2, 3]);
+  const [enemyIds, setEnemyIds] = useState([
+    sampleUsers[1].id,
+    sampleUsers[2].id,
+    sampleUsers[3].id,
+  ]);
 
   const [isActive, setIsActive] = useState(false);
   const [executionId, setExecutionId] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
   const [selectedEnemyIds, setSelectedEnemyIds] = useState(enemyIds);
   const [isConfirmDisabled, setIsConfirmDisabled] = useState(false);
+
+  const [currentUserStatus, setCurrentUserStatus] = useState<Status>();
 
   const handleClickOpen = async () => {
     setUsers(await getUsers());
@@ -296,19 +296,20 @@ export default function TestPlay(props: TestPlayProps) {
   };
 
   useEffect(() => {
-    const newEnemies: User[] = Array(3);
+    const newEnemyUsers: User[] = [];
     for (let i = 0; i < 3; i += 1) {
       const enemy = users.find((element) => element.id === enemyIds[i]);
-      if (enemy) newEnemies[i] = enemy;
+      if (enemy) newEnemyUsers[i] = enemy;
     }
-    setEnemies(newEnemies);
+    setEnemyUsers(newEnemyUsers);
   }, [enemyIds, users]);
 
   const fetchUsers = async () => {
     setUsers(await getUsers());
   };
   fetchUsers();
-
+  console.log(enemyUsers);
+  console.log(enemyHPs);
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 480 }}>
@@ -318,16 +319,28 @@ export default function TestPlay(props: TestPlayProps) {
         <AccordionDetails sx={{ height: 600 }}>
           <Emulator
             users={sampleUsers}
+            currentUserId={currentUser.id}
+            enemyUserIds={enemyUsers.map((enemyUser) => enemyUser.id)}
             HasGameStarted={isActive}
             isPaused={isPaused}
             executionId={executionId}
+            handleCurrentUserStatus={(status: Status) => {
+              setCurrentUserStatus(status);
+            }}
+            handleEnemyHPs={(HPs: HPWithId[]) => setEnemyHPs(HPs)}
           />
           <Box sx={{ m: 1 }}>
             <Box>
               <Typography>HP</Typography>
-              <LinearProgress variant="determinate" value={playerHp} />
+              <LinearProgress
+                variant="determinate"
+                value={currentUserStatus?.HP || 0}
+              />
               <Typography sx={{ mt: 1 }}>元気</Typography>
-              <LinearProgress variant="determinate" value={playerEnergy} />
+              <LinearProgress
+                variant="determinate"
+                value={currentUserStatus?.stamina || 0}
+              />
             </Box>
             <Box
               sx={{
@@ -339,21 +352,14 @@ export default function TestPlay(props: TestPlayProps) {
             >
               <Chip
                 icon={<DirectionsRunIcon />}
-                label={`移動: x${speed}`}
-                size="small"
-                variant="outlined"
-                sx={{ width: 100 }}
-              />
-              <Chip
-                icon={<GiCrossedSwords size="0.8em" />}
-                label={`攻撃: x${strength}`}
+                label={`移動: x${currentUserStatus?.speed || 0}`}
                 size="small"
                 variant="outlined"
                 sx={{ width: 100 }}
               />
               <Chip
                 icon={<HiOutlineScale size="0.8em" />}
-                label={`装備: ${weaponName}`}
+                label={`装備: ${currentUserStatus?.weapon || "なし"}`}
                 size="small"
                 variant="outlined"
                 sx={{ width: 140, ml: "auto" }}
@@ -366,12 +372,15 @@ export default function TestPlay(props: TestPlayProps) {
                 gap: 2,
               }}
             >
-              {enemies.map((enemy, index) => (
-                <Box key={enemy.name}>
-                  <Typography>{enemy.name}</Typography>
+              {enemyUsers.map((enemyUser) => (
+                <Box key={enemyUser.name}>
+                  <Typography>{enemyUser.name}</Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={Number(enemyHps[index])}
+                    value={
+                      enemyHPs?.find((enemyHP) => enemyHP.id === enemyUser.id)
+                        ?.HP || 0
+                    }
                     color="error"
                   />
                 </Box>

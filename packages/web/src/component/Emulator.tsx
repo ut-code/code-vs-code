@@ -8,15 +8,50 @@ interface User {
   script: string;
   rank: number;
 }
+
+export interface Status {
+  HP: number;
+  stamina: number;
+  speed: number;
+  weapon: "ファイヤ" | "なし";
+}
+
+export interface HPWithId {
+  id: number;
+  HP: number;
+}
+
 export default function Emulator(props: {
   users: User[];
+  currentUserId: number;
+  enemyUserIds: number[];
   HasGameStarted: boolean;
   isPaused: boolean;
-  executionId: number;
+  executionId: number; // エミュレーターそのものを更新するためのId
+  handleCurrentUserStatus: (status: Status) => void;
+  handleEnemyHPs: (HPs: HPWithId[]) => void;
 }) {
-  const { users, HasGameStarted, isPaused, executionId } = props;
+  const {
+    users,
+    currentUserId,
+    enemyUserIds,
+    HasGameStarted,
+    isPaused,
+    executionId,
+    handleCurrentUserStatus,
+    handleEnemyHPs,
+  } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game>();
+  const { HP, stamina, speed, weapon } = gameRef.current?.getFighterStatus(
+    currentUserId
+  ) || { HP: 100, stamina: 100, speed: 2, weapon: "なし" };
+  const enemyHPs = enemyUserIds.map((enemyUserId) => {
+    return {
+      id: enemyUserId,
+      HP: gameRef.current?.getFighterStatus(enemyUserId).HP || 0,
+    };
+  });
   useEffect(() => {
     if (!canvasRef.current) throw new Error();
     const game = new Game(users, canvasRef.current);
@@ -24,7 +59,7 @@ export default function Emulator(props: {
     return () => {
       game.destroy();
     };
-  }, [users, executionId]);
+  }, [users, executionId, currentUserId]);
   useEffect(() => {
     let userIds: number[] = [];
     // この一行テキトウ
@@ -41,6 +76,17 @@ export default function Emulator(props: {
       }
     }
   }, [HasGameStarted, isPaused]);
+  useEffect(() => {
+    handleCurrentUserStatus({
+      HP,
+      stamina,
+      speed,
+      weapon,
+    });
+  }, [HP, stamina, speed, weapon]);
+  useEffect(() => {
+    handleEnemyHPs(enemyHPs);
+  }, [enemyHPs]);
   return (
     <canvas
       ref={canvasRef}
