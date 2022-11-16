@@ -20,11 +20,6 @@ type PostUserRequest = {
   name: string;
 };
 
-type PostUserResponse = {
-  id: number;
-  name: string;
-};
-
 app.post("/user", async (request, response) => {
   const requestBody: PostUserRequest = request.body;
   await client.user.create({
@@ -32,18 +27,33 @@ app.post("/user", async (request, response) => {
   });
   const newUser = await client.user.findUniqueOrThrow({
     where: { name: requestBody.name },
+    include: {
+      userIdentity: {
+        select: {
+          program: true,
+          league: true,
+          rank: true,
+        },
+      },
+    },
   });
-  const responseBody: PostUserResponse = {
-    id: newUser.id,
-    name: requestBody.name,
-  };
-  response.json(responseBody);
+  response.json(newUser);
 });
 
 // Userを全て取得
 
 app.get("/user", async (_, response) => {
-  const users = await client.user.findMany();
+  const users = await client.user.findMany({
+    include: {
+      userIdentity: {
+        select: {
+          program: true,
+          league: true,
+          rank: true,
+        },
+      },
+    },
+  });
   response.json(users);
 });
 
@@ -79,6 +89,15 @@ app.get("/user/:userId([0-9]+)", async (request, response) => {
   const requestParams = request.params as GetUserParams;
   const user = await client.user.findUnique({
     where: { id: Number(requestParams.userId) },
+    include: {
+      userIdentity: {
+        select: {
+          program: true,
+          league: true,
+          rank: true,
+        },
+      },
+    },
   });
   response.json(user);
 });
