@@ -905,6 +905,7 @@ export default class Game {
 
   resume() {
     this.isPaused = false;
+    this.start();
   }
 
   buildWorkers() {

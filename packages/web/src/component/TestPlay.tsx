@@ -276,7 +276,7 @@ export default function TestPlay(props: TestPlayProps) {
   const [enemyIds, setEnemyIds] = useState([1, 2, 3]);
 
   const [isActive, setIsActive] = useState(false);
-  const [resetId, setResetId] = useState(1);
+  const [executionId, setExecutionId] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
   const [selectedEnemyIds, setSelectedEnemyIds] = useState(enemyIds);
   const [isConfirmDisabled, setIsConfirmDisabled] = useState(false);
@@ -320,7 +320,7 @@ export default function TestPlay(props: TestPlayProps) {
             users={sampleUsers}
             HasGameStarted={isActive}
             isPaused={isPaused}
-            resetId={resetId}
+            executionId={executionId}
           />
           <Box sx={{ m: 1 }}>
             <Box>
@@ -415,7 +415,7 @@ export default function TestPlay(props: TestPlayProps) {
                 variant="outlined"
                 sx={{ color: grey[900], borderColor: grey[400] }}
                 onClick={() => {
-                  setResetId((previous) => previous + 1);
+                  setExecutionId((previous) => previous + 1);
                   setIsActive(false);
                 }}
                 startIcon={<RestartAlt />}

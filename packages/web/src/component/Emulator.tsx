@@ -12,9 +12,9 @@ export default function Emulator(props: {
   users: User[];
   HasGameStarted: boolean;
   isPaused: boolean;
-  resetId: number;
+  executionId: number;
 }) {
-  const { users, HasGameStarted, isPaused, resetId } = props;
+  const { users, HasGameStarted, isPaused, executionId } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game>();
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function Emulator(props: {
     return () => {
       game.destroy();
     };
-  }, [users, resetId]);
+  }, [users, executionId]);
   useEffect(() => {
     let userIds: number[] = [];
     // この一行テキトウ
@@ -36,7 +36,6 @@ export default function Emulator(props: {
     if (HasGameStarted) {
       if (!isPaused) {
         gameRef.current.resume();
-        gameRef.current.start();
       } else {
         gameRef.current.pause();
       }
