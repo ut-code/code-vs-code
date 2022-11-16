@@ -21,6 +21,7 @@ type PostUserRequest = {
 };
 
 type PostUserResponse = {
+  id: number;
   name: string;
 };
 
@@ -29,7 +30,11 @@ app.post("/user", async (request, response) => {
   await client.user.create({
     data: { name: requestBody.name },
   });
+  const newUser = await client.user.findUniqueOrThrow({
+    where: { name: requestBody.name },
+  });
   const responseBody: PostUserResponse = {
+    id: newUser.id,
     name: requestBody.name,
   };
   response.json(responseBody);
