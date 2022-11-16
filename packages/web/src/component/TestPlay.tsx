@@ -27,6 +27,7 @@ import { GiCrossedSwords } from "react-icons/gi";
 import { HiOutlineScale } from "react-icons/hi";
 import Emulator from "./Emulator";
 import type { User } from "./game";
+import { getUsers } from "../fetchAPI";
 
 const sampleUsers: [User, User, User, User] = [
   {
@@ -100,28 +101,6 @@ walkTo(target)`,
     rank: 4,
   },
 ];
-
-async function getUsers(): Promise<User[]> {
-  // const response = await fetch("https://api.code-vs-code.com//user");
-  // const json = await response.json();
-  // return json;
-  const array = new Array(10);
-  for (let i = 0; i < 10; i += 1) array[i] = i + 1;
-  return new Promise((resolve) => {
-    setTimeout(
-      () =>
-        resolve(
-          array.map((id) => ({
-            id: 11 - id,
-            name: `ユーザー${id}`,
-            script: "",
-            rank: 1,
-          }))
-        ),
-      1000
-    );
-  });
-}
 
 interface EnemyDialogProps {
   open: boolean;
@@ -275,6 +254,14 @@ export default function TestPlay(props: TestPlayProps) {
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([1, 2, 3]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await getUsers();
+      setUsers(response);
+    };
+    fetchUsers();
+  }, []);
+
   const [isActive, setIsActive] = useState(false);
   const [resetId, setResetId] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -293,21 +280,13 @@ export default function TestPlay(props: TestPlayProps) {
       setEnemyIds(returnedEnemyIds);
       setOpen(false);
     }
-  };
-
-  useEffect(() => {
     const newEnemies: User[] = Array(3);
     for (let i = 0; i < 3; i += 1) {
       const enemy = users.find((element) => element.id === enemyIds[i]);
       if (enemy) newEnemies[i] = enemy;
     }
     setEnemies(newEnemies);
-  }, [enemyIds, users]);
-
-  const fetchUsers = async () => {
-    setUsers(await getUsers());
   };
-  fetchUsers();
 
   return (
     <div>
