@@ -1,9 +1,4 @@
-export type User = {
-  name: string;
-  id: number;
-  script: string;
-  rank: number;
-};
+import type { User } from "./component/Emulator";
 
 export type Program = {
   userId: number;
@@ -23,7 +18,7 @@ export async function getUsers(): Promise<User[]> {
   //         array.map((id) => ({
   //           id,
   //           name: `ユーザー${id}`,
-  //           script: "",
+  //           program: "",
   //           rank: 1,
   //         }))
   //       ),
@@ -40,7 +35,7 @@ export async function getUser(id: number): Promise<User> {
   return json;
   // return new Promise((resolve) => {
   //   setTimeout(
-  //     () => resolve({ id, name: `ユーザー${id}`, script: "", rank: 1 }),
+  //     () => resolve({ id, name: `ユーザー${id}`, program: "", rank: 1 }),
   //     1000
   //   );
   // });
@@ -59,7 +54,7 @@ export async function createUser(name: string): Promise<User> {
   const json = await response.json();
   return json;
   // return new Promise((resolve) => {
-  //   setTimeout(() => resolve({ id: 1, name, script: "", rank: 1 }), 100);
+  //   setTimeout(() => resolve({ id: 1, name, program: "", rank: 1 }), 100);
   // });
 }
 

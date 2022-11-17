@@ -55,7 +55,6 @@ async function loadNextLeague(currentLeagueId: number): Promise<League> {
 
   return {
     id: currentLeagueId,
-    // @ts-expect-error 現状の API 定義が古いのでエラー。直したらこのコメントを消してください。
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     users: [users[0]!, users[1]!, users[2]!, users[3]!],
   };

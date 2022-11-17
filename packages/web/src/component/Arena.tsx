@@ -49,7 +49,7 @@ function ChangeNameDialog(props: ChangeNameDialogProps) {
       const newCurrentUser = {
         id: currentUser.id,
         name: newName,
-        script: currentUser.script,
+        program: currentUser.program,
         rank: currentUser.rank,
       };
       await changeUserName(currentUser.id, newName);

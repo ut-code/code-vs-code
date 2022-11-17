@@ -2,10 +2,10 @@ import { useEffect, useRef } from "react";
 import Game from "./game";
 import type { Result } from "./game";
 
-interface User {
+export interface User {
   name: string;
   id: number;
-  script: string;
+  program: string;
   rank: number;
 }
 
