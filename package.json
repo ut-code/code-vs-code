@@ -16,8 +16,5 @@
     "eslint-config-airbnb-typescript-prettier": "^5.0.0",
     "prettier": "^2.7.1",
     "typescript": "^4.8.2"
-  },
-  "dependencies": {
-    "blockly": "^8.0.5"
   }
 }

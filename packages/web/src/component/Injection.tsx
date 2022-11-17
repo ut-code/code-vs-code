@@ -4,6 +4,7 @@ import Blockly from "blockly";
 // @ts-expect-error
 import Ja from "blockly/msg/ja";
 import "../style.css";
+import { Box } from "@mui/material";
 import options from "../options";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -12,9 +13,11 @@ import options from "../options";
 (Blockly as any).HSV_VALUE = 1;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export default function Injection() {
+export default function Injection(props: {
+  workspaceRef: React.MutableRefObject<Blockly.WorkspaceSvg | undefined>;
+}) {
+  const { workspaceRef } = props;
   const workspaceDivRef = useRef<HTMLDivElement>(null);
-  const workspaceRef = useRef<Blockly.WorkspaceSvg>();
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -23,7 +26,7 @@ export default function Injection() {
     return () => {
       workspace.dispose();
     };
-  }, []);
+  }, [workspaceRef]);
 
-  return <div ref={workspaceDivRef} className="blocklyDiv" />;
+  return <Box ref={workspaceDivRef} sx={{ width: 1, height: 1 }} />;
 }

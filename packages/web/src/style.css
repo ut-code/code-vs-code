@@ -2,13 +2,10 @@ body {
   margin: 0px;
 }
 
-.blocklyDiv {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
 /* ut-code/school-festival/src/grobal.css */
+html {
+  overflow: hidden;
+}
   
   html, body, #root {
     width: 100%;

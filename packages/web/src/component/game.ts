@@ -12,6 +12,7 @@ import explosion7 from "../../resources/explosion7.png";
 import explosion8 from "../../resources/explosion8.png";
 import itemFire from "../../resources/itemFire.png";
 import bulletFire from "../../resources/bulletFire.png";
+import type { Status } from "./Emulator";
 
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
@@ -24,6 +25,7 @@ interface User {
   name: string;
   id: number;
   script: string;
+  rank: number;
 }
 
 type Result = number[];
@@ -67,7 +69,7 @@ type DataFromWorker =
 
 //  ドメインオブジェクト
 
-class Fighter implements Entity {
+export class Fighter implements Entity {
   id: number;
 
   location: Vector2;
@@ -121,7 +123,7 @@ class Portion implements Entity {
 }
 
 // ウェポンの性能は暫定値を代入してます 武器ごとに変える予定です
-class Weapon implements Entity {
+export class Weapon implements Entity {
   id: number;
 
   location: Vector2;
@@ -350,6 +352,10 @@ class World {
       location.y = Math.random() * STAGE_HEIGHT;
     }
     return location;
+  }
+
+  getFighter(id: number) {
+    return this.fighters.find((fighter) => fighter.id === id);
   }
 }
 // アクション
@@ -888,6 +894,11 @@ export default class Game {
         previousTime = Date.now();
         this.world.placeRandomPortion();
         this.world.placeRandomWeapon();
+        this.workers.forEach((worker) => {
+          worker.terminate();
+        });
+        this.workers.clear();
+        this.buildWorkers();
         this.sendScriptsToWorkers();
       }
       if (currentTime - startTime >= 120000) {
@@ -904,6 +915,7 @@ export default class Game {
 
   resume() {
     this.isPaused = false;
+    this.start();
   }
 
   buildWorkers() {
@@ -1009,6 +1021,17 @@ export default class Game {
           ${this.users.find((user) => user.id === me.id)?.script}`;
       this.workers.get(me.id)?.postMessage(script);
     }
+  }
+
+  getFighterStatus(id: number) {
+    const fighter = this.world.getFighter(id);
+    const status: Status = {
+      HP: fighter?.HP || 0,
+      stamina: fighter?.stamina || 0,
+      speed: fighter?.speed || 0,
+      weapon: fighter?.weapon ? "ファイヤ" : "なし",
+    };
+    return status;
   }
 
   end() {
