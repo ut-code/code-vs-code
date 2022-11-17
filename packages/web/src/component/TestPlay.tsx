@@ -15,6 +15,7 @@ import {
   List,
   ListItem,
   MenuItem,
+  Skeleton,
   TextField,
   Typography,
 } from "@mui/material";
@@ -240,12 +241,7 @@ interface TestPlayProps {
 
 export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
-  const [users, setUsers] = useState([
-    currentUser,
-    sampleUsers[1],
-    sampleUsers[2],
-    sampleUsers[3],
-  ]);
+  const [users, setUsers] = useState<User[] | null>(null);
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([
     sampleUsers[1].id,
@@ -290,9 +286,18 @@ export default function TestPlay(props: TestPlayProps) {
 
   const enemyUsers = useMemo(
     () =>
-      users.filter((user) => enemyIds.some((enemyId) => enemyId === user.id)),
+      users
+        ? users.filter((user) =>
+            enemyIds.some((enemyId) => enemyId === user.id)
+          )
+        : [],
     [enemyIds, users]
   );
+
+  const handleStatuses = useCallback((newStatuses: Status[]) => {
+    setStatuses(newStatuses);
+  }, []);
+
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
@@ -301,15 +306,17 @@ export default function TestPlay(props: TestPlayProps) {
         </AccordionSummary>
         <AccordionDetails sx={{ height: 800 }}>
           <Box sx={{ height: 450, width: 600 }}>
-            <Emulator
-              users={[currentUser].concat(enemyUsers)}
-              HasGameStarted={isActive}
-              isPaused={isPaused}
-              executionId={executionId}
-              handleStatuses={useCallback((newStatuses: Status[]) => {
-                setStatuses(newStatuses);
-              }, [])}
-            />
+            {users && enemyUsers ? (
+              <Emulator
+                users={[currentUser].concat(enemyUsers)}
+                HasGameStarted={isActive}
+                isPaused={isPaused}
+                executionId={executionId}
+                handleStatuses={handleStatuses}
+              />
+            ) : (
+              <Skeleton width="100%" height="auto" />
+            )}
           </Box>
           <Box sx={{ m: 1 }}>
             <Box>
@@ -429,16 +436,20 @@ export default function TestPlay(props: TestPlayProps) {
           </Box>
         </AccordionDetails>
       </Accordion>
-      <EnemyDialog
-        users={users}
-        enemyIds={enemyIds}
-        selectedEnemyIds={selectedEnemyIds}
-        setSelectedEnemyIds={setSelectedEnemyIds}
-        open={open}
-        handleClose={handleClose}
-        isConfirmDisabled={isConfirmDisabled}
-        setIsConfirmDisabled={setIsConfirmDisabled}
-      />
+      {users ? (
+        <EnemyDialog
+          users={users}
+          enemyIds={enemyIds}
+          selectedEnemyIds={selectedEnemyIds}
+          setSelectedEnemyIds={setSelectedEnemyIds}
+          open={open}
+          handleClose={handleClose}
+          isConfirmDisabled={isConfirmDisabled}
+          setIsConfirmDisabled={setIsConfirmDisabled}
+        />
+      ) : (
+        <Skeleton />
+      )}
     </div>
   );
 }
