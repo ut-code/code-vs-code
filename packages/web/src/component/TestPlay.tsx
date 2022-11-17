@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -240,10 +240,12 @@ interface TestPlayProps {
 
 export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
-  const InitialEnemyUsers = [sampleUsers[1], sampleUsers[2], sampleUsers[3]];
-
-  const [users, setUsers] = useState([currentUser]);
-  const [enemyUsers, setEnemyUsers] = useState(InitialEnemyUsers);
+  const [users, setUsers] = useState([
+    currentUser,
+    sampleUsers[1],
+    sampleUsers[2],
+    sampleUsers[3],
+  ]);
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([
     sampleUsers[1].id,
@@ -258,15 +260,6 @@ export default function TestPlay(props: TestPlayProps) {
     };
     fetchUsers();
   }, []);
-
-  useEffect(() => {
-    const newEnemies: User[] = [];
-    for (let i = 0; i < 3; i += 1) {
-      const enemy = users.find((element) => element.id === enemyIds[i]);
-      if (enemy) newEnemies[i] = enemy;
-    }
-    setEnemyUsers(newEnemies);
-  }, [enemyIds, users]);
 
   const [isActive, setIsActive] = useState(false);
   const [executionId, setExecutionId] = useState(1);
@@ -294,6 +287,12 @@ export default function TestPlay(props: TestPlayProps) {
     setUsers(await getUsers());
   };
   fetchUsers();
+
+  const enemyUsers = useMemo(
+    () =>
+      users.filter((user) => enemyIds.some((enemyId) => enemyId === user.id)),
+    [enemyIds, users]
+  );
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
