@@ -12,6 +12,12 @@ import {
   WEAPONS,
   GET_PROPERTY_OF_PORTION,
   GET_PROPERTY_OF_WEAPON,
+  DISTANCE,
+  MINMAX,
+  CLOSEST_ENEMY,
+  CLOSEST_PORTION,
+  CLOSEST_WEAPON,
+  PORTION_KIND,
 } from "./blocks";
 
 const numberInput = (initialInput: number) => {
@@ -42,10 +48,6 @@ const options: any = {
           {
             kind: "block",
             type: "logic_compare",
-            inputs: {
-              A: numberInput(0),
-              B: numberInput(0),
-            },
           },
           {
             kind: "block",
@@ -101,14 +103,6 @@ const options: any = {
           },
           {
             kind: "block",
-            type: MATH_VECTOR2,
-            inputs: {
-              X: numberInput(0),
-              Y: numberInput(0),
-            },
-          },
-          {
-            kind: "block",
             type: "math_arithmetic",
             inputs: {
               A: numberInput(0),
@@ -122,6 +116,26 @@ const options: any = {
               DIVIDEND: numberInput(0),
               DIVISOR: numberInput(0),
             },
+          },
+          {
+            kind: "block",
+            type: MINMAX,
+            inputs: {
+              A: numberInput(0),
+              B: numberInput(0),
+            },
+          },
+          {
+            kind: "block",
+            type: MATH_VECTOR2,
+            inputs: {
+              X: numberInput(0),
+              Y: numberInput(0),
+            },
+          },
+          {
+            kind: "block",
+            type: DISTANCE,
           },
           {
             kind: "block",
@@ -182,6 +196,22 @@ const options: any = {
           {
             kind: "block",
             type: GET_PROPERTY_OF_WEAPON,
+          },
+          {
+            kind: "block",
+            type: PORTION_KIND,
+          },
+          {
+            kind: "block",
+            type: CLOSEST_ENEMY,
+          },
+          {
+            kind: "block",
+            type: CLOSEST_PORTION,
+          },
+          {
+            kind: "block",
+            type: CLOSEST_WEAPON,
           },
         ],
       },
