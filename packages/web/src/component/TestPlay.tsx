@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -322,10 +322,13 @@ export default function TestPlay(props: TestPlayProps) {
             HasGameStarted={isActive}
             isPaused={isPaused}
             executionId={executionId}
-            handleCurrentUserStatus={(status: Status) => {
+            handleCurrentUserStatus={useCallback((status: Status) => {
               setCurrentUserStatus(status);
-            }}
-            handleEnemyHPs={(HPs: HPWithId[]) => setEnemyHPs(HPs)}
+            }, [])}
+            handleEnemyHPs={useCallback(
+              (HPs: HPWithId[]) => setEnemyHPs(HPs),
+              []
+            )}
           />
           <Box sx={{ m: 1 }}>
             <Box>

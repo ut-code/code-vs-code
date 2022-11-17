@@ -83,9 +83,11 @@ export default function Emulator(props: {
       speed,
       weapon,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [HP, stamina, speed, weapon]);
   useEffect(() => {
     handleEnemyHPs(enemyHPs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enemyHPs]);
   return (
     <canvas
