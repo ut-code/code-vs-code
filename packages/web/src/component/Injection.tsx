@@ -6,6 +6,7 @@ import Ja from "blockly/msg/ja";
 import "../style.css";
 import { Box } from "@mui/material";
 import options from "../options";
+import modifyTranslation from "../modifyTranslation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 (Blockly as any).setLocale(Ja);
@@ -23,6 +24,7 @@ export default function Injection(props: {
     // @ts-ignore
     const workspace = Blockly.inject(workspaceDivRef.current, options);
     workspaceRef.current = workspace;
+    modifyTranslation();
     return () => {
       workspace.dispose();
     };
