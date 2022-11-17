@@ -23,9 +23,16 @@ export default function Emulator(props: {
   isPaused: boolean;
   executionId: number; // エミュレーターそのものを更新するためのId
   handleStatuses: (statuses: Status[]) => void;
+  onGameCompleted: (result: Result) => void;
 }) {
-  const { users, HasGameStarted, isPaused, executionId, handleStatuses } =
-    props;
+  const {
+    users,
+    HasGameStarted,
+    isPaused,
+    executionId,
+    handleStatuses,
+    onGameCompleted,
+  } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game>();
   useEffect(() => {
@@ -39,12 +46,9 @@ export default function Emulator(props: {
     };
   }, [users, executionId, handleStatuses]);
   useEffect(() => {
-    let userIds: number[] = [];
-    // この一行テキトウ
-    userIds.slice();
     if (!gameRef.current) throw new Error();
     gameRef.current.onCompleted = (result: Result) => {
-      userIds = result;
+      onGameCompleted(result);
     };
     if (HasGameStarted) {
       if (!isPaused) {
@@ -53,7 +57,7 @@ export default function Emulator(props: {
         gameRef.current.pause();
       }
     }
-  }, [HasGameStarted, isPaused]);
+  }, [HasGameStarted, isPaused, onGameCompleted]);
   return (
     <canvas
       ref={canvasRef}

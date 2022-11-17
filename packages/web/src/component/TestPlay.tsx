@@ -26,7 +26,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { HiOutlineScale } from "react-icons/hi";
 import Emulator, { Status } from "./Emulator";
-import type { User } from "./game";
+import type { Result, User } from "./game";
 import { getUsers } from "../fetchAPI";
 
 // const sampleUsers: [User, User, User, User] = [
@@ -243,7 +243,7 @@ export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
   const [users, setUsers] = useState<User[] | null>(null);
   const [open, setOpen] = useState(false);
-  const [enemyIds, setEnemyIds] = useState([6, 7, 8]);
+  const [enemyIds, setEnemyIds] = useState([2, 6, 7]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -289,6 +289,8 @@ export default function TestPlay(props: TestPlayProps) {
     setStatuses(newStatuses);
   }, []);
 
+  const onGameCompleted = useCallback((result: Result) => result, []);
+
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
@@ -304,6 +306,7 @@ export default function TestPlay(props: TestPlayProps) {
                 isPaused={isPaused}
                 executionId={executionId}
                 handleStatuses={handleStatuses}
+                onGameCompleted={onGameCompleted}
               />
             ) : (
               <Skeleton width="100%" height="auto" />
