@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { min, max } from "mathjs";
 import type { Vector2, Entity } from "./game";
 
 interface Fighter extends Entity {
@@ -157,3 +158,5 @@ useWeapon.toString();
 getClosestEnemy.toString();
 getClosestPortion.toString();
 getClosestWeapon.toString();
+min.toString();
+max.toString();

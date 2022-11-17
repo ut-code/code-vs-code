@@ -2,6 +2,7 @@ import Blockly from "blockly";
 
 const Number = "Number";
 const Array = "Array";
+const String = "String";
 const Vector2D = "ベクトル2";
 const Existence = "存在";
 const Fighter = "ファイター";
@@ -56,9 +57,9 @@ Blockly.JavaScript[PLAYER] = () => [
 export const ENEMIES = "enemies";
 Blockly.Blocks[ENEMIES] = {
   init(this: Blockly.Block) {
-    this.appendDummyInput().appendField("全ての敵");
+    this.appendDummyInput().appendField("敵リスト");
     this.setOutput(true, Array);
-    this.setColour(260);
+    this.setColour(20);
     this.setTooltip("");
   },
 };
@@ -70,9 +71,9 @@ Blockly.JavaScript[ENEMIES] = () => [
 export const PORTIONS = "portions";
 Blockly.Blocks[PORTIONS] = {
   init(this: Blockly.Block) {
-    this.appendDummyInput().appendField("全てのポーション");
+    this.appendDummyInput().appendField("ポーションリスト");
     this.setOutput(true, Array);
-    this.setColour(260);
+    this.setColour(20);
     this.setTooltip("");
   },
 };
@@ -84,9 +85,9 @@ Blockly.JavaScript[PORTIONS] = () => [
 export const WEAPONS = "weapons";
 Blockly.Blocks[WEAPONS] = {
   init(this: Blockly.Block) {
-    this.appendDummyInput().appendField("全ての武器");
+    this.appendDummyInput().appendField("武器リスト");
     this.setOutput(true, Array);
-    this.setColour(260);
+    this.setColour(20);
     this.setTooltip("");
   },
 };
@@ -158,7 +159,7 @@ Blockly.Blocks[GET_PROPERTY_OF_PORTION] = {
         ]),
         PROPERTY_NAME
       );
-    this.setOutput(true, Number);
+    this.setOutput(true, [Number, String]);
     this.setColour(20);
     this.setTooltip("");
   },
@@ -207,6 +208,31 @@ Blockly.JavaScript[GET_PROPERTY_OF_WEAPON] = (block: Blockly.Block) => [
     Blockly.JavaScript.ORDER_MEMBER
   )}.${block.getFieldValue(PROPERTY_NAME)}`,
   Blockly.JavaScript.ORDER_MEMBER,
+];
+
+export const PORTION_KIND = "portionKind";
+const portionKind = {
+  SPEED_UP: "speedUp",
+  ATTACK_UP: "attackUp",
+};
+const VALUE = "value";
+Blockly.Blocks[PORTION_KIND] = {
+  init(this: Blockly.Block) {
+    this.appendDummyInput().appendField(
+      new Blockly.FieldDropdown([
+        ["スピードアップ", portionKind.SPEED_UP],
+        ["攻撃力アップ", portionKind.ATTACK_UP],
+      ]),
+      VALUE
+    );
+    this.setOutput(true, String);
+    this.setColour(20);
+    this.setTooltip("");
+  },
+};
+Blockly.JavaScript[PORTION_KIND] = () => [
+  `"${VALUE}"`,
+  Blockly.JavaScript.ORDER_ATOMIC,
 ];
 
 // 意思決定
@@ -303,11 +329,99 @@ Blockly.JavaScript[PICK_UP] = (block: Blockly.Block) =>
 export const DISTANCE = "distance";
 Blockly.Blocks[DISTANCE] = {
   init(this: Blockly.Block) {
-    this.appendValueInput("a").setCheck(ExistenceOrVector2D);
-    this.appendValueInput("b").setCheck(ExistenceOrVector2D).appendField("と");
+    this.appendValueInput("A").setCheck(ExistenceOrVector2D);
+    this.appendValueInput("B").setCheck(ExistenceOrVector2D).appendField("と");
     this.appendDummyInput().appendField("の距離");
     this.setOutput(true, Number);
     this.setColour(230);
     this.setTooltip("");
   },
 };
+Blockly.JavaScript[DISTANCE] = (block: Blockly.Block) =>
+  `calculateDistance(${Blockly.JavaScript.valueToCode(
+    block,
+    "A",
+    Blockly.JavaScript.ORDER_COMMA
+  )},${Blockly.JavaScript.valueToCode(
+    block,
+    "B",
+    Blockly.JavaScript.ORDER_COMMA
+  )})`;
+
+export const MINMAX = "minmax";
+const OPERATOR = "operator";
+const MIN = "min";
+const MAX = "max";
+Blockly.Blocks[MINMAX] = {
+  init(this: Blockly.Block) {
+    this.appendValueInput("A").setCheck(Number);
+    this.appendValueInput("B").setCheck(Number).appendField("と");
+    this.appendDummyInput()
+      .appendField("のうち")
+      .appendField(
+        new Blockly.FieldDropdown([
+          ["小さい方", MIN],
+          ["大きい方", MAX],
+        ]),
+        OPERATOR
+      );
+    this.setOutput(true, Number);
+    this.setColour(230);
+    this.setTooltip("");
+  },
+};
+Blockly.JavaScript[MINMAX] = (block: Blockly.Block) => [
+  () =>
+    `${block.getFieldValue(OPERATOR)}([${Blockly.JavaScript.valueToCode(
+      block,
+      "A",
+      Blockly.JavaScript.ORDER_COMMA
+    )},${Blockly.JavaScript.valueToCode(
+      block,
+      "B",
+      Blockly.JavaScript.ORDER_COMMA
+    )}])`,
+  Blockly.JavaScript.ORDER_FUNCTION_CALL,
+];
+
+export const CLOSEST_ENEMY = "closestEnemy";
+Blockly.Blocks[CLOSEST_ENEMY] = {
+  init(this: Blockly.Block) {
+    this.appendDummyInput().appendField("最も近い敵");
+    this.setOutput(true, Fighter);
+    this.setColour(20);
+    this.setTooltip("");
+  },
+};
+Blockly.JavaScript[CLOSEST_ENEMY] = () => [
+  `getClosestEnemy()`,
+  Blockly.JavaScript.ORDER_FUNCTION_CALL,
+];
+
+export const CLOSEST_PORTION = "closestPortion";
+Blockly.Blocks[CLOSEST_PORTION] = {
+  init(this: Blockly.Block) {
+    this.appendDummyInput().appendField("最も近いポーション");
+    this.setOutput(true, Portion);
+    this.setColour(20);
+    this.setTooltip("");
+  },
+};
+Blockly.JavaScript[CLOSEST_PORTION] = () => [
+  `getClosestPortion()`,
+  Blockly.JavaScript.ORDER_FUNCTION_CALL,
+];
+
+export const CLOSEST_WEAPON = "closestWeapon";
+Blockly.Blocks[CLOSEST_WEAPON] = {
+  init(this: Blockly.Block) {
+    this.appendDummyInput().appendField("最も近い武器");
+    this.setOutput(true, Weapon);
+    this.setColour(20);
+    this.setTooltip("");
+  },
+};
+Blockly.JavaScript[CLOSEST_WEAPON] = () => [
+  `getClosestWeapon()`,
+  Blockly.JavaScript.ORDER_FUNCTION_CALL,
+];
