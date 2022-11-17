@@ -10,8 +10,16 @@ import {
   MATH_VECTOR2,
   WALK_TO,
   WEAPONS,
-  GET_PROPERTY_OF_PORTION,
-  GET_PROPERTY_OF_WEAPON,
+  DISTANCE,
+  MINMAX,
+  CLOSEST_ENEMY,
+  CLOSEST_PORTION,
+  CLOSEST_WEAPON,
+  CUSTOM_WHILE,
+  CUSTOM_LISTS_GET_INDEX,
+  CUSTOM_LISTS_SET_INDEX,
+  CUSTOM_LISTS_INSERT_INDEX,
+  CUSTOM_LISTS_DELETE_INDEX,
 } from "./blocks";
 
 const numberInput = (initialInput: number) => {
@@ -42,10 +50,6 @@ const options: any = {
           {
             kind: "block",
             type: "logic_compare",
-            inputs: {
-              A: numberInput(0),
-              B: numberInput(0),
-            },
           },
           {
             kind: "block",
@@ -70,7 +74,7 @@ const options: any = {
           },
           {
             kind: "block",
-            type: "controls_whileUntil",
+            type: CUSTOM_WHILE,
           },
           {
             kind: "block",
@@ -101,14 +105,6 @@ const options: any = {
           },
           {
             kind: "block",
-            type: MATH_VECTOR2,
-            inputs: {
-              X: numberInput(0),
-              Y: numberInput(0),
-            },
-          },
-          {
-            kind: "block",
             type: "math_arithmetic",
             inputs: {
               A: numberInput(0),
@@ -122,6 +118,26 @@ const options: any = {
               DIVIDEND: numberInput(0),
               DIVISOR: numberInput(0),
             },
+          },
+          {
+            kind: "block",
+            type: MINMAX,
+            inputs: {
+              A: numberInput(0),
+              B: numberInput(0),
+            },
+          },
+          {
+            kind: "block",
+            type: MATH_VECTOR2,
+            inputs: {
+              X: numberInput(0),
+              Y: numberInput(0),
+            },
+          },
+          {
+            kind: "block",
+            type: DISTANCE,
           },
           {
             kind: "block",
@@ -177,11 +193,15 @@ const options: any = {
           },
           {
             kind: "block",
-            type: GET_PROPERTY_OF_PORTION,
+            type: CLOSEST_ENEMY,
           },
           {
             kind: "block",
-            type: GET_PROPERTY_OF_WEAPON,
+            type: CLOSEST_PORTION,
+          },
+          {
+            kind: "block",
+            type: CLOSEST_WEAPON,
           },
         ],
       },
@@ -233,17 +253,36 @@ const options: any = {
           },
           {
             kind: "block",
-            type: "lists_getIndex",
+            type: "lists_length",
+          },
+          {
+            kind: "block",
+            type: CUSTOM_LISTS_GET_INDEX,
             inputs: {
-              AT: numberInput(1),
+              index: numberInput(1),
             },
           },
           {
             kind: "block",
-            type: "lists_setIndex",
+            type: CUSTOM_LISTS_SET_INDEX,
             inputs: {
-              AT: numberInput(1),
-              TO: numberInput(0),
+              index: numberInput(1),
+              value: numberInput(0),
+            },
+          },
+          {
+            kind: "block",
+            type: CUSTOM_LISTS_INSERT_INDEX,
+            inputs: {
+              index: numberInput(1),
+              value: numberInput(0),
+            },
+          },
+          {
+            kind: "block",
+            type: CUSTOM_LISTS_DELETE_INDEX,
+            inputs: {
+              index: numberInput(1),
             },
           },
         ],
