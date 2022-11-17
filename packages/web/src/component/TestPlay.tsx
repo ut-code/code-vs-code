@@ -283,11 +283,6 @@ export default function TestPlay(props: TestPlayProps) {
     }
   };
 
-  const fetchUsers = async () => {
-    setUsers(await getUsers());
-  };
-  fetchUsers();
-
   const enemyUsers = useMemo(
     () =>
       users.filter((user) => enemyIds.some((enemyId) => enemyId === user.id)),
@@ -302,7 +297,7 @@ export default function TestPlay(props: TestPlayProps) {
         <AccordionDetails sx={{ height: 800 }}>
           <Box sx={{ height: 450, width: 600 }}>
             <Emulator
-              users={[currentUser].concat(enemyUsers)}
+              users={sampleUsers}
               HasGameStarted={isActive}
               isPaused={isPaused}
               executionId={executionId}

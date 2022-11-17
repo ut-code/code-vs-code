@@ -43,7 +43,7 @@ export default function App() {
         <ButtonAppBar />
         <Injection workspaceRef={workspaceRef} />
       </Box>
-      <Welcome currentUser={currentUser} setCurrentUser={setCurrentUser} />
+      <Welcome setCurrentUser={setCurrentUser} />
       <Arena
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}

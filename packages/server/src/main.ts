@@ -30,29 +30,33 @@ type UserResponse = {
 
 app.post("/user", async (request, response) => {
   const requestBody: PostUserRequest = request.body;
-  await client.user.create({
-    data: { name: requestBody.name },
-  });
-  const newUser = await client.user.findUniqueOrThrow({
-    where: { name: requestBody.name },
-    include: {
-      userIdentity: {
-        select: {
-          program: true,
-          league: true,
-          rank: true,
+  try {
+    await client.user.create({
+      data: { name: requestBody.name },
+    });
+    const newUser = await client.user.findUniqueOrThrow({
+      where: { name: requestBody.name },
+      include: {
+        userIdentity: {
+          select: {
+            program: true,
+            league: true,
+            rank: true,
+          },
         },
       },
-    },
-  });
-  const newUserResponse: UserResponse = {
-    id: newUser.id,
-    name: newUser.name,
-    program: newUser.userIdentity?.program,
-    league: newUser.userIdentity?.league,
-    rank: newUser.userIdentity?.rank,
-  };
-  response.json(newUserResponse);
+    });
+    const newUserResponse: UserResponse = {
+      id: newUser.id,
+      name: newUser.name,
+      program: newUser.userIdentity?.program,
+      league: newUser.userIdentity?.league,
+      rank: newUser.userIdentity?.rank,
+    };
+    response.json(newUserResponse);
+  } catch {
+    response.status(409).send();
+  }
 });
 
 // Userを全て取得
@@ -96,11 +100,15 @@ app.put("/user/:userId([0-9]+)", async (request, response) => {
     userId: Number(request.params["userId"]),
   };
   const requestBody: PutUserRequest = request.body;
-  await client.user.update({
-    where: { id: requestParams.userId },
-    data: { name: requestBody.name },
-  });
-  response.send();
+  try {
+    await client.user.update({
+      where: { id: requestParams.userId },
+      data: { name: requestBody.name },
+    });
+    response.send();
+  } catch {
+    response.status(409).send();
+  }
 });
 
 // Get user by ID
