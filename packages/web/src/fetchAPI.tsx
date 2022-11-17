@@ -1,9 +1,4 @@
-export type User = {
-  name: string;
-  id: number;
-  script: string;
-  rank: number;
-};
+import type { User } from "./component/Emulator";
 
 export type Program = {
   userId: number;

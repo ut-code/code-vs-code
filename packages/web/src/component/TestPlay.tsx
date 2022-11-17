@@ -15,6 +15,7 @@ import {
   List,
   ListItem,
   MenuItem,
+  Skeleton,
   TextField,
   Typography,
 } from "@mui/material";
@@ -25,14 +26,14 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { HiOutlineScale } from "react-icons/hi";
 import Emulator, { Status } from "./Emulator";
-import type { User } from "./game";
+import type { Result, User } from "./game";
 import { getUsers } from "../fetchAPI";
 
 const sampleUsers: [User, User, User, User] = [
   {
     name: "fooBarBaz",
     id: 1,
-    script: `let target = null; 
+    program: `let target = null; 
     let closestPortion = portions[0]; 
     for ( const portion of portions ) {
       const previousDistance = calculateDistance( player, closestPortion ); 
@@ -46,7 +47,7 @@ const sampleUsers: [User, User, User, User] = [
   {
     name: "吾輩は猫",
     id: 2,
-    script: `let closestWeapon = weapons[0];
+    program: `let closestWeapon = weapons[0];
     if(player.weapon){
       let closestEnemy = enemies[0] 
     for ( const enemy of enemies ) {
@@ -74,7 +75,7 @@ const sampleUsers: [User, User, User, User] = [
   {
     name: "テスト",
     id: 3,
-    script: `let target = null; 
+    program: `let target = null; 
 let closestPortion = portions[0]; 
 for ( const portion of portions ) {
   const previousDistance = calculateDistance( player, closestPortion ); 
@@ -88,7 +89,7 @@ walkTo(target)`,
   {
     name: "UTC",
     id: 4,
-    script: `let closestEnemy = enemies[0] 
+    program: `let closestEnemy = enemies[0] 
     for ( const enemy of enemies ) {
       const previousDistance = calculateDistance( player, closestEnemy ); 
       const currentDistance = calculateDistance( player, enemy );
@@ -247,11 +248,7 @@ export default function TestPlay(props: TestPlayProps) {
     sampleUsers[3],
   ]);
   const [open, setOpen] = useState(false);
-  const [enemyIds, setEnemyIds] = useState([
-    sampleUsers[1].id,
-    sampleUsers[2].id,
-    sampleUsers[3].id,
-  ]);
+  const [enemyIds, setEnemyIds] = useState([2, 6, 7]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -293,6 +290,13 @@ export default function TestPlay(props: TestPlayProps) {
       users.filter((user) => enemyIds.some((enemyId) => enemyId === user.id)),
     [enemyIds, users]
   );
+
+  const handleStatuses = useCallback((newStatuses: Status[]) => {
+    setStatuses(newStatuses);
+  }, []);
+
+  const onGameCompleted = useCallback((result: Result) => result, []);
+
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
@@ -301,15 +305,18 @@ export default function TestPlay(props: TestPlayProps) {
         </AccordionSummary>
         <AccordionDetails sx={{ height: 800 }}>
           <Box sx={{ height: 450, width: 600 }}>
-            <Emulator
-              users={[currentUser].concat(enemyUsers)}
-              HasGameStarted={isActive}
-              isPaused={isPaused}
-              executionId={executionId}
-              handleStatuses={useCallback((newStatuses: Status[]) => {
-                setStatuses(newStatuses);
-              }, [])}
-            />
+            {users && enemyUsers ? (
+              <Emulator
+                users={[currentUser].concat(enemyUsers)}
+                HasGameStarted={isActive}
+                isPaused={isPaused}
+                executionId={executionId}
+                handleStatuses={handleStatuses}
+                onGameCompleted={onGameCompleted}
+              />
+            ) : (
+              <Skeleton width="100%" height="auto" />
+            )}
           </Box>
           <Box sx={{ m: 1 }}>
             <Box>

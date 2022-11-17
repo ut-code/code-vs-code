@@ -12,7 +12,7 @@ import explosion7 from "../../resources/explosion7.png";
 import explosion8 from "../../resources/explosion8.png";
 import itemFire from "../../resources/itemFire.png";
 import bulletFire from "../../resources/bulletFire.png";
-import type { Status } from "./Emulator";
+import type { Status, User } from "./Emulator";
 
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
@@ -20,13 +20,6 @@ const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 600;
 
 PIXI.settings.RESOLUTION = window.devicePixelRatio;
-
-interface User {
-  name: string;
-  id: number;
-  script: string;
-  rank: number;
-}
 
 type Result = number[];
 
@@ -939,7 +932,7 @@ export default class Game {
         });
         this.workers.clear();
         this.buildWorkers();
-        this.sendScriptsToWorkers();
+        this.sendprogramsToWorkers();
       }
       if (currentTime - startTime >= 120000) {
         this.end();
@@ -994,14 +987,14 @@ export default class Game {
     }
   }
 
-  sendScriptsToWorkers() {
+  sendprogramsToWorkers() {
     const { portions, weapons } = this.world;
     for (const me of this.world.fighters) {
       if (!me) throw new Error();
       const enemies: Fighter[] = this.world.fighters.filter(
         (fighter) => fighter !== me
       );
-      const script = `player = ${JSON.stringify({
+      const program = `player = ${JSON.stringify({
         location: me.location,
         HP: me.HP,
         id: me.id,
@@ -1061,8 +1054,8 @@ export default class Game {
               };
             })
           )}
-          ${this.users.find((user) => user.id === me.id)?.script}`;
-      this.workers.get(me.id)?.postMessage(script);
+          ${this.users.find((user) => user.id === me.id)?.program}`;
+      this.workers.get(me.id)?.postMessage(program);
     }
   }
 
