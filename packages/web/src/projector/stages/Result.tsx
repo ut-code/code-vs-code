@@ -1,6 +1,9 @@
-import { Box } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { Box, Stack } from "@mui/material";
+import { Fragment, useEffect, useRef } from "react";
+import { AiFillTrophy } from "react-icons/ai";
+import ProjectorHeader from "../components/Header";
 import type { League, LeagueUserIds } from "../Projector";
+import rocketIcon from "../../icon1.svg";
 
 export type ProjectorReadyProps = {
   league: League;
@@ -8,6 +11,8 @@ export type ProjectorReadyProps = {
   nextLeague: League;
   onCompleted(): void;
 };
+
+const orderLabelMap = ["1st", "2nd", "3rd", "4th"] as const;
 
 function ProjectorResult({
   league,
@@ -28,88 +33,29 @@ function ProjectorResult({
   }, []);
 
   return (
-    <>
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          boxShadow: 1,
-          p: 2,
-          minWidth: 300,
-          width: 1920,
-          height: 120,
-          borderBottom: 20,
-        }}
-      >
-        <Box
-          sx={{
-            display: "inline",
-            fontSize: 80,
-          }}
-        >
-          ut.code();
-        </Box>
-        <Box
-          sx={{
-            color: "text.primary",
-            fontWeight: "bolder",
-            display: "inline",
-            fontSize: 80,
-            ml: 60,
-          }}
-        >
-          第{league.id + 1}リーグ
-        </Box>
-      </Box>
-      <Box
-        sx={{
-          display: "grid",
-          columGap: 0,
-          rowGap: 0,
-          gridTemplateColumns: "repeat(2, 1fr)",
-          width: 1920,
-          height: 960,
-          ml: 40,
-          mt: 10,
-        }}
-      >
-        <Box>
-          <Box
-            sx={{
-              fontSize: 50,
-              fontWeight: "bold",
-            }}
-          >
-            Result
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              columGap: 5,
-              rowGap: 0,
-              gridTemplateColumns: "repeat(2, 0fr)",
-              gap: 10,
-              mt: 5,
-            }}
-          >
-            <Box
-              sx={{
-                color: "black",
-                width: 120,
-                height: 120,
-                bgcolor: "aqua",
-              }}
-            >
-              cup
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateRows: "max-content 1fr max-content",
+        height: "100%",
+      }}
+    >
+      <ProjectorHeader league={league} />
+      <Stack direction="row" justifyContent="center" alignItems="center">
+        <Box sx={{ width: "700px" }}>
+          <Box sx={{ fontSize: "96px" }}>Result</Box>
+          <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 4 }}>
+            <Box>
+              <AiFillTrophy size="160px" />
             </Box>
             <Box>
               <Box
                 sx={{
+                  width: "max-content",
                   color: "white",
-                  bgcolor: "black",
-                  fontSize: 20,
-                  width: 60,
-                  height: 30,
-                  textAlign: "center",
+                  backgroundColor: "black",
+                  fontSize: "40px",
+                  paddingX: "30px",
                 }}
               >
                 {league.users.findIndex(
@@ -117,156 +63,52 @@ function ProjectorResult({
                 ) + 1}
                 P
               </Box>
-              <Box
-                sx={{
-                  fontSize: 60,
-                  fontWeight: "bold",
-                  width: 800,
-                }}
-              >
-                吾輩は猫
-              </Box>
+              <Box sx={{ fontSize: "96px" }}>吾輩は猫</Box>
             </Box>
-          </Box>
+          </Stack>
           <Box
             sx={{
               display: "grid",
-              columGap: 5,
-              rowGap: 0,
-              gridTemplateColumns: "repeat(3, 0fr)",
-              gap: 5,
-              mt: 6,
+              gridTemplateColumns: "120px max-content 1fr",
+              alignItems: "center",
+              mt: 4,
+              columnGap: 3,
             }}
           >
-            <Box
-              sx={{
-                fontSize: 20,
-                fontWeight: "bold",
-              }}
-            >
-              2nd
-            </Box>
-            <Box
-              sx={{
-                color: "white",
-                bgcolor: "black",
-                fontSize: 18,
-                width: 50,
-                height: 25,
-                textAlign: "center",
-              }}
-            >
-              1P
-            </Box>
-            <Box
-              sx={{
-                fontSize: 30,
-                fontWeight: "bold",
-              }}
-            >
-              FooBarBaz
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              columGap: 5,
-              rowGap: 0,
-              gridTemplateColumns: "repeat(3, 0fr)",
-              gap: 5,
-              mt: 6,
-            }}
-          >
-            <Box
-              sx={{
-                fontSize: 20,
-                fontWeight: "bold",
-              }}
-            >
-              3rd
-            </Box>
-            <Box
-              sx={{
-                color: "white",
-                bgcolor: "black",
-                fontSize: 18,
-                width: 50,
-                height: 25,
-                textAlign: "center",
-              }}
-            >
-              4P
-            </Box>
-            <Box
-              sx={{
-                fontSize: 30,
-                fontWeight: "bold",
-              }}
-            >
-              UTC
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              columGap: 5,
-              rowGap: 0,
-              gridTemplateColumns: "repeat(3, 0fr)",
-              gap: 5,
-              mt: 6,
-            }}
-          >
-            <Box
-              sx={{
-                fontSize: 20,
-                fontWeight: "bold",
-              }}
-            >
-              4th
-            </Box>
-            <Box
-              sx={{
-                color: "white",
-                bgcolor: "black",
-                fontSize: 18,
-                width: 50,
-                height: 25,
-                textAlign: "center",
-              }}
-            >
-              3P
-            </Box>
-            <Box
-              sx={{
-                fontSize: 30,
-                fontWeight: "bold",
-                width: 700,
-              }}
-            >
-              テスト
-            </Box>
+            {rankSortedUserIds.slice(1).map((userId, i) => (
+              <Fragment key={userId}>
+                <Box sx={{ fontSize: "40px" }}>{orderLabelMap[i + 1]}</Box>
+                <Box>
+                  <Box
+                    sx={{
+                      width: "max-content",
+                      color: "white",
+                      backgroundColor: "black",
+                      fontSize: "32px",
+                      paddingX: "20px",
+                    }}
+                  >
+                    {league.users.findIndex((user) => user.id === userId) + 1}P
+                  </Box>
+                </Box>
+                <Box sx={{ fontSize: "64px" }}>
+                  {league.users.find((user) => user.id === userId)?.name}
+                </Box>
+              </Fragment>
+            ))}
           </Box>
         </Box>
-        <Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              height: 900,
-            }}
-          >
-            icon
-          </Box>
-          <Box
-            sx={{
-              fontSize: 40,
-              textAlign: "right",
-            }}
-          >
-            ▶▶ Next: 第{nextLeague.id + 1}リーグ
-          </Box>
-        </Box>
-      </Box>
-    </>
+        <img alt="" src={rocketIcon} style={{ width: "800px" }} />
+      </Stack>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="flex-end"
+        sx={{ fontSize: "48px", padding: "40px" }}
+      >
+        ▶▶ Next: 第{nextLeague.id + 1}リーグ
+      </Stack>
+    </Box>
   );
 }
 
