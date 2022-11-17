@@ -1,38 +1,41 @@
 import { Box } from "@mui/material";
 import { useEffect, useRef } from "react";
+import ProjectorHeader from "../components/Header";
 import type { League, User } from "../Projector";
 
-function ProjectorReadyUser({ user }: { user: User }) {
+function ProjectorReadyUser({
+  playerCode,
+  user,
+}: {
+  playerCode: number;
+  user: User;
+}) {
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexFlow: "column",
+        justifyContent: "center",
+        border: "solid 1px",
+        padding: "30px",
+      }}
+    >
       <Box
         sx={{
+          width: "max-content",
+          paddingX: "40px",
           color: "white",
-          bgcolor: "black",
-          fontWeight: "bold",
-          fontSize: 60,
-          width: 160,
-          height: 80,
-          mt: 6,
-          ml: 4,
+          backgroundColor: "black",
+          fontSize: "60px",
           textAlign: "center",
         }}
       >
-        1P
+        {playerCode + 1}P
       </Box>
-      <Box
-        sx={{
-          color: "black",
-          fontWeight: "bold",
-          fontSize: 200,
-        }}
-      >
-        {user.name}
-      </Box>
+      <Box sx={{ mt: "-50px", fontSize: 200 }}>{user.name}</Box>
       <Box
         sx={{
           color: "text.secondary",
-          fontWeight: "medium",
           fontSize: 40,
         }}
       >
@@ -61,54 +64,29 @@ function ProjectorReady({ league, onCompleted }: ProjectorReadyProps) {
   }, []);
 
   return (
-    <>
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          boxShadow: 1,
-          p: 2,
-          minWidth: 300,
-          width: 1920,
-          height: 120,
-          borderBottom: 20,
-        }}
-      >
-        <Box
-          sx={{
-            display: "inline",
-            fontSize: 80,
-          }}
-        >
-          ut.code();
-        </Box>
-        <Box
-          sx={{
-            color: "text.primary",
-            fontWeight: "bolder",
-            display: "inline",
-            fontSize: 80,
-            ml: 60,
-          }}
-        >
-          第{league.id + 1}リーグ
-        </Box>
-      </Box>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateRows: "max-content 1fr",
+        height: "100%",
+      }}
+    >
+      <ProjectorHeader league={league} />
       <Box
         sx={{
           display: "grid",
-          columGap: 0,
-          rowGap: 0,
           gridTemplateColumns: "repeat(2, 1fr)",
-          width: 1920,
-          height: 960,
         }}
       >
-        <ProjectorReadyUser user={league.users[0]} />
-        <ProjectorReadyUser user={league.users[1]} />
-        <ProjectorReadyUser user={league.users[2]} />
-        <ProjectorReadyUser user={league.users[3]} />
+        {([0, 1, 2, 3] as const).map((playerCode) => (
+          <ProjectorReadyUser
+            key={playerCode}
+            playerCode={playerCode}
+            user={league.users[playerCode]}
+          />
+        ))}
       </Box>
-    </>
+    </Box>
   );
 }
 

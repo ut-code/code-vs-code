@@ -1,6 +1,43 @@
-import { Box } from "@mui/material";
+import { Box, LinearProgress, Stack } from "@mui/material";
 import { useEffect, useRef } from "react";
-import type { League } from "../Projector";
+import ProjectorHeader from "../components/Header";
+import type { League, User } from "../Projector";
+
+function ProjectorBattleUser({
+  playerCode,
+  user,
+}: {
+  playerCode: number;
+  user: User;
+}) {
+  return (
+    <Stack alignItems="flex-start" spacing="8px" sx={{ padding: "30px" }}>
+      <Box
+        sx={{
+          color: "white",
+          backgroundColor: "black",
+          fontSize: "32px",
+          paddingX: "32px",
+        }}
+      >
+        {playerCode + 1}P
+      </Box>
+      <Box sx={{ fontSize: "60px" }}>{user.name}</Box>
+      <Box sx={{ color: "text.secondary", fontSize: "24px" }}>HP</Box>
+      <LinearProgress
+        sx={{ width: "100%", height: "30px" }}
+        variant="determinate"
+        value={80}
+      />
+      <Box sx={{ color: "text.secondary", fontSize: "24px" }}>元気</Box>
+      <LinearProgress
+        sx={{ width: "100%", height: "30px" }}
+        variant="determinate"
+        value={20}
+      />
+    </Stack>
+  );
+}
 
 export type ProjectorBattleProps = {
   league: League;
@@ -23,317 +60,31 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
   }, [league.users]);
 
   return (
-    <>
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          boxShadow: 1,
-          p: 2,
-          minWidth: 300,
-          width: 1920,
-          height: 120,
-          borderBottom: 20,
-        }}
-      >
-        <Box
-          sx={{
-            display: "inline",
-            fontSize: 80,
-          }}
-        >
-          ut.code();
-        </Box>
-        <Box
-          sx={{
-            color: "text.primary",
-            fontWeight: "bolder",
-            display: "inline",
-            fontSize: 80,
-            ml: 60,
-          }}
-        >
-          第{league.id + 1}リーグ
-        </Box>
-      </Box>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateRows: "max-content 1fr",
+        height: "100%",
+      }}
+    >
+      <ProjectorHeader league={league} />
       <Box
         sx={{
           display: "grid",
-          columGap: 0,
-          rowGap: 0,
-          gridTemplateColumns: "repeat(3, 1fr)",
-          width: 1920,
-          height: 960,
+          gridTemplateColumns: "1fr 960px 1fr",
         }}
       >
-        <Box
-          sx={{
-            bgcolor: "white",
-          }}
-        >
-          <Box
-            sx={{
-              color: "white",
-              bgcolor: "black",
-              fontweigt: "bold",
-              fontSize: 60,
-              width: 160,
-              height: 80,
-              mt: 20,
-              ml: 4,
-              textAlign: "center",
-            }}
-          >
-            1P
-          </Box>
-          <Box
-            sx={{
-              color: "black",
-              fontSize: 50,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            FooBarBaz
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-            }}
-          >
-            HP
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            元気
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-          <Box
-            sx={{
-              color: "white",
-              bgcolor: "black",
-              fontweigt: "bold",
-              fontSize: 60,
-              width: 160,
-              height: 80,
-              mt: 10,
-              ml: 4,
-              textAlign: "center",
-            }}
-          >
-            3P
-          </Box>
-          <Box
-            sx={{
-              color: "black",
-              fontSize: 50,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            テスト
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-            }}
-          >
-            HP
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            元気
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-        </Box>
-        <Box
-          sx={{
-            bgcolor: "yellow",
-          }}
-        >
-          picture
-        </Box>
-        <Box
-          sx={{
-            bgcolor: "white",
-          }}
-        >
-          <Box
-            sx={{
-              color: "white",
-              bgcolor: "black",
-              fontweigt: "bold",
-              fontSize: 60,
-              width: 160,
-              height: 80,
-              mt: 20,
-              ml: 4,
-              textAlign: "center",
-            }}
-          >
-            2P
-          </Box>
-          <Box
-            sx={{
-              color: "black",
-              fontSize: 50,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            吾輩は猫
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-            }}
-          >
-            HP
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            元気
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-          <Box
-            sx={{
-              color: "white",
-              bgcolor: "black",
-              fontweigt: "bold",
-              fontSize: 60,
-              width: 160,
-              height: 80,
-              mt: 10,
-              ml: 4,
-              textAlign: "center",
-            }}
-          >
-            4P
-          </Box>
-          <Box
-            sx={{
-              color: "black",
-              fontSize: 50,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            UTC
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-            }}
-          >
-            HP
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-          <Box
-            sx={{
-              color: "text.secondary",
-              fontSize: 15,
-              ml: 4,
-              mt: 3,
-            }}
-          >
-            元気
-          </Box>
-          <Box
-            sx={{
-              bgcolor: "aqua",
-              ml: 4,
-              mr: 10,
-            }}
-          >
-            bar
-          </Box>
-        </Box>
+        <Stack justifyContent="center">
+          <ProjectorBattleUser playerCode={0} user={league.users[0]} />
+          <ProjectorBattleUser playerCode={2} user={league.users[2]} />
+        </Stack>
+        <Box bgcolor="yellow">Emulator</Box>
+        <Stack justifyContent="center">
+          <ProjectorBattleUser playerCode={1} user={league.users[1]} />
+          <ProjectorBattleUser playerCode={3} user={league.users[3]} />
+        </Stack>
       </Box>
-    </>
+    </Box>
   );
 }
 

@@ -1,4 +1,4 @@
-import { LinearProgress } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getUsers } from "../fetchAPI";
 import ProjectorBattle from "./stages/Battle";
@@ -55,7 +55,6 @@ async function loadNextLeague(currentLeagueId: number): Promise<League> {
 
   return {
     id: currentLeagueId,
-    // @ts-expect-error 現状の API 定義が古いのでエラー。直したらこのコメントを消してください。
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     users: [users[0]!, users[1]!, users[2]!, users[3]!],
   };
@@ -78,7 +77,13 @@ export default function Projector() {
   }, []);
 
   return (
-    <>
+    <Box
+      sx={{
+        height: "100%",
+        fontFamily: "Noto Sans CJK JP, sans-serif",
+        fontWeight: 1000,
+      }}
+    >
       {isLoading && (
         <LinearProgress
           sx={{ position: "absolute", top: 0, left: 0, width: "100%" }}
@@ -118,6 +123,6 @@ export default function Projector() {
           }}
         />
       )}
-    </>
+    </Box>
   );
 }
