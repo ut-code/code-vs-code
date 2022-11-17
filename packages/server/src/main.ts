@@ -20,8 +20,12 @@ type PostUserRequest = {
   name: string;
 };
 
-type PostUserResponse = {
+type UserResponse = {
+  id: number;
   name: string;
+  program: string | undefined;
+  league: number | undefined;
+  rank: number | undefined;
 };
 
 app.post("/user", async (request, response) => {
@@ -29,17 +33,52 @@ app.post("/user", async (request, response) => {
   await client.user.create({
     data: { name: requestBody.name },
   });
-  const responseBody: PostUserResponse = {
-    name: requestBody.name,
+  const newUser = await client.user.findUniqueOrThrow({
+    where: { name: requestBody.name },
+    include: {
+      userIdentity: {
+        select: {
+          program: true,
+          league: true,
+          rank: true,
+        },
+      },
+    },
+  });
+  const newUserResponse: UserResponse = {
+    id: newUser.id,
+    name: newUser.name,
+    program: newUser.userIdentity?.program,
+    league: newUser.userIdentity?.league,
+    rank: newUser.userIdentity?.rank,
   };
-  response.json(responseBody);
+  response.json(newUserResponse);
 });
 
 // Userを全て取得
 
 app.get("/user", async (_, response) => {
-  const users = await client.user.findMany();
-  response.json(users);
+  const users = await client.user.findMany({
+    include: {
+      userIdentity: {
+        select: {
+          program: true,
+          league: true,
+          rank: true,
+        },
+      },
+    },
+  });
+  const usersResponse = users.map((user) => {
+    return {
+      id: user.id,
+      name: user.name,
+      program: user.userIdentity?.program,
+      league: user.userIdentity?.league,
+      rank: user.userIdentity?.rank,
+    };
+  });
+  response.json(usersResponse);
 });
 
 // 名前の変更
@@ -72,10 +111,26 @@ type GetUserParams = {
 
 app.get("/user/:userId([0-9]+)", async (request, response) => {
   const requestParams = request.params as GetUserParams;
-  const user = await client.user.findUnique({
+  const user = await client.user.findUniqueOrThrow({
     where: { id: Number(requestParams.userId) },
+    include: {
+      userIdentity: {
+        select: {
+          program: true,
+          league: true,
+          rank: true,
+        },
+      },
+    },
   });
-  response.json(user);
+  const userResponse: UserResponse = {
+    id: user.id,
+    name: user.name,
+    program: user.userIdentity?.program,
+    league: user.userIdentity?.league,
+    rank: user.userIdentity?.rank,
+  };
+  response.json(userResponse);
 });
 
 // プログラムの挿入とUserBattleIdentityの作成
