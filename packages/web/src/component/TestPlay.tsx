@@ -303,7 +303,12 @@ export default function TestPlay(props: TestPlayProps) {
         </AccordionSummary>
         <AccordionDetails sx={{ height: 800 }}>
           <Emulator
-            users={sampleUsers}
+            users={[
+              currentUser,
+              sampleUsers[1],
+              sampleUsers[2],
+              sampleUsers[3],
+            ]}
             currentUserId={currentUser.id}
             enemyUserIds={enemyUsers.map((enemyUser) => enemyUser.id)}
             HasGameStarted={isActive}
