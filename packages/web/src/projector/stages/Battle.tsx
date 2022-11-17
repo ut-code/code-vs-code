@@ -1,14 +1,17 @@
 import { Box, LinearProgress, Stack } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { useRef, useState } from "react";
+import Emulator, { Status } from "../../component/Emulator";
 import ProjectorHeader from "../components/Header";
-import type { League, User } from "../Projector";
+import type { League, LeagueUserIds, User } from "../Projector";
 
 function ProjectorBattleUser({
   playerCode,
   user,
+  status,
 }: {
   playerCode: number;
   user: User;
+  status: Status | null;
 }) {
   return (
     <Stack alignItems="flex-start" spacing="8px" sx={{ padding: "30px" }}>
@@ -22,18 +25,25 @@ function ProjectorBattleUser({
       >
         {playerCode + 1}P
       </Box>
-      <Box sx={{ fontSize: "60px" }}>{user.name}</Box>
+      <Box
+        sx={{
+          fontSize: "60px",
+          textDecoration: !status ? "line-through" : undefined,
+        }}
+      >
+        {user.name}
+      </Box>
       <Box sx={{ color: "text.secondary", fontSize: "24px" }}>HP</Box>
       <LinearProgress
         sx={{ width: "100%", height: "30px" }}
         variant="determinate"
-        value={80}
+        value={status?.HP ?? 0}
       />
       <Box sx={{ color: "text.secondary", fontSize: "24px" }}>元気</Box>
       <LinearProgress
         sx={{ width: "100%", height: "30px" }}
         variant="determinate"
-        value={20}
+        value={status?.stamina ?? 0}
       />
     </Stack>
   );
@@ -48,16 +58,7 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
   const onCompletedRef = useRef(onCompleted);
   onCompletedRef.current = onCompleted;
 
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      onCompletedRef.current(
-        league.users.map((user) => user.id) as [number, number, number, number]
-      );
-    }, 5000);
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [league.users]);
+  const [statuses, setStatuses] = useState<Status[] | null>(null);
 
   return (
     <Box
@@ -74,15 +75,56 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
           gridTemplateColumns: "1fr 960px 1fr",
         }}
       >
-        <Stack justifyContent="center">
-          <ProjectorBattleUser playerCode={0} user={league.users[0]} />
-          <ProjectorBattleUser playerCode={2} user={league.users[2]} />
-        </Stack>
-        <Box bgcolor="yellow">Emulator</Box>
-        <Stack justifyContent="center">
-          <ProjectorBattleUser playerCode={1} user={league.users[1]} />
-          <ProjectorBattleUser playerCode={3} user={league.users[3]} />
-        </Stack>
+        {statuses && (
+          <Stack justifyContent="center">
+            <ProjectorBattleUser
+              playerCode={0}
+              user={league.users[0]}
+              status={
+                statuses.find((status) => status.id === league.users[0].id) ??
+                null
+              }
+            />
+            <ProjectorBattleUser
+              playerCode={2}
+              user={league.users[2]}
+              status={
+                statuses.find((status) => status.id === league.users[2].id) ??
+                null
+              }
+            />
+          </Stack>
+        )}
+        <Box>
+          <Emulator
+            users={league.users}
+            HasGameStarted
+            executionId={1}
+            isPaused={false}
+            handleStatuses={setStatuses}
+            onGameCompleted={(result) => onCompleted(result as LeagueUserIds)}
+          />
+        </Box>
+        {statuses && (
+          <Stack justifyContent="center">
+            <ProjectorBattleUser
+              playerCode={1}
+              user={league.users[1]}
+              status={
+                statuses.find((status) => status.id === league.users[1].id) ??
+                null
+              }
+            />
+            <ProjectorBattleUser
+              playerCode={3}
+              user={league.users[3]}
+              status={
+                statuses.find((status) => status.id === league.users[3].id) ??
+                null
+              }
+            />
+          </Stack>
+        )}
       </Box>
     </Box>
   );

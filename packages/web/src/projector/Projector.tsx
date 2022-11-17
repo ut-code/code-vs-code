@@ -1,6 +1,6 @@
 import { Box, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
-import { getUsers } from "../fetchAPI";
+import { getUsers, swapRank } from "../fetchAPI";
 import ProjectorBattle from "./stages/Battle";
 import ProjectorReady from "./stages/Ready";
 import ProjectorResult from "./stages/Result";
@@ -11,6 +11,7 @@ export type User = {
   id: number;
   name: string;
   program: string;
+  rank: number;
 };
 
 export type LeagueUsers = [User, User, User, User];
@@ -33,8 +34,11 @@ type ProjectorState =
     };
 
 async function loadNextLeague(currentLeagueId: number): Promise<League> {
-  const users = await getUsers();
-  users.sort((a, b) => a.rank - b.rank);
+  const users = await getUsers().then((rawUsers) =>
+    rawUsers
+      .filter((user) => typeof user.program === "string")
+      .sort((a, b) => a.rank - b.rank)
+  );
   const nextLeagueId =
     users.length > (currentLeagueId + 1) * USER_COUNT_IN_LEAGUE
       ? currentLeagueId + 1
@@ -46,18 +50,45 @@ async function loadNextLeague(currentLeagueId: number): Promise<League> {
     users.length - USER_COUNT_IN_LEAGUE
   );
   // max(User#rank) = users.length - 1
-  const usersInLeague = users.slice(
-    startRank,
-    startRank + USER_COUNT_IN_LEAGUE
-  );
-  if (usersInLeague.length !== USER_COUNT_IN_LEAGUE)
+  const leagueUsers = users.slice(startRank, startRank + USER_COUNT_IN_LEAGUE);
+  if (leagueUsers.length !== USER_COUNT_IN_LEAGUE)
     throw new Error("登録されているユーザーの数が足りません");
 
   return {
-    id: currentLeagueId,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    users: [users[0]!, users[1]!, users[2]!, users[3]!],
+    id: nextLeagueId,
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    users: [leagueUsers[0]!, leagueUsers[1]!, leagueUsers[2]!, leagueUsers[3]!],
   };
+}
+
+async function saveBattleResult(
+  leagueUsers: LeagueUsers,
+  rankSortedUserIds: LeagueUserIds
+) {
+  let previousRankSortedUserIds = leagueUsers
+    .slice()
+    .sort((a, b) => a.rank - b.rank)
+    .map((user) => user.id) as LeagueUserIds;
+
+  // rankIndex = リーグ内順位
+  for (const rankIndex of [0, 1, 2, 3] as const) {
+    /** リーグ内で {@link rankIndex} 位になったユーザーの ID */
+    const userId1 = rankSortedUserIds[rankIndex];
+    /** ゲームが始まる前にリーグ内で {@link rankIndex} 位になったユーザーの ID */
+    const userId2 = previousRankSortedUserIds[rankIndex];
+    if (userId1 !== userId2) {
+      // FIXME: 効率が悪い・不安定
+      // eslint-disable-next-line no-await-in-loop
+      await swapRank(userId1, userId2);
+
+      // 順位の入れ替わりをシミュレーションする
+      previousRankSortedUserIds = previousRankSortedUserIds.map((userId) => {
+        if (userId === userId1) return userId2;
+        if (userId === userId2) return userId1;
+        return userId;
+      }) as LeagueUserIds;
+    }
+  }
 }
 
 export default function Projector() {
@@ -73,7 +104,7 @@ export default function Projector() {
   };
 
   useEffect(() => {
-    loadNextLeague(0).then((league) => setState({ status: "READY", league }));
+    loadNextLeague(-1).then((league) => setState({ status: "READY", league }));
   }, []);
 
   return (
@@ -102,7 +133,9 @@ export default function Projector() {
           league={state.league}
           onCompleted={async (rankSortedUserIds) => {
             const nextLeague = await withLoadingIndicator(
-              loadNextLeague(state.league.id)
+              saveBattleResult(state.league.users, rankSortedUserIds).then(() =>
+                loadNextLeague(state.league.id)
+              )
             );
             setState({
               status: "RESULT",

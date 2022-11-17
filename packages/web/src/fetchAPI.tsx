@@ -83,3 +83,12 @@ export async function uploadProgram(program: Program) {
     body,
   });
 }
+
+export async function swapRank(userId1: number, userId2: number) {
+  const body = JSON.stringify({ userId1, userId2 });
+  await fetch(`${import.meta.env["VITE_SERVER_ORIGIN"]}/swap-rank`, {
+    method: "post",
+    headers: { "Content-Type": "application/json" },
+    body,
+  });
+}
