@@ -69,6 +69,10 @@ type DataFromWorker =
 
 //  ドメインオブジェクト
 
+type validPortion = {
+  timeLeft: number;
+};
+
 export class Fighter implements Entity {
   id: number;
 
@@ -93,6 +97,8 @@ export class Fighter implements Entity {
   isShortOfStamina = false;
 
   static armLength = 40;
+
+  validPortions: validPortion[] = [];
 
   constructor(id: number, location: Vector2) {
     this.id = id;
@@ -229,7 +235,7 @@ class World {
     const id2 = fighterIds[1];
     const id3 = fighterIds[2];
     const id4 = fighterIds[3];
-    if (!id1 || !id2 || !id3 || !id4) throw new Error();
+    if (!id1 || !id2 || !id3 || !id4) throw new Error("id0があるかも");
     const player1 = new Fighter(id1, { x: 100, y: 100 });
     const player2 = new Fighter(id2, { x: 700, y: 100 });
     const player3 = new Fighter(id3, { x: 100, y: 500 });
@@ -274,9 +280,7 @@ class World {
         if (isOverlap(fighter, portion)) {
           this.portions.splice(this.portions.indexOf(portion), 1);
           if (fighter.speed < 8) {
-            setTimeout(() => {
-              fighter.speed -= 0.5;
-            }, 5000);
+            fighter.validPortions.push({ timeLeft: 5000 });
           }
           fighter.speed = Math.min(fighter.speed + 0.5, 8);
         }
@@ -354,8 +358,23 @@ class World {
     return location;
   }
 
-  getFighter(id: number) {
-    return this.fighters.find((fighter) => fighter.id === id);
+  manageValidPortions(time: number) {
+    for (const fighter of this.fighters) {
+      for (const validPortion of fighter.validPortions) {
+        validPortion.timeLeft -= time;
+        if (validPortion.timeLeft <= 0) {
+          fighter.validPortions.splice(
+            fighter.validPortions.indexOf(validPortion),
+            1
+          );
+          fighter.speed -= 0.5;
+        }
+      }
+    }
+  }
+
+  getFighter() {
+    return this.fighters;
   }
 }
 // アクション
@@ -864,8 +883,15 @@ export default class Game {
 
   users: User[];
 
-  constructor(users: User[], canvas: HTMLCanvasElement) {
+  onStatusesChanged: (statuses: Status[]) => void;
+
+  constructor(
+    users: User[],
+    canvas: HTMLCanvasElement,
+    onStatusesChanged: (statuses: Status[]) => void
+  ) {
     this.users = users;
+    this.onStatusesChanged = onStatusesChanged;
     const ids = users.map((user) => user.id);
     this.world = new World(ids);
     this.worldRenderer = new WorldRenderer(this.world, canvas);
@@ -875,7 +901,8 @@ export default class Game {
   }
 
   start() {
-    let previousTime = Date.now();
+    let previousTime1 = Date.now();
+    let previousTime2 = Date.now();
     const startTime = Date.now();
     const callback = () => {
       if (this.isDestroyed || this.isEnded) return;
@@ -883,15 +910,28 @@ export default class Game {
       // ゲームが終わりか判断
       if (this.world.fighters.length === 1) this.end();
       // worldクラスのメソッド実行
+      this.world.manageValidPortions(currentTime - previousTime2);
       this.world.runFightersAction();
       this.world.detectCollision();
       this.world.removeDeadFighters();
       this.world.deleteWeaponsPickedUp();
       this.world.deleteBullets();
       this.world.moveBullets();
+      // HP変化を伝える
+      this.onStatusesChanged(
+        this.world.fighters.map((fighter) => {
+          return {
+            id: fighter.id,
+            HP: fighter.HP,
+            stamina: fighter.stamina,
+            speed: fighter.speed,
+            weapon: fighter.weapon ? "ファイヤ" : "なし",
+          };
+        })
+      );
       // タイムラグが必要な処理実行
-      if (currentTime - previousTime >= 500) {
-        previousTime = Date.now();
+      if (currentTime - previousTime1 >= 500) {
+        previousTime1 = Date.now();
         this.world.placeRandomPortion();
         this.world.placeRandomWeapon();
         this.workers.forEach((worker) => {
@@ -905,6 +945,7 @@ export default class Game {
         this.end();
       }
       if (!this.isPaused) requestAnimationFrame(callback);
+      previousTime2 = currentTime;
     };
     callback();
   }
@@ -974,6 +1015,7 @@ export default class Game {
               speed: me.weapon.bulletSpeed,
               reloadFrame: me.weapon.reloadFrame,
               staminaRequired: me.weapon.requiredStamina,
+              bulletsLeft: me.weapon.bulletsLeft,
             }
           : null,
       })}
@@ -1015,23 +1057,13 @@ export default class Game {
                 speed: weapon.bulletSpeed,
                 reloadFrame: weapon.reloadFrame,
                 staminaRequired: weapon.requiredStamina,
+                bulletsLeft: weapon.bulletsLeft,
               };
             })
           )}
           ${this.users.find((user) => user.id === me.id)?.script}`;
       this.workers.get(me.id)?.postMessage(script);
     }
-  }
-
-  getFighterStatus(id: number) {
-    const fighter = this.world.getFighter(id);
-    const status: Status = {
-      HP: fighter?.HP || 0,
-      stamina: fighter?.stamina || 0,
-      speed: fighter?.speed || 0,
-      weapon: fighter?.weapon ? "ファイヤ" : "なし",
-    };
-    return status;
   }
 
   end() {

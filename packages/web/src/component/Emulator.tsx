@@ -10,56 +10,34 @@ interface User {
 }
 
 export interface Status {
+  id: number;
   HP: number;
   stamina: number;
   speed: number;
   weapon: "ファイヤ" | "なし";
 }
 
-export interface HPWithId {
-  id: number;
-  HP: number;
-}
-
 export default function Emulator(props: {
   users: User[];
-  currentUserId: number;
-  enemyUserIds: number[];
   HasGameStarted: boolean;
   isPaused: boolean;
   executionId: number; // エミュレーターそのものを更新するためのId
-  handleCurrentUserStatus: (status: Status) => void;
-  handleEnemyHPs: (HPs: HPWithId[]) => void;
+  handleStatuses: (statuses: Status[]) => void;
 }) {
-  const {
-    users,
-    currentUserId,
-    enemyUserIds,
-    HasGameStarted,
-    isPaused,
-    executionId,
-    handleCurrentUserStatus,
-    handleEnemyHPs,
-  } = props;
+  const { users, HasGameStarted, isPaused, executionId, handleStatuses } =
+    props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game>();
-  const { HP, stamina, speed, weapon } = gameRef.current?.getFighterStatus(
-    currentUserId
-  ) || { HP: 100, stamina: 100, speed: 2, weapon: "なし" };
-  const enemyHPs = enemyUserIds.map((enemyUserId) => {
-    return {
-      id: enemyUserId,
-      HP: gameRef.current?.getFighterStatus(enemyUserId).HP || 0,
-    };
-  });
   useEffect(() => {
     if (!canvasRef.current) throw new Error();
-    const game = new Game(users, canvasRef.current);
+    const game = new Game(users, canvasRef.current, (newStatuses: Status[]) => {
+      handleStatuses(newStatuses);
+    });
     gameRef.current = game;
     return () => {
       game.destroy();
     };
-  }, [users, executionId, currentUserId]);
+  }, [users, executionId, handleStatuses]);
   useEffect(() => {
     let userIds: number[] = [];
     // この一行テキトウ
@@ -76,23 +54,10 @@ export default function Emulator(props: {
       }
     }
   }, [HasGameStarted, isPaused]);
-  useEffect(() => {
-    handleCurrentUserStatus({
-      HP,
-      stamina,
-      speed,
-      weapon,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [HP, stamina, speed, weapon]);
-  useEffect(() => {
-    handleEnemyHPs(enemyHPs);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enemyHPs]);
   return (
     <canvas
       ref={canvasRef}
-      style={{ border: "solid", width: "480px", height: "360px" }}
+      style={{ border: "solid", maxWidth: "100%", height: "auto" }}
     />
   );
 }

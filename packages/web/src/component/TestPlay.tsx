@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -24,7 +24,7 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { HiOutlineScale } from "react-icons/hi";
-import Emulator, { Status, HPWithId } from "./Emulator";
+import Emulator, { Status } from "./Emulator";
 import type { User } from "./game";
 import { getUsers } from "../fetchAPI";
 
@@ -240,11 +240,12 @@ interface TestPlayProps {
 
 export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
-  const [enemyHPs, setEnemyHPs] = useState<HPWithId[]>([{ id: 0, HP: 0 }]);
-  const InitialEnemyUsers = [sampleUsers[0], sampleUsers[1], sampleUsers[2]];
-
-  const [users, setUsers] = useState([currentUser]);
-  const [enemyUsers, setEnemyUsers] = useState(InitialEnemyUsers);
+  const [users, setUsers] = useState([
+    currentUser,
+    sampleUsers[1],
+    sampleUsers[2],
+    sampleUsers[3],
+  ]);
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([
     sampleUsers[1].id,
@@ -260,22 +261,13 @@ export default function TestPlay(props: TestPlayProps) {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    const newEnemies: User[] = [];
-    for (let i = 0; i < 3; i += 1) {
-      const enemy = users.find((element) => element.id === enemyIds[i]);
-      if (enemy) newEnemies[i] = enemy;
-    }
-    setEnemyUsers(newEnemies);
-  }, [enemyIds, users]);
-
   const [isActive, setIsActive] = useState(false);
   const [executionId, setExecutionId] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
   const [selectedEnemyIds, setSelectedEnemyIds] = useState(enemyIds);
   const [isConfirmDisabled, setIsConfirmDisabled] = useState(false);
 
-  const [currentUserStatus, setCurrentUserStatus] = useState<Status>();
+  const [statuses, setStatuses] = useState<Status[]>();
 
   const handleClickOpen = async () => {
     setUsers(await getUsers());
@@ -295,6 +287,12 @@ export default function TestPlay(props: TestPlayProps) {
     setUsers(await getUsers());
   };
   fetchUsers();
+
+  const enemyUsers = useMemo(
+    () =>
+      users.filter((user) => enemyIds.some((enemyId) => enemyId === user.id)),
+    [enemyIds, users]
+  );
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
@@ -302,37 +300,34 @@ export default function TestPlay(props: TestPlayProps) {
           実行
         </AccordionSummary>
         <AccordionDetails sx={{ height: 800 }}>
-          <Emulator
-            users={[
-              currentUser,
-              sampleUsers[1],
-              sampleUsers[2],
-              sampleUsers[3],
-            ]}
-            currentUserId={currentUser.id}
-            enemyUserIds={enemyUsers.map((enemyUser) => enemyUser.id)}
-            HasGameStarted={isActive}
-            isPaused={isPaused}
-            executionId={executionId}
-            handleCurrentUserStatus={useCallback((status: Status) => {
-              setCurrentUserStatus(status);
-            }, [])}
-            handleEnemyHPs={useCallback(
-              (HPs: HPWithId[]) => setEnemyHPs(HPs),
-              []
-            )}
-          />
+          <Box sx={{ height: 450, width: 600 }}>
+            <Emulator
+              users={[currentUser].concat(enemyUsers)}
+              HasGameStarted={isActive}
+              isPaused={isPaused}
+              executionId={executionId}
+              handleStatuses={useCallback((newStatuses: Status[]) => {
+                setStatuses(newStatuses);
+              }, [])}
+            />
+          </Box>
           <Box sx={{ m: 1 }}>
             <Box>
               <Typography>HP</Typography>
               <LinearProgress
                 variant="determinate"
-                value={currentUserStatus?.HP || 0}
+                value={
+                  statuses?.find((status) => status.id === currentUser.id)
+                    ?.HP || 0
+                }
               />
               <Typography sx={{ mt: 1 }}>元気</Typography>
               <LinearProgress
                 variant="determinate"
-                value={currentUserStatus?.stamina || 0}
+                value={
+                  statuses?.find((status) => status.id === currentUser.id)
+                    ?.stamina || 0
+                }
               />
             </Box>
             <Box
@@ -345,14 +340,20 @@ export default function TestPlay(props: TestPlayProps) {
             >
               <Chip
                 icon={<DirectionsRunIcon />}
-                label={`移動: x${currentUserStatus?.speed || 0}`}
+                label={`移動: x${
+                  statuses?.find((status) => status.id === currentUser.id)
+                    ?.speed || 0
+                }`}
                 size="small"
                 variant="outlined"
                 sx={{ width: 100 }}
               />
               <Chip
                 icon={<HiOutlineScale size="0.8em" />}
-                label={`装備: ${currentUserStatus?.weapon || "なし"}`}
+                label={`装備: ${
+                  statuses?.find((status) => status.id === currentUser.id)
+                    ?.weapon || "なし"
+                }`}
                 size="small"
                 variant="outlined"
                 sx={{ width: 140, ml: "auto" }}
@@ -371,7 +372,7 @@ export default function TestPlay(props: TestPlayProps) {
                   <LinearProgress
                     variant="determinate"
                     value={
-                      enemyHPs?.find((enemyHP) => enemyHP.id === enemyUser.id)
+                      statuses?.find((status) => status.id === enemyUser.id)
                         ?.HP || 0
                     }
                     color="error"
