@@ -44,7 +44,7 @@ export default function Welcome(props: WelcomeProps) {
       /* setCurrentUser({
         id: 7,
         name,
-        script: "",
+        program: "",
         rank: 3,
       }); */
     } else {

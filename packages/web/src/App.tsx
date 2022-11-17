@@ -25,7 +25,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState({
     id: 1,
     name: "",
-    script: "",
+    program: "",
     rank: 0,
   });
   const workspaceRef = useRef<Blockly.WorkspaceSvg>();
