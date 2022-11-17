@@ -1,6 +1,27 @@
 import { Box } from "@mui/material";
+import { useEffect, useRef } from "react";
+import type { League } from "../Projector";
 
-function Projector2() {
+export type ProjectorBattleProps = {
+  league: League;
+  onCompleted(rankSortedUserIds: [number, number, number, number]): void;
+};
+
+function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
+  const onCompletedRef = useRef(onCompleted);
+  onCompletedRef.current = onCompleted;
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      onCompletedRef.current(
+        league.users.map((user) => user.id) as [number, number, number, number]
+      );
+    }, 5000);
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [league.users]);
+
   return (
     <>
       <Box
@@ -31,7 +52,7 @@ function Projector2() {
             ml: 60,
           }}
         >
-          第7リーグ
+          第{league.id + 1}リーグ
         </Box>
       </Box>
       <Box
@@ -316,4 +337,4 @@ function Projector2() {
   );
 }
 
-export default Projector2;
+export default ProjectorBattle;
