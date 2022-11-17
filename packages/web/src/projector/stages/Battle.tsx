@@ -1,6 +1,7 @@
 import { Box, LinearProgress, Stack } from "@mui/material";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Emulator, { Status } from "../../component/Emulator";
+import type { Result } from "../../component/game";
 import ProjectorHeader from "../components/Header";
 import type { League, LeagueUserIds, User } from "../Projector";
 
@@ -58,6 +59,10 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
   const onCompletedRef = useRef(onCompleted);
   onCompletedRef.current = onCompleted;
 
+  const onGameCompleted = useCallback((result: Result) => {
+    onCompletedRef.current(result as LeagueUserIds);
+  }, []);
+
   const [statuses, setStatuses] = useState<Status[] | null>(null);
 
   return (
@@ -102,7 +107,7 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
             executionId={1}
             isPaused={false}
             handleStatuses={setStatuses}
-            onGameCompleted={(result) => onCompleted(result as LeagueUserIds)}
+            onGameCompleted={onGameCompleted}
           />
         </Box>
         {statuses && (
