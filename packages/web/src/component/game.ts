@@ -235,7 +235,7 @@ class World {
     const id2 = fighterIds[1];
     const id3 = fighterIds[2];
     const id4 = fighterIds[3];
-    if (!id1 || !id2 || !id3 || !id4) throw new Error();
+    if (!id1 || !id2 || !id3 || !id4) throw new Error("id0があるかも");
     const player1 = new Fighter(id1, { x: 100, y: 100 });
     const player2 = new Fighter(id2, { x: 700, y: 100 });
     const player3 = new Fighter(id3, { x: 100, y: 500 });
@@ -373,8 +373,8 @@ class World {
     }
   }
 
-  getFighter(id: number) {
-    return this.fighters.find((fighter) => fighter.id === id);
+  getFighter() {
+    return this.fighters;
   }
 }
 // アクション
@@ -883,8 +883,15 @@ export default class Game {
 
   users: User[];
 
-  constructor(users: User[], canvas: HTMLCanvasElement) {
+  onStatusesChanged: (statuses: Status[]) => void;
+
+  constructor(
+    users: User[],
+    canvas: HTMLCanvasElement,
+    onStatusesChanged: (statuses: Status[]) => void
+  ) {
     this.users = users;
+    this.onStatusesChanged = onStatusesChanged;
     const ids = users.map((user) => user.id);
     this.world = new World(ids);
     this.worldRenderer = new WorldRenderer(this.world, canvas);
@@ -910,6 +917,18 @@ export default class Game {
       this.world.deleteWeaponsPickedUp();
       this.world.deleteBullets();
       this.world.moveBullets();
+      // HP変化を伝える
+      this.onStatusesChanged(
+        this.world.fighters.map((fighter) => {
+          return {
+            id: fighter.id,
+            HP: fighter.HP,
+            stamina: fighter.stamina,
+            speed: fighter.speed,
+            weapon: fighter.weapon ? "ファイヤ" : "なし",
+          };
+        })
+      );
       // タイムラグが必要な処理実行
       if (currentTime - previousTime1 >= 500) {
         previousTime1 = Date.now();
@@ -1045,17 +1064,6 @@ export default class Game {
           ${this.users.find((user) => user.id === me.id)?.script}`;
       this.workers.get(me.id)?.postMessage(script);
     }
-  }
-
-  getFighterStatus(id: number) {
-    const fighter = this.world.getFighter(id);
-    const status: Status = {
-      HP: fighter?.HP || 0,
-      stamina: fighter?.stamina || 0,
-      speed: fighter?.speed || 0,
-      weapon: fighter?.weapon ? "ファイヤ" : "なし",
-    };
-    return status;
   }
 
   end() {

@@ -23,7 +23,7 @@ Blockly.HSV_VALUE = 1;
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState({
-    id: 0,
+    id: 1,
     name: "",
     script: "",
     rank: 0,
