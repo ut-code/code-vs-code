@@ -46,15 +46,19 @@ function ChangeNameDialog(props: ChangeNameDialogProps) {
 
   const handleClose = async (newName: string) => {
     if (newName !== "" && newName.match(/\S/g)) {
-      const newCurrentUser = {
-        id: currentUser.id,
-        name: newName,
-        program: currentUser.program,
-        rank: currentUser.rank,
-      };
-      await changeUserName(currentUser.id, newName);
-      setCurrentUser(newCurrentUser);
-      setOpen(false);
+      try {
+        const newCurrentUser = {
+          id: currentUser.id,
+          name: newName,
+          program: currentUser.program,
+          rank: currentUser.rank,
+        };
+        await changeUserName(currentUser.id, newName);
+        setCurrentUser(newCurrentUser);
+        setOpen(false);
+      } catch {
+        setErrorMessage("この名前は既に使用されています");
+      }
     } else {
       setErrorMessage("ニックネームを入力してください");
     }

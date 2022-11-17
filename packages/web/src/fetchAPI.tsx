@@ -22,7 +22,7 @@ export async function getUsers(): Promise<User[]> {
   //           rank: 1,
   //         }))
   //       ),
-  //     1000
+  //     100
   //   );
   // });
 }
@@ -35,8 +35,8 @@ export async function getUser(id: number): Promise<User> {
   return json;
   // return new Promise((resolve) => {
   //   setTimeout(
-  //     () => resolve({ id, name: `ユーザー${id}`, program: "", rank: 1 }),
-  //     1000
+  //     () => resolve({ id, name: `ユーザー${id}`, script: "", rank: 1 }),
+  //     100
   //   );
   // });
 }
@@ -51,8 +51,12 @@ export async function createUser(name: string): Promise<User> {
       body,
     }
   );
-  const json = await response.json();
-  return json;
+  if (response.status === 409) {
+    throw new Error();
+  } else {
+    const json = await response.json();
+    return json;
+  }
   // return new Promise((resolve) => {
   //   setTimeout(() => resolve({ id: 1, name, program: "", rank: 1 }), 100);
   // });
@@ -60,11 +64,15 @@ export async function createUser(name: string): Promise<User> {
 
 export async function changeUserName(id: number, name: string) {
   const body = JSON.stringify({ name });
-  await fetch(`${import.meta.env["VITE_SERVER_ORIGIN"]}/user/${id}`, {
-    method: "put",
-    headers: { "Content-Type": "application/json" },
-    body,
-  });
+  const response = await fetch(
+    `${import.meta.env["VITE_SERVER_ORIGIN"]}/user/${id}`,
+    {
+      method: "put",
+      headers: { "Content-Type": "application/json" },
+      body,
+    }
+  );
+  if (response.status === 409) throw new Error();
 }
 
 export async function uploadProgram(program: Program) {
