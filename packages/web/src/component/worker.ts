@@ -21,6 +21,7 @@ interface Weapon extends Entity {
   speed: number;
   reloadFrame: number;
   staminaRequired: number;
+  bulletsLeft: number;
 }
 
 type MessageToMainThread =

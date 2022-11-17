@@ -42,7 +42,6 @@ export default function App() {
       >
         <ButtonAppBar />
         <Injection workspaceRef={workspaceRef} />
-        {/* <Emulator users={users} /> */}
       </Box>
       <Welcome currentUser={currentUser} setCurrentUser={setCurrentUser} />
       <Arena

@@ -302,21 +302,23 @@ export default function TestPlay(props: TestPlayProps) {
           実行
         </AccordionSummary>
         <AccordionDetails sx={{ height: 800 }}>
-          <Emulator
-            users={sampleUsers}
-            currentUserId={currentUser.id}
-            enemyUserIds={enemyUsers.map((enemyUser) => enemyUser.id)}
-            HasGameStarted={isActive}
-            isPaused={isPaused}
-            executionId={executionId}
-            handleCurrentUserStatus={useCallback((status: Status) => {
-              setCurrentUserStatus(status);
-            }, [])}
-            handleEnemyHPs={useCallback(
-              (HPs: HPWithId[]) => setEnemyHPs(HPs),
-              []
-            )}
-          />
+          <Box sx={{ height: 450, width: 600 }}>
+            <Emulator
+              users={sampleUsers}
+              currentUserId={currentUser.id}
+              enemyUserIds={enemyUsers.map((enemyUser) => enemyUser.id)}
+              HasGameStarted={isActive}
+              isPaused={isPaused}
+              executionId={executionId}
+              handleCurrentUserStatus={useCallback((status: Status) => {
+                setCurrentUserStatus(status);
+              }, [])}
+              handleEnemyHPs={useCallback(
+                (HPs: HPWithId[]) => setEnemyHPs(HPs),
+                []
+              )}
+            />
+          </Box>
           <Box sx={{ m: 1 }}>
             <Box>
               <Typography>HP</Typography>

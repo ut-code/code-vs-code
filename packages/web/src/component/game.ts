@@ -69,6 +69,10 @@ type DataFromWorker =
 
 //  ドメインオブジェクト
 
+type validPortion = {
+  timeLeft: number;
+};
+
 export class Fighter implements Entity {
   id: number;
 
@@ -93,6 +97,8 @@ export class Fighter implements Entity {
   isShortOfStamina = false;
 
   static armLength = 40;
+
+  validPortions: validPortion[] = [];
 
   constructor(id: number, location: Vector2) {
     this.id = id;
@@ -274,9 +280,7 @@ class World {
         if (isOverlap(fighter, portion)) {
           this.portions.splice(this.portions.indexOf(portion), 1);
           if (fighter.speed < 8) {
-            setTimeout(() => {
-              fighter.speed -= 0.5;
-            }, 5000);
+            fighter.validPortions.push({ timeLeft: 5000 });
           }
           fighter.speed = Math.min(fighter.speed + 0.5, 8);
         }
@@ -352,6 +356,21 @@ class World {
       location.y = Math.random() * STAGE_HEIGHT;
     }
     return location;
+  }
+
+  manageValidPortions(time: number) {
+    for (const fighter of this.fighters) {
+      for (const validPortion of fighter.validPortions) {
+        validPortion.timeLeft -= time;
+        if (validPortion.timeLeft <= 0) {
+          fighter.validPortions.splice(
+            fighter.validPortions.indexOf(validPortion),
+            1
+          );
+          fighter.speed -= 0.5;
+        }
+      }
+    }
   }
 
   getFighter(id: number) {
@@ -875,7 +894,8 @@ export default class Game {
   }
 
   start() {
-    let previousTime = Date.now();
+    let previousTime1 = Date.now();
+    let previousTime2 = Date.now();
     const startTime = Date.now();
     const callback = () => {
       if (this.isDestroyed || this.isEnded) return;
@@ -883,6 +903,7 @@ export default class Game {
       // ゲームが終わりか判断
       if (this.world.fighters.length === 1) this.end();
       // worldクラスのメソッド実行
+      this.world.manageValidPortions(currentTime - previousTime2);
       this.world.runFightersAction();
       this.world.detectCollision();
       this.world.removeDeadFighters();
@@ -890,8 +911,8 @@ export default class Game {
       this.world.deleteBullets();
       this.world.moveBullets();
       // タイムラグが必要な処理実行
-      if (currentTime - previousTime >= 500) {
-        previousTime = Date.now();
+      if (currentTime - previousTime1 >= 500) {
+        previousTime1 = Date.now();
         this.world.placeRandomPortion();
         this.world.placeRandomWeapon();
         this.workers.forEach((worker) => {
@@ -905,6 +926,7 @@ export default class Game {
         this.end();
       }
       if (!this.isPaused) requestAnimationFrame(callback);
+      previousTime2 = currentTime;
     };
     callback();
   }
@@ -974,6 +996,7 @@ export default class Game {
               speed: me.weapon.bulletSpeed,
               reloadFrame: me.weapon.reloadFrame,
               staminaRequired: me.weapon.requiredStamina,
+              bulletsLeft: me.weapon.bulletsLeft,
             }
           : null,
       })}
@@ -1015,6 +1038,7 @@ export default class Game {
                 speed: weapon.bulletSpeed,
                 reloadFrame: weapon.reloadFrame,
                 staminaRequired: weapon.requiredStamina,
+                bulletsLeft: weapon.bulletsLeft,
               };
             })
           )}

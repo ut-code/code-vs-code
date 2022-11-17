@@ -92,7 +92,7 @@ export default function Emulator(props: {
   return (
     <canvas
       ref={canvasRef}
-      style={{ border: "solid", width: "480px", height: "360px" }}
+      style={{ border: "solid", maxWidth: "100%", height: "auto" }}
     />
   );
 }
