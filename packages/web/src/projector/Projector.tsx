@@ -1,4 +1,4 @@
-import { LinearProgress } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getUsers } from "../fetchAPI";
 import ProjectorBattle from "./stages/Battle";
@@ -78,7 +78,13 @@ export default function Projector() {
   }, []);
 
   return (
-    <>
+    <Box
+      sx={{
+        height: "100%",
+        fontFamily: "Noto Sans CJK JP, sans-serif",
+        fontWeight: 1000,
+      }}
+    >
       {isLoading && (
         <LinearProgress
           sx={{ position: "absolute", top: 0, left: 0, width: "100%" }}
@@ -118,6 +124,6 @@ export default function Projector() {
           }}
         />
       )}
-    </>
+    </Box>
   );
 }
