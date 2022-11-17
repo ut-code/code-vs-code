@@ -932,7 +932,7 @@ export default class Game {
         });
         this.workers.clear();
         this.buildWorkers();
-        this.sendprogramsToWorkers();
+        this.sendProgramsToWorkers();
       }
       if (currentTime - startTime >= 120000) {
         this.end();
@@ -987,7 +987,7 @@ export default class Game {
     }
   }
 
-  sendprogramsToWorkers() {
+  sendProgramsToWorkers() {
     const { portions, weapons } = this.world;
     for (const me of this.world.fighters) {
       if (!me) throw new Error();

@@ -29,78 +29,78 @@ import Emulator, { Status } from "./Emulator";
 import type { Result, User } from "./game";
 import { getUsers } from "../fetchAPI";
 
-const sampleUsers: [User, User, User, User] = [
-  {
-    name: "fooBarBaz",
-    id: 1,
-    program: `let target = null; 
-    let closestPortion = portions[0]; 
-    for ( const portion of portions ) {
-      const previousDistance = calculateDistance( player, closestPortion ); 
-      const currentDistance = calculateDistance( player, portion );
-      if(previousDistance > currentDistance){closestPortion = portion}
-    } 
-    target = closestPortion 
-    walkTo(target)`,
-    rank: 1,
-  },
-  {
-    name: "吾輩は猫",
-    id: 2,
-    program: `let closestWeapon = weapons[0];
-    if(player.weapon){
-      let closestEnemy = enemies[0] 
-    for ( const enemy of enemies ) {
-      const previousDistance = calculateDistance( player, closestEnemy ); 
-      const currentDistance = calculateDistance( player, enemy );
-      if(previousDistance > currentDistance){closestEnemy = enemy}
-    }
-    if(calculateDistance(player, closestEnemy)<player.weapon.firingRange){
-      useWeapon(closestEnemy)
-    }else{walkTo(closestEnemy)}
-    }
-    else{
-    for ( const weapon of weapons ) {
-      const previousDistance = calculateDistance( player, closestWeapon ) 
-      const currentDistance = calculateDistance( player, weapon );
-      if(previousDistance > currentDistance){closestWeapon = weapon}
-    }
-    if(calculateDistance(player, closestWeapon)<player.armLength){
-      pickUp(closestWeapon)
-    }else{walkTo(closestWeapon)}
-  }
-  `,
-    rank: 2,
-  },
-  {
-    name: "テスト",
-    id: 3,
-    program: `let target = null; 
-let closestPortion = portions[0]; 
-for ( const portion of portions ) {
-  const previousDistance = calculateDistance( player, closestPortion ); 
-  const currentDistance = calculateDistance( player, portion );
-  if(previousDistance > currentDistance){closestPortion = portion}
-} 
-target = closestPortion 
-walkTo(target)`,
-    rank: 3,
-  },
-  {
-    name: "UTC",
-    id: 4,
-    program: `let closestEnemy = enemies[0] 
-    for ( const enemy of enemies ) {
-      const previousDistance = calculateDistance( player, closestEnemy ); 
-      const currentDistance = calculateDistance( player, enemy );
-      if(previousDistance > currentDistance){closestEnemy = enemy}
-    } 
-      if(calculateDistance(player,closestEnemy)<player.armLength){
-        punch(closestEnemy)
-      }else{walkTo(closestEnemy)}`,
-    rank: 4,
-  },
-];
+// const sampleUsers: [User, User, User, User] = [
+//   {
+//     name: "fooBarBaz",
+//     id: 1,
+//     program: `let target = null;
+//     let closestPortion = portions[0];
+//     for ( const portion of portions ) {
+//       const previousDistance = calculateDistance( player, closestPortion );
+//       const currentDistance = calculateDistance( player, portion );
+//       if(previousDistance > currentDistance){closestPortion = portion}
+//     }
+//     target = closestPortion
+//     walkTo(target)`,
+//     rank: 1,
+//   },
+//   {
+//     name: "吾輩は猫",
+//     id: 2,
+//     program: `let closestWeapon = weapons[0];
+//     if(player.weapon){
+//       let closestEnemy = enemies[0]
+//     for ( const enemy of enemies ) {
+//       const previousDistance = calculateDistance( player, closestEnemy );
+//       const currentDistance = calculateDistance( player, enemy );
+//       if(previousDistance > currentDistance){closestEnemy = enemy}
+//     }
+//     if(calculateDistance(player, closestEnemy)<player.weapon.firingRange){
+//       useWeapon(closestEnemy)
+//     }else{walkTo(closestEnemy)}
+//     }
+//     else{
+//     for ( const weapon of weapons ) {
+//       const previousDistance = calculateDistance( player, closestWeapon )
+//       const currentDistance = calculateDistance( player, weapon );
+//       if(previousDistance > currentDistance){closestWeapon = weapon}
+//     }
+//     if(calculateDistance(player, closestWeapon)<player.armLength){
+//       pickUp(closestWeapon)
+//     }else{walkTo(closestWeapon)}
+//   }
+//   `,
+//     rank: 2,
+//   },
+//   {
+//     name: "テスト",
+//     id: 3,
+//     program: `let target = null;
+// let closestPortion = portions[0];
+// for ( const portion of portions ) {
+//   const previousDistance = calculateDistance( player, closestPortion );
+//   const currentDistance = calculateDistance( player, portion );
+//   if(previousDistance > currentDistance){closestPortion = portion}
+// }
+// target = closestPortion
+// walkTo(target)`,
+//     rank: 3,
+//   },
+//   {
+//     name: "UTC",
+//     id: 4,
+//     program: `let closestEnemy = enemies[0]
+//     for ( const enemy of enemies ) {
+//       const previousDistance = calculateDistance( player, closestEnemy );
+//       const currentDistance = calculateDistance( player, enemy );
+//       if(previousDistance > currentDistance){closestEnemy = enemy}
+//     }
+//       if(calculateDistance(player,closestEnemy)<player.armLength){
+//         punch(closestEnemy)
+//       }else{walkTo(closestEnemy)}`,
+//     rank: 4,
+//   },
+// ];
 
 interface EnemyDialogProps {
   open: boolean;
@@ -241,12 +241,7 @@ interface TestPlayProps {
 
 export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
-  const [users, setUsers] = useState([
-    currentUser,
-    sampleUsers[1],
-    sampleUsers[2],
-    sampleUsers[3],
-  ]);
+  const [users, setUsers] = useState<User[] | null>(null);
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([2, 6, 7]);
 
@@ -280,14 +275,13 @@ export default function TestPlay(props: TestPlayProps) {
     }
   };
 
-  const fetchUsers = async () => {
-    setUsers(await getUsers());
-  };
-  fetchUsers();
-
   const enemyUsers = useMemo(
     () =>
-      users.filter((user) => enemyIds.some((enemyId) => enemyId === user.id)),
+      users
+        ? users.filter((user) =>
+            enemyIds.some((enemyId) => enemyId === user.id)
+          )
+        : null,
     [enemyIds, users]
   );
 
@@ -373,19 +367,20 @@ export default function TestPlay(props: TestPlayProps) {
                 gap: 2,
               }}
             >
-              {enemyUsers.map((enemyUser) => (
-                <Box key={enemyUser.name}>
-                  <Typography>{enemyUser.name}</Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={
-                      statuses?.find((status) => status.id === enemyUser.id)
-                        ?.HP || 0
-                    }
-                    color="error"
-                  />
-                </Box>
-              ))}
+              {enemyUsers &&
+                enemyUsers.map((enemyUser) => (
+                  <Box key={enemyUser.name}>
+                    <Typography>{enemyUser.name}</Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={
+                        statuses?.find((status) => status.id === enemyUser.id)
+                          ?.HP || 0
+                      }
+                      color="error"
+                    />
+                  </Box>
+                ))}
             </Box>
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button variant="text" size="small" onClick={handleClickOpen}>
@@ -436,16 +431,20 @@ export default function TestPlay(props: TestPlayProps) {
           </Box>
         </AccordionDetails>
       </Accordion>
-      <EnemyDialog
-        users={users}
-        enemyIds={enemyIds}
-        selectedEnemyIds={selectedEnemyIds}
-        setSelectedEnemyIds={setSelectedEnemyIds}
-        open={open}
-        handleClose={handleClose}
-        isConfirmDisabled={isConfirmDisabled}
-        setIsConfirmDisabled={setIsConfirmDisabled}
-      />
+      {users ? (
+        <EnemyDialog
+          users={users}
+          enemyIds={enemyIds}
+          selectedEnemyIds={selectedEnemyIds}
+          setSelectedEnemyIds={setSelectedEnemyIds}
+          open={open}
+          handleClose={handleClose}
+          isConfirmDisabled={isConfirmDisabled}
+          setIsConfirmDisabled={setIsConfirmDisabled}
+        />
+      ) : (
+        <Skeleton />
+      )}
     </div>
   );
 }
