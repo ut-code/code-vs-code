@@ -19,64 +19,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { FaFortAwesome } from "react-icons/fa";
 import type { User } from "./game";
-
-async function updateUser(user: User): Promise<User> {
-  /* const body = JSON.stringify(user);
-  const response = await fetch("https://api.code-vs-code.com/user", {
-    method: "put",
-    body, 
-  });
-  const json = await response.json(); */
-  return user;
-}
-
-async function getUsers(): Promise<User[]> {
-  // const response = await fetch("https://api.code-vs-code.com//user");
-  // const json = await response.json();
-  // return json;
-  const array = new Array(10);
-  for (let i = 0; i < 10; i += 1) array[i] = i + 1;
-  return new Promise((resolve) => {
-    setTimeout(
-      () =>
-        resolve(
-          array.map((id) => ({
-            id: 11 - id,
-            name: `ユーザー${id}`,
-            script: "",
-            rank: 1,
-          }))
-        ),
-      1000
-    );
-  });
-}
-
-async function getUser(id: number): Promise<User> {
-  // const response = await fetch(`https://api.code-vs-code.com/user/${id}`);
-  // const json = await response.json();
-  // return json;
-  return new Promise((resolve) => {
-    setTimeout(
-      () => resolve({ id, name: `ユーザー${id}`, script: "", rank: 1 }),
-      1000
-    );
-  });
-}
-
-type Program = {
-  id: number;
-  code: string;
-};
-
-async function uploadProgram(program: Program) {
-  /* const body = JSON.stringify(program);
-  await fetch("https://api.code-vs-code.com/program", {
-    method: "post",
-    body,
-  }); */
-  return program;
-}
+import { getUsers, getUser, changeUserName, uploadProgram } from "../fetchAPI";
 
 interface ChangeNameDialogProps {
   currentUser: User;
@@ -109,8 +52,8 @@ function ChangeNameDialog(props: ChangeNameDialogProps) {
         script: currentUser.script,
         rank: currentUser.rank,
       };
-      const user = await updateUser(newCurrentUser);
-      setCurrentUser(user);
+      await changeUserName(currentUser.id, newName);
+      setCurrentUser(newCurrentUser);
       setOpen(false);
     } else {
       setErrorMessage("ニックネームを入力してください");
@@ -172,7 +115,7 @@ export default function Arena(props: ArenaProps) {
   const [errorMessage, setErrorMessage] = useState(" ");
   const [name, setName] = useState("");
 
-  const handleChange = async (_: React.SyntheticEvent, expanded: boolean) => {
+  const handleChange = async (_: unknown, expanded: boolean) => {
     if (expanded) {
       setCurrentUser(await getUser(currentUser.id));
       setNumberOfUsers((await getUsers()).length);
@@ -182,8 +125,8 @@ export default function Arena(props: ArenaProps) {
 
   const handleUpload = () => {
     uploadProgram({
-      id: currentUser.id,
-      code: Blockly.JavaScript.workspaceToCode(workspaceRef.current),
+      userId: currentUser.id,
+      program: Blockly.JavaScript.workspaceToCode(workspaceRef.current),
     });
   };
 

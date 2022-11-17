@@ -13,18 +13,7 @@ import {
 } from "@mui/material";
 import type { User } from "./game";
 import iconURL from "../icon1.svg";
-
-async function createUser(name: string): Promise<User> {
-  /* const body = JSON.stringify({ name });
-    const response = await fetch("https://api.code-vs-code.com/user", {
-      method: "post",
-      body,
-    });
-    const json = await response.json(); */
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ id: 1, name, script: "", rank: 1 }), 1000);
-  });
-}
+import { createUser } from "../fetchAPI";
 
 interface WelcomeProps {
   currentUser: User;
@@ -52,6 +41,12 @@ export default function Welcome(props: WelcomeProps) {
       setOpen(false);
       const user = await createUser(name);
       setCurrentUser(user);
+      /* setCurrentUser({
+        id: 7,
+        name,
+        script: "",
+        rank: 3,
+      }); */
     } else {
       setErrorMessage("ニックネームを入力してください");
     }
@@ -61,10 +56,7 @@ export default function Welcome(props: WelcomeProps) {
     setName(event.target.value);
   };
 
-  const handleChangeIcon = (
-    _: React.MouseEvent<HTMLElement>,
-    newIcon: number | null
-  ) => {
+  const handleChangeIcon = (_: unknown, newIcon: number | null) => {
     if (newIcon !== null) {
       setSelectedIcon(newIcon);
     }

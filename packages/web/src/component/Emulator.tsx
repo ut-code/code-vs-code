@@ -45,7 +45,7 @@ export default function Emulator(props: {
   return (
     <canvas
       ref={canvasRef}
-      style={{ border: "solid", width: "600px", height: "450px" }}
+      style={{ border: "solid", width: "480px", height: "360px" }}
     />
   );
 }
