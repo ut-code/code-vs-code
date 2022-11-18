@@ -161,7 +161,7 @@ export class Weapon implements Entity {
     this.bulletSpeed = 10;
     this.reloadFrame = 10;
     this.bulletsLeft = 3;
-    this.requiredStamina = 20;
+    this.requiredStamina = 25;
   }
 }
 
@@ -391,7 +391,7 @@ class WalkToAction implements FighterAction {
 
   destination: Vector2;
 
-  requiredStamina = 0.5;
+  requiredStamina = 0.7;
 
   constructor(fighter: Fighter, destination: Vector2) {
     this.actor = fighter;
