@@ -161,7 +161,7 @@ export class Weapon implements Entity {
     this.bulletSpeed = 10;
     this.reloadFrame = 10;
     this.bulletsLeft = 3;
-    this.requiredStamina = 10;
+    this.requiredStamina = 20;
   }
 }
 
@@ -261,12 +261,12 @@ class World {
   runFightersAction(delta: number) {
     for (const fighter of this.fighters) {
       // スタミナ回復
-      if (fighter.stamina < MAX_STAMINA) fighter.stamina += 1;
+      if (fighter.stamina < MAX_STAMINA) fighter.stamina += 0.5;
       // スタミナ不足か判断後、アクションによってはスタミナ消費し実行
       if (!fighter.isShortOfStamina) {
         fighter.action?.tick(delta);
         if (fighter.stamina === 0) fighter.isShortOfStamina = true;
-      } else if (fighter.stamina > MAX_STAMINA / 2) {
+      } else if (fighter.stamina > MAX_STAMINA / 4) {
         fighter.isShortOfStamina = false;
       }
     }
@@ -391,7 +391,7 @@ class WalkToAction implements FighterAction {
 
   destination: Vector2;
 
-  requiredStamina = 0;
+  requiredStamina = 0.5;
 
   constructor(fighter: Fighter, destination: Vector2) {
     this.actor = fighter;
@@ -399,6 +399,7 @@ class WalkToAction implements FighterAction {
   }
 
   tick(delta: number) {
+    if (this.actor.stamina <= 0) return;
     const vector2 = {
       x: this.destination.x - this.actor.location.x,
       y: this.destination.y - this.actor.location.y,
@@ -409,6 +410,7 @@ class WalkToAction implements FighterAction {
       this.actor.direction.x * this.actor.speed * delta * 0.1;
     this.actor.location.y +=
       this.actor.direction.y * this.actor.speed * delta * 0.1;
+    this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
   }
 }
 
@@ -433,9 +435,9 @@ class RunToAction implements FighterAction {
     const normalizedVector = normalizeVector2(vector2);
     this.actor.direction = normalizedVector || this.actor.direction;
     this.actor.location.x +=
-      this.actor.direction.x * (this.actor.speed + 1) * delta * 0.1;
+      this.actor.direction.x * (this.actor.speed + 2) * delta * 0.1;
     this.actor.location.y +=
-      this.actor.direction.y * (this.actor.speed + 1) * delta * 0.1;
+      this.actor.direction.y * (this.actor.speed + 2) * delta * 0.1;
     this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
   }
 }
@@ -447,7 +449,7 @@ class PunchAction implements FighterAction {
 
   isCompleted = false;
 
-  requiredStamina = 21;
+  requiredStamina = 20;
 
   constructor(actor: Fighter, target: Fighter) {
     this.actor = actor;
@@ -475,7 +477,9 @@ class PickUpAction implements FighterAction {
 
   target: Weapon;
 
-  requiredStamina = 0;
+  requiredStamina = 10;
+
+  isFinished = false;
 
   constructor(actor: Fighter, target: Weapon) {
     this.actor = actor;
@@ -483,6 +487,7 @@ class PickUpAction implements FighterAction {
   }
 
   tick() {
+    if (this.actor.stamina <= 0 || this.isFinished) return;
     const distance = calculateDistance(this.actor, this.target);
     if (distance <= Fighter.armLength) {
       this.actor.weapon = this.target;
@@ -493,6 +498,8 @@ class PickUpAction implements FighterAction {
       });
       this.actor.direction = vector2 || this.actor.direction;
     }
+    this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
+    this.isFinished = true;
   }
 }
 
