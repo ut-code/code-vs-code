@@ -22,6 +22,7 @@ import { FaFortAwesome } from "react-icons/fa";
 import Draggable from "react-draggable";
 import type { User } from "./game";
 import { getUser, changeUserName, uploadProgram } from "../fetchAPI";
+import { useApiPasswordContext } from "../common/api-password";
 
 interface ChangeNameDialogProps {
   currentUser: User;
@@ -45,6 +46,8 @@ function ChangeNameDialog(props: ChangeNameDialogProps) {
     name,
     setName,
   } = props;
+  const { password } = useApiPasswordContext();
+  if (!password) throw new Error("Missing password");
 
   const handleClose = async (newName: string) => {
     if (newName !== "" && newName.match(/\S/g)) {
@@ -55,7 +58,7 @@ function ChangeNameDialog(props: ChangeNameDialogProps) {
           program: currentUser.program,
           rank: currentUser.rank,
         };
-        await changeUserName(currentUser.id, newName);
+        await changeUserName(currentUser.id, newName, password);
         setCurrentUser(newCurrentUser);
         setOpen(false);
       } catch {
@@ -121,6 +124,8 @@ export default function Arena(props: ArenaProps) {
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(" ");
   const [name, setName] = useState("");
+  const { password } = useApiPasswordContext();
+  if (!password) throw new Error("Missing password");
 
   const handleChange = async (_: unknown, expanded: boolean) => {
     if (expanded) {
@@ -131,10 +136,13 @@ export default function Arena(props: ArenaProps) {
   };
 
   const handleUpload = () => {
-    uploadProgram({
-      userId: currentUser.id,
-      program: Blockly.JavaScript.workspaceToCode(workspaceRef.current),
-    });
+    uploadProgram(
+      {
+        userId: currentUser.id,
+        program: Blockly.JavaScript.workspaceToCode(workspaceRef.current),
+      },
+      password
+    );
   };
 
   const handleClickOpen = () => {

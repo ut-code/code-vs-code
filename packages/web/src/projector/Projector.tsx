@@ -1,5 +1,8 @@
 import { Box, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { usePromise } from "react-use";
+import { useApiPasswordContext } from "../common/api-password";
 import { getUsers, swapRank } from "../fetchAPI";
 import ProjectorBattle from "./stages/Battle";
 import ProjectorReady from "./stages/Ready";
@@ -66,7 +69,8 @@ async function loadNextLeague(currentLeagueId: number): Promise<League> {
 
 async function saveBattleResult(
   leagueUsers: LeagueUsers,
-  rankSortedUserIds: LeagueUserIds
+  rankSortedUserIds: LeagueUserIds,
+  password: string
 ) {
   let previousRankSortedUserIds = leagueUsers
     .slice()
@@ -82,7 +86,7 @@ async function saveBattleResult(
     if (userId1 !== userId2) {
       // FIXME: 効率が悪い・不安定
       // eslint-disable-next-line no-await-in-loop
-      await swapRank(userId1, userId2);
+      await swapRank(userId1, userId2, password);
 
       // 順位の入れ替わりをシミュレーションする
       previousRankSortedUserIds = previousRankSortedUserIds.map((userId) => {
@@ -99,6 +103,8 @@ export default function Projector() {
   const [state, setState] = useState<ProjectorState>({
     status: "INITIALIZING",
   });
+  const mounted = usePromise();
+
   const withLoadingIndicator = async <T,>(promise: Promise<T>): Promise<T> => {
     setIsLoading(true);
     const result = await promise;
@@ -107,8 +113,13 @@ export default function Projector() {
   };
 
   useEffect(() => {
-    loadNextLeague(-1).then((league) => setState({ status: "READY", league }));
-  }, []);
+    mounted(loadNextLeague(-1)).then((league) =>
+      setState({ status: "READY", league })
+    );
+  }, [mounted]);
+
+  const { password } = useApiPasswordContext();
+  if (!password) return <Navigate to="/" />;
 
   return (
     <Box
@@ -136,8 +147,12 @@ export default function Projector() {
           league={state.league}
           onCompleted={async (rankSortedUserIds) => {
             const nextLeague = await withLoadingIndicator(
-              saveBattleResult(state.league.users, rankSortedUserIds).then(() =>
-                loadNextLeague(state.league.id)
+              mounted(
+                saveBattleResult(
+                  state.league.users,
+                  rankSortedUserIds,
+                  password
+                ).then(() => loadNextLeague(state.league.id))
               )
             );
             setState({

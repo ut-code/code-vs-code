@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import Blockly from "blockly";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import Ja from "blockly/msg/ja";
+import "./common/blockly";
+import type { WorkspaceSvg } from "blockly";
 import "./style.css";
 import { Box } from "@mui/material";
 import Injection from "./component/Injection";
@@ -12,16 +10,8 @@ import Welcome from "./component/Welcome";
 import ButtonAppBar from "./component/ButtonAppBar";
 import { getUsers } from "./fetchAPI";
 import type { User } from "./component/Emulator";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Blockly.setLocale(Ja);
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Blockly.HSV_SATURATION = 0.6;
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Blockly.HSV_VALUE = 1;
+import { useApiPasswordContext } from "./common/api-password";
+import ApiPasswordDialog from "./component/ApiPasswordDialog";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState({
@@ -31,7 +21,9 @@ export default function App() {
     rank: 0,
   });
   const [users, setUsers] = useState<User[]>([]);
-  const workspaceRef = useRef<Blockly.WorkspaceSvg>();
+  const { password } = useApiPasswordContext();
+  const [isApiPasswordDialogOpen, setIsApiPasswordDialogOpen] = useState(false);
+  const workspaceRef = useRef<WorkspaceSvg>();
 
   useEffect(() => {
     async function fetchUsers() {
@@ -50,21 +42,36 @@ export default function App() {
           gridTemplateRows: "48px auto",
         }}
       >
-        <ButtonAppBar />
+        <ButtonAppBar
+          openApiPasswordDialog={() => {
+            setIsApiPasswordDialogOpen(true);
+          }}
+        />
         <Injection workspaceRef={workspaceRef} />
       </Box>
-      <Welcome users={users} setCurrentUser={setCurrentUser} />
-      <Arena
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        workspaceRef={workspaceRef}
-        users={users}
-      />
+      {password && (
+        <>
+          <Welcome users={users} setCurrentUser={setCurrentUser} />
+          <Arena
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            workspaceRef={workspaceRef}
+            users={users}
+          />
+        </>
+      )}
       <TestPlay
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}
         workspaceRef={workspaceRef}
       />
+      {!password && isApiPasswordDialogOpen && (
+        <ApiPasswordDialog
+          onClose={() => {
+            setIsApiPasswordDialogOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }
