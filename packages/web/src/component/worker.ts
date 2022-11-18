@@ -149,12 +149,26 @@ function getClosestWeapon() {
   return closestWeapon;
 }
 
-// eval内で呼ばれる関数だがコードだけ見るとどこにも呼ばれてないように見えるのでeslintのエラーを消すための処理
-walkTo.toString();
-runTo.toString();
-punch.toString();
-pickUp.toString();
-useWeapon.toString();
-getClosestEnemy.toString();
-getClosestPortion.toString();
-getClosestWeapon.toString();
+// eval 内部から使用されるシンボルが最適化で消されるのを防ぐ。
+function dummy() {
+  if (Math.random() < 0) {
+    [
+      player,
+      enemies,
+      portions,
+      weapons,
+      walkTo,
+      runTo,
+      punch,
+      pickUp,
+      useWeapon,
+      getClosestEnemy,
+      getClosestPortion,
+      getClosestWeapon,
+    ].forEach(
+      // eslint-disable-next-line no-console
+      console.log
+    );
+  }
+}
+dummy();
