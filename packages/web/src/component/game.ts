@@ -14,8 +14,8 @@ import itemFire from "../../resources/itemFire.png";
 import bulletFire from "../../resources/bulletFire.png";
 import type { Status, User } from "./Emulator";
 
-const MAX_HP = 100;
-const MAX_STAMINA = 100;
+export const MAX_HP = 100;
+export const MAX_STAMINA = 100;
 export const STAGE_WIDTH = 800;
 export const STAGE_HEIGHT = 600;
 

@@ -63,7 +63,12 @@ function ProjectorResult({
                 ) + 1}
                 P
               </Box>
-              <Box sx={{ fontSize: "96px" }}>吾輩は猫</Box>
+              <Box sx={{ fontSize: "96px" }}>
+                {
+                  league.users.find((user) => user.id === rankSortedUserIds[0])
+                    ?.name
+                }
+              </Box>
             </Box>
           </Stack>
           <Box
