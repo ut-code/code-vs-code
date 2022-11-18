@@ -8,6 +8,10 @@ services:
       - path: /*
         name: X-Frame-Options
         value: sameorigin
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
   - name: server
     type: web
     env: node
