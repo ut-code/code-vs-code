@@ -926,8 +926,6 @@ export default class Game {
       // タイムラグが必要な処理実行
       if (currentTime - previousTime1 >= 500) {
         previousTime1 = Date.now();
-        this.world.placeRandomPortion();
-        this.world.placeRandomWeapon();
         this.workers.forEach((worker) => {
           worker.terminate();
         });
