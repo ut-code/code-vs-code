@@ -15,6 +15,7 @@ import type { User } from "./game";
 import iconURL from "../icon1.svg";
 import { createUser } from "../fetchAPI";
 import DropDown from "./DropDown";
+import { useApiPasswordContext } from "../common/api-password";
 
 interface WelcomeProps {
   // currentUser: User;
@@ -28,6 +29,8 @@ export default function Welcome(props: WelcomeProps) {
   const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState(0);
   const [errorMessage, setErrorMessage] = useState(" ");
+  const { password } = useApiPasswordContext();
+  if (!password) throw new Error("Missing password");
 
   const icons = [
     { src: iconURL, name: "icon1" },
@@ -41,7 +44,7 @@ export default function Welcome(props: WelcomeProps) {
   const handleClose = async () => {
     if (name !== "" && name.match(/\S/g)) {
       try {
-        const user = await createUser(name);
+        const user = await createUser(name, password);
         setCurrentUser(user);
         setOpen(false);
       } catch (e) {

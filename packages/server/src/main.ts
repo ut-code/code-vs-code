@@ -1,12 +1,19 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
+
+const { WEB_ORIGIN, API_PASSWORD } = process.env;
 
 const app = express();
 const client = new PrismaClient();
 
-app.use(cors({ origin: process.env["WEB_ORIGIN"] }));
+app.use(cors({ origin: WEB_ORIGIN }));
 app.use(express.json());
+
+const requirePassword: RequestHandler = (request, response, next) => {
+  if (request.headers.authorization === API_PASSWORD) next();
+  else response.sendStatus(401).send();
+};
 
 // 通信テスト
 
@@ -28,7 +35,7 @@ type UserResponse = {
   rank: number | undefined;
 };
 
-app.post("/user", async (request, response) => {
+app.post("/user", requirePassword, async (request, response) => {
   const requestBody: PostUserRequest = request.body;
   try {
     await client.user.create({
@@ -95,7 +102,7 @@ type PutUserRequest = {
   name: string;
 };
 
-app.put("/user/:userId([0-9]+)", async (request, response) => {
+app.put("/user/:userId([0-9]+)", requirePassword, async (request, response) => {
   const requestParams: PutUserParams = {
     userId: Number(request.params["userId"]),
   };
@@ -148,15 +155,21 @@ type PutProgramRequest = {
   program: string;
 };
 
-app.put("/program", async (request, response) => {
+app.put("/program", requirePassword, async (request, response) => {
   const requestBody: PutProgramRequest = request.body;
   const participantNumber = await client.userBattleIdentity.count();
-  await client.userBattleIdentity.create({
-    data: {
+  await client.userBattleIdentity.upsert({
+    create: {
       userId: requestBody.userId,
       program: requestBody.program,
       league: Math.floor((participantNumber + 5) / 4), // 作成された順にリーグ番号が割り振られる
       rank: requestBody.userId, // ひとまずidと同じ番号を挿入
+    },
+    update: {
+      program: requestBody.program,
+    },
+    where: {
+      userId: requestBody.userId,
     },
   });
   response.send();
@@ -169,7 +182,7 @@ type PostSwapRankRequest = {
   userId2: number;
 };
 
-app.post("/swap-rank", async (request, response) => {
+app.post("/swap-rank", requirePassword, async (request, response) => {
   const requestBody: PostSwapRankRequest = request.body;
   const user1 = await client.userBattleIdentity.findUnique({
     where: { userId: requestBody.userId1 },
@@ -205,6 +218,16 @@ app.post("/swap-rank", async (request, response) => {
     }),
   ]);
   response.send();
+});
+
+type PostCheckPasswordRequest = {
+  password: string;
+};
+
+app.post("/check-password", (request, response) => {
+  const requestBody: PostCheckPasswordRequest = request.body;
+  if (requestBody.password === API_PASSWORD) response.sendStatus(200);
+  else response.sendStatus(401);
 });
 
 app.listen(8081);

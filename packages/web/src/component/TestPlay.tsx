@@ -106,11 +106,13 @@ function EnemyDialog(props: EnemyDialogProps) {
             size="small"
             sx={{ gridColumn: "1" }}
           >
-            {users.map((user) => (
-              <MenuItem key={user.id} value={user.id}>
-                {user.name}
-              </MenuItem>
-            ))}
+            {users
+              .filter((user) => user.program)
+              .map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  {user.name}
+                </MenuItem>
+              ))}
           </TextField>
           <Button
             onClick={handleClickAdd}
