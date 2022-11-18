@@ -19,7 +19,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { FaFortAwesome } from "react-icons/fa";
 import type { User } from "./game";
-import { getUsers, getUser, changeUserName, uploadProgram } from "../fetchAPI";
+import { getUser, changeUserName, uploadProgram } from "../fetchAPI";
 
 interface ChangeNameDialogProps {
   currentUser: User;
@@ -109,10 +109,11 @@ interface ArenaProps {
   currentUser: User;
   setCurrentUser: (value: User) => void;
   workspaceRef: React.MutableRefObject<Blockly.WorkspaceSvg | undefined>;
+  users: User[];
 }
 
 export default function Arena(props: ArenaProps) {
-  const { currentUser, setCurrentUser, workspaceRef } = props;
+  const { currentUser, setCurrentUser, workspaceRef, users } = props;
   const [numberOfUsers, setNumberOfUsers] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
@@ -122,7 +123,7 @@ export default function Arena(props: ArenaProps) {
   const handleChange = async (_: unknown, expanded: boolean) => {
     if (expanded) {
       setCurrentUser(await getUser(currentUser.id));
-      setNumberOfUsers((await getUsers()).length);
+      setNumberOfUsers(users.length);
       setLoaded(true);
     } else setLoaded(false);
   };

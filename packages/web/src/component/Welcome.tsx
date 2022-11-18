@@ -14,14 +14,16 @@ import {
 import type { User } from "./game";
 import iconURL from "../icon1.svg";
 import { createUser } from "../fetchAPI";
+import DropDown from "./DropDown";
 
 interface WelcomeProps {
   // currentUser: User;
   setCurrentUser: (value: User) => void;
+  users: User[];
 }
 
 export default function Welcome(props: WelcomeProps) {
-  const { /* currentUser, */ setCurrentUser } = props;
+  const { /* currentUser, */ setCurrentUser, users } = props;
   const [open, setOpen] = useState(true);
   const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState(0);
@@ -99,6 +101,13 @@ export default function Welcome(props: WelcomeProps) {
             開始
           </Button>
         </DialogActions>
+        <DropDown
+          users={users}
+          handleClose={(user: User) => {
+            setCurrentUser(user);
+            setOpen(false);
+          }}
+        />
       </Dialog>
     </div>
   );
