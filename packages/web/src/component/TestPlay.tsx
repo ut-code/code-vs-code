@@ -243,7 +243,7 @@ export default function TestPlay(props: TestPlayProps) {
   const { currentUser } = props;
   const [users, setUsers] = useState<User[] | null>(null);
   const [open, setOpen] = useState(false);
-  const [enemyIds, setEnemyIds] = useState([2, 6, 7]);
+  const [enemyIds, setEnemyIds] = useState([6, 7, 8]);
 
   useEffect(() => {
     const fetchUsers = async () => {
