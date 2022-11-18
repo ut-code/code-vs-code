@@ -889,6 +889,22 @@ class WorldRenderer {
     }
   }
 
+  showResult(result: Result, users: User[]) {
+    let rank = 1;
+    for (const id of result) {
+      const user = users.find((eachUser) => eachUser.id === id);
+      if (!user) throw new Error();
+      const resultText = new PIXI.Text(`${rank}位: ${user.name}`, {
+        fontFamily: "Arial",
+        fontStyle: "italic",
+      });
+      resultText.anchor.set(0.5);
+      resultText.position.set(400, 100 * rank);
+      this.#pixi.stage.addChild(resultText);
+      rank += 1;
+    }
+  }
+
   destroy() {
     this.#pixi.destroy();
   }
@@ -1123,6 +1139,7 @@ export default class Game {
     this.world.clear();
     this.isEnded = true;
     this.onCompleted?.(this.result);
+    this.worldRenderer.showResult(result, this.users);
   }
 
   destroy() {

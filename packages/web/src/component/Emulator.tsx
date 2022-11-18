@@ -17,7 +17,7 @@ export interface Status {
   weapon: "ファイヤ" | "なし";
 }
 
-export default function Emulator(props: {
+type EmulatorProps = {
   width: number;
   height: number;
   users: User[];
@@ -25,8 +25,10 @@ export default function Emulator(props: {
   isPaused: boolean;
   executionId: number; // エミュレーターそのものを更新するためのId
   handleStatuses: (statuses: Status[]) => void;
-  onGameCompleted: (result: Result) => void;
-}) {
+  onGameCompleted?: (result: Result) => void;
+};
+
+export default function Emulator(props: EmulatorProps) {
   const {
     width,
     height,
@@ -52,7 +54,7 @@ export default function Emulator(props: {
   useEffect(() => {
     if (!gameRef.current) throw new Error();
     gameRef.current.onCompleted = (result: Result) => {
-      onGameCompleted(result);
+      onGameCompleted?.(result);
     };
     if (hasGameStarted) {
       if (!isPaused) {
@@ -69,3 +71,9 @@ export default function Emulator(props: {
     />
   );
 }
+
+Emulator.defaultProps = {
+  onGameCompleted: (result: Result) => {
+    result.keys();
+  },
+};
