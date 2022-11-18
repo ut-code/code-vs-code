@@ -13,6 +13,8 @@ import explosion8 from "../../resources/explosion8.png";
 import itemFire from "../../resources/itemFire.png";
 import bulletFire from "../../resources/bulletFire.png";
 import type { Status, User } from "./Emulator";
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import UserCodeRunnerWorker from "./worker.ts?worker&inline";
 
 export const MAX_HP = 100;
 export const MAX_STAMINA = 100;
@@ -962,11 +964,8 @@ export default class Game {
 
   buildWorkers() {
     for (const me of this.world.fighters) {
-      const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-        type: "module",
-      });
+      const worker = new UserCodeRunnerWorker();
       worker.onmessage = (e: MessageEvent<string>) => {
-        console.log("received message");
         const data: DataFromWorker = JSON.parse(e.data);
         if (data.type === "walkTo") {
           me.action = new WalkToAction(me, data.target);
