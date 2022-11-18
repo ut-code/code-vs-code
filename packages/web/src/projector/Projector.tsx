@@ -40,15 +40,18 @@ async function loadNextLeague(currentLeagueId: number): Promise<League> {
       .sort((a, b) => a.rank - b.rank)
   );
   const nextLeagueId =
-    users.length > (currentLeagueId + 1) * USER_COUNT_IN_LEAGUE
+    users.length > (currentLeagueId + 1) * (USER_COUNT_IN_LEAGUE - 1) + 1
       ? currentLeagueId + 1
       : 0;
 
   // リーグに参加できない人のいないよう、下から数えて 4 人を参加させる
-  const startRank = Math.min(
-    nextLeagueId * USER_COUNT_IN_LEAGUE,
-    users.length - USER_COUNT_IN_LEAGUE
-  );
+  const startRank =
+    nextLeagueId !== 0
+      ? Math.min(
+          nextLeagueId * (USER_COUNT_IN_LEAGUE - 1),
+          users.length - USER_COUNT_IN_LEAGUE
+        )
+      : 0;
   // max(User#rank) = users.length - 1
   const leagueUsers = users.slice(startRank, startRank + USER_COUNT_IN_LEAGUE);
   if (leagueUsers.length !== USER_COUNT_IN_LEAGUE)
