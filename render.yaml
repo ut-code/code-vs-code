@@ -3,6 +3,8 @@ services:
     type: web
     env: static
     buildCommand: cd packages/web && npm ci && npm run build
+    domains:
+      - code-vs-code.utcode.net
     staticPublishPath: packages/web/dist
     headers:
       - path: /*
@@ -12,13 +14,20 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+    envVars:
+      - key: VITE_SERVER_ORIGIN
+        value: https://api.code-vs-code.utcode.net
   - name: server
     type: web
     env: node
     buildCommand: cd packages/server && npm ci && npm run build
     startCommand: cd packages/server && npm start
+    domains:
+      - api.code-vs-code.utcode.net
     region: singapore
     plan: free
     envVars:
+      - key: WEB_ORIGIN
+        value: https://code-vs-code.utcode.net
       - key: PORT
         value: 8081
