@@ -1,5 +1,5 @@
 import Blockly from "blockly";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -27,7 +27,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { HiOutlineScale } from "react-icons/hi";
 import Emulator, { Status } from "./Emulator";
-import type { Result, User } from "./game";
+import type { User } from "./game";
 import { getUsers } from "../fetchAPI";
 
 // const sampleUsers: [User, User, User, User] = [
@@ -301,8 +301,6 @@ export default function TestPlay(props: TestPlayProps) {
     () => (enemyUsers ? [currentUser].concat(enemyUsers) : null),
     [currentUser, enemyUsers]
   );
-
-  const onGameCompleted = useCallback((result: Result) => result, []);
   const [submitted, setSubmitted] = useState(false);
 
   return (
@@ -322,7 +320,6 @@ export default function TestPlay(props: TestPlayProps) {
                 isPaused={isPaused}
                 executionId={executionId}
                 handleStatuses={setStatuses}
-                onGameCompleted={onGameCompleted}
               />
             ) : (
               <Skeleton width="100%" height="auto" />
