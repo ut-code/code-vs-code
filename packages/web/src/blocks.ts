@@ -238,7 +238,7 @@ Blockly.Blocks[DISTANCE] = {
     this.setTooltip("2つのモノまたは位置の距離です。");
   },
 };
-Blockly.JavaScript[DISTANCE] = (block: Blockly.Block) =>
+Blockly.JavaScript[DISTANCE] = (block: Blockly.Block) => [
   `calculateDistance(${Blockly.JavaScript.valueToCode(
     block,
     "A",
@@ -247,7 +247,9 @@ Blockly.JavaScript[DISTANCE] = (block: Blockly.Block) =>
     block,
     "B",
     Blockly.JavaScript.ORDER_COMMA
-  )});`;
+  )})`,
+  Blockly.JavaScript.ORDER_FUNCTION_CALL,
+];
 
 export const MINMAX = "minmax";
 const OPERATOR = "operator";
@@ -272,16 +274,15 @@ Blockly.Blocks[MINMAX] = {
   },
 };
 Blockly.JavaScript[MINMAX] = (block: Blockly.Block) => [
-  () =>
-    `${block.getFieldValue(OPERATOR)}([${Blockly.JavaScript.valueToCode(
-      block,
-      "A",
-      Blockly.JavaScript.ORDER_COMMA
-    )},${Blockly.JavaScript.valueToCode(
-      block,
-      "B",
-      Blockly.JavaScript.ORDER_COMMA
-    )}]);`,
+  `${block.getFieldValue(OPERATOR)}([${Blockly.JavaScript.valueToCode(
+    block,
+    "A",
+    Blockly.JavaScript.ORDER_COMMA
+  )},${Blockly.JavaScript.valueToCode(
+    block,
+    "B",
+    Blockly.JavaScript.ORDER_COMMA
+  )}])`,
   Blockly.JavaScript.ORDER_FUNCTION_CALL,
 ];
 
@@ -295,7 +296,7 @@ Blockly.Blocks[CLOSEST_ENEMY] = {
   },
 };
 Blockly.JavaScript[CLOSEST_ENEMY] = () => [
-  `getClosestEnemy();`,
+  `getClosestEnemy()`,
   Blockly.JavaScript.ORDER_FUNCTION_CALL,
 ];
 
@@ -309,7 +310,7 @@ Blockly.Blocks[CLOSEST_PORTION] = {
   },
 };
 Blockly.JavaScript[CLOSEST_PORTION] = () => [
-  `getClosestPortion();`,
+  `getClosestPortion()`,
   Blockly.JavaScript.ORDER_FUNCTION_CALL,
 ];
 
@@ -323,7 +324,7 @@ Blockly.Blocks[CLOSEST_WEAPON] = {
   },
 };
 Blockly.JavaScript[CLOSEST_WEAPON] = () => [
-  `getClosestWeapon();`,
+  `getClosestWeapon()`,
   Blockly.JavaScript.ORDER_FUNCTION_CALL,
 ];
 
@@ -484,15 +485,15 @@ Blockly.JavaScript[CUSTOM_LISTS_DELETE_INDEX] = (block: Blockly.Block) =>
 export const CONSOLE_LOG = "console_log";
 Blockly.Blocks[CONSOLE_LOG] = {
   init(this: Blockly.Block) {
-    this.appendValueInput(VALUE).appendField("alert");
+    this.appendValueInput(VALUE).appendField("console.log");
     this.setPreviousStatement(true);
     this.setNextStatement(true);
     this.setColour(0);
   },
 };
 Blockly.JavaScript[CONSOLE_LOG] = (block: Blockly.Block) =>
-  `alert(${Blockly.JavaScript.valueToCode(
+  `console.log(${Blockly.JavaScript.valueToCode(
     block,
     VALUE,
     Blockly.JavaScript.ORDER_NONE
-  )})`;
+  )});`;

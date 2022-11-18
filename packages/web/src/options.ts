@@ -20,6 +20,7 @@ import {
   CUSTOM_LISTS_SET_INDEX,
   CUSTOM_LISTS_INSERT_INDEX,
   CUSTOM_LISTS_DELETE_INDEX,
+  CONSOLE_LOG,
 } from "./blocks";
 
 const numberInput = (initialInput: number) => {
@@ -291,6 +292,16 @@ const options: any = {
         kind: "category",
         name: "関数",
         custom: "PROCEDURE",
+      },
+      {
+        kind: "category",
+        name: "デバッグ",
+        contents: [
+          {
+            kind: "block",
+            type: CONSOLE_LOG,
+          },
+        ],
       },
     ],
   },
