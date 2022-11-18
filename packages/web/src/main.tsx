@@ -1,3 +1,4 @@
+import { createTheme, ThemeProvider } from "@mui/material";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -15,8 +16,16 @@ const router = createBrowserRouter([
   },
 ]);
 
+const theme = createTheme({
+  components: {
+    MuiAppBar: { defaultProps: { elevation: 0, variant: "outlined" } },
+  },
+});
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider theme={theme}>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>
 );
