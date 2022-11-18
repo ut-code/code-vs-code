@@ -253,8 +253,8 @@ Blockly.JavaScript[DISTANCE] = (block: Blockly.Block) => [
 
 export const MINMAX = "minmax";
 const OPERATOR = "operator";
-const MIN = "min";
-const MAX = "max";
+const MIN = "Math.min";
+const MAX = "Math.max";
 Blockly.Blocks[MINMAX] = {
   init(this: Blockly.Block) {
     this.appendValueInput("A").setCheck(Number);
@@ -274,7 +274,7 @@ Blockly.Blocks[MINMAX] = {
   },
 };
 Blockly.JavaScript[MINMAX] = (block: Blockly.Block) => [
-  `${block.getFieldValue(OPERATOR)}([${Blockly.JavaScript.valueToCode(
+  `${block.getFieldValue(OPERATOR)}(${Blockly.JavaScript.valueToCode(
     block,
     "A",
     Blockly.JavaScript.ORDER_COMMA
@@ -282,7 +282,7 @@ Blockly.JavaScript[MINMAX] = (block: Blockly.Block) => [
     block,
     "B",
     Blockly.JavaScript.ORDER_COMMA
-  )}])`,
+  )})`,
   Blockly.JavaScript.ORDER_FUNCTION_CALL,
 ];
 
