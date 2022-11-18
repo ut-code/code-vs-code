@@ -1,4 +1,6 @@
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -6,44 +8,67 @@ body {
   margin: 0px;
 }
 
-/* ut-code/school-festival/src/grobal.css */
-html {
+:root {
+  --divider-color: #ddd;
   overflow: hidden;
 }
-  
-  html, body, #root {
-    width: 100%;
-    height: 100%;
-  }
-  
-  .blocklyPath {
-    stroke: #444444 !important;
-  }
-  .blocklySelected .blocklyPath {
-    stroke-width: inherit !important;
-    stroke: #000000 !important;
-  }
-  .blocklyText {
-    fill: #222 !important;
-  }
-  .blocklySelected .blocklyText {
-    fill: #000 !important;
-  }
-  .blocklyFieldRect {
-    fill: #fff !important;
-    fill-opacity: 1 !important;
-  }
-  .blocklyDropDownDiv {
-    border: 1px solid #aaa;
-  }
-  .blocklyDropDownDiv .blocklyDropDownArrow {
-    border-top: 1px solid #aaa;
-    border-left: 1px solid #aaa;
-  }
-  .blocklyFlyout {
-    border-right: 1px solid #ddd;
-    background-color: #fff;
-  }
-  .blocklyFlyoutBackground {
-    fill: transparent;
-  }
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.blocklyPath {
+  stroke: #444 !important;
+}
+.blocklySelected .blocklyPath {
+  stroke-width: inherit !important;
+  stroke: #000 !important;
+}
+.blocklyText {
+  fill: #222 !important;
+}
+.blocklySelected .blocklyText {
+  fill: #000 !important;
+}
+.blocklyFieldRect {
+  fill: #fff !important;
+  fill-opacity: 1 !important;
+}
+.blocklyDropDownDiv {
+  border: 1px solid var(--divider-color);
+}
+.blocklyDropDownDiv .blocklyDropDownArrow {
+  border-top: 1px solid var(--divider-color);
+  border-left: 1px solid var(--divider-color);
+}
+.blocklyToolboxDiv {
+  background-color: #fff;
+  border-right: 1px solid var(--divider-color);
+  width: 120px;
+}
+.blocklyTreeRow {
+  margin: 0;
+  padding: 8px 12px !important;
+}
+.blocklyTreeRow:not(.blocklyTreeSelected):hover {
+  background-color: #eee;
+}
+.blocklyTreeRow.blocklyTreeSelected {
+  background-color: #ddd !important;
+}
+.blocklyTreeSelected .blocklyTreeLabel {
+  color: inherit;
+}
+.blocklyFlyout {
+  border-right: 1px solid #ddd;
+  background-color: #fff;
+}
+.blocklyTreeIcon {
+  display: none !important;
+}
+.blocklyFlyoutBackground {
+  fill: transparent;
+}

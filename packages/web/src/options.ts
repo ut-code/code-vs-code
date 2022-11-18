@@ -317,6 +317,7 @@ const options: any = {
   zoom: {
     controls: true,
   },
+  renderer: "thrasos",
 };
 
 export default options;
