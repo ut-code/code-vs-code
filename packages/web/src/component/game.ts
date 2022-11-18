@@ -13,8 +13,6 @@ import explosion8 from "../../resources/explosion8.png";
 import itemFire from "../../resources/itemFire.png";
 import bulletFire from "../../resources/bulletFire.png";
 import type { Status, User } from "./Emulator";
-// eslint-disable-next-line import/extensions, import/no-unresolved
-import UserProgramRunnerWorker from "./worker.ts?worker&inline";
 
 export const MAX_HP = 100;
 export const MAX_STAMINA = 100;
@@ -994,7 +992,9 @@ export default class Game {
     return new Map(
       this.world.fighters.map((fighter) => [
         fighter.id,
-        new UserProgramRunnerWorker(),
+        new Worker(new URL("./worker.ts", import.meta.url), {
+          type: "module",
+        }),
       ])
     );
   }
