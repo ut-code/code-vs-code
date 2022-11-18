@@ -120,7 +120,6 @@ function calculateDistance(
 }
 
 function getClosestEnemy() {
-  if (!player) throw new Error();
   const closestEnemy = enemies.reduce((previousEnemy, currentEnemy) => {
     const previousDistance = calculateDistance(player, previousEnemy);
     const currentDistance = calculateDistance(player, currentEnemy);
