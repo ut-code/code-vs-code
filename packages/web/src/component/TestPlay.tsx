@@ -291,6 +291,10 @@ export default function TestPlay(props: TestPlayProps) {
 
   const onGameCompleted = useCallback((result: Result) => result, []);
 
+  console.log(isActive);
+  console.log(isPaused);
+  console.log(executionId);
+
   return (
     <div>
       <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
@@ -301,8 +305,10 @@ export default function TestPlay(props: TestPlayProps) {
           <Box sx={{ height: 450, width: 600 }}>
             {users && enemyUsers ? (
               <Emulator
+                width={600}
+                height={450}
                 users={[currentUser].concat(enemyUsers)}
-                HasGameStarted={isActive}
+                hasGameStarted={isActive}
                 isPaused={isPaused}
                 executionId={executionId}
                 handleStatuses={handleStatuses}

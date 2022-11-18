@@ -102,8 +102,10 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
         )}
         <Box>
           <Emulator
+            width={10}
+            height={10}
             users={league.users}
-            HasGameStarted
+            hasGameStarted
             executionId={1}
             isPaused={false}
             handleStatuses={setStatuses}

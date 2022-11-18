@@ -18,16 +18,20 @@ export interface Status {
 }
 
 export default function Emulator(props: {
+  width: number;
+  height: number;
   users: User[];
-  HasGameStarted: boolean;
+  hasGameStarted: boolean;
   isPaused: boolean;
   executionId: number; // エミュレーターそのものを更新するためのId
   handleStatuses: (statuses: Status[]) => void;
   onGameCompleted: (result: Result) => void;
 }) {
   const {
+    width,
+    height,
     users,
-    HasGameStarted,
+    hasGameStarted,
     isPaused,
     executionId,
     handleStatuses,
@@ -50,18 +54,18 @@ export default function Emulator(props: {
     gameRef.current.onCompleted = (result: Result) => {
       onGameCompleted(result);
     };
-    if (HasGameStarted) {
+    if (hasGameStarted) {
       if (!isPaused) {
         gameRef.current.resume();
       } else {
         gameRef.current.pause();
       }
     }
-  }, [HasGameStarted, isPaused, onGameCompleted]);
+  }, [hasGameStarted, isPaused, onGameCompleted]);
   return (
     <canvas
       ref={canvasRef}
-      style={{ border: "solid", maxWidth: "100%", height: "auto" }}
+      style={{ border: "solid", width: `${width}px`, height: `${height}px` }}
     />
   );
 }
