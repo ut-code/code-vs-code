@@ -177,7 +177,7 @@ export default function Arena(props: ArenaProps) {
                       width: 1 / 5,
                     }}
                   >
-                    {currentUser.rank}
+                    {currentUser.rank ? currentUser.rank : "-"}
                   </Typography>
                   <Typography
                     color="text.secondary"

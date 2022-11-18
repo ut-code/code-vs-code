@@ -1,3 +1,4 @@
+import Blockly from "blockly";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Accordion,
@@ -237,10 +238,12 @@ function EnemyDialog(props: EnemyDialogProps) {
 
 interface TestPlayProps {
   currentUser: User;
+  setCurrentUser: (value: User) => void;
+  workspaceRef: React.MutableRefObject<Blockly.WorkspaceSvg | undefined>;
 }
 
 export default function TestPlay(props: TestPlayProps) {
-  const { currentUser } = props;
+  const { currentUser, setCurrentUser, workspaceRef } = props;
   const [users, setUsers] = useState<User[] | null>(null);
   const [open, setOpen] = useState(false);
   const [enemyIds, setEnemyIds] = useState([6, 7, 8]);
@@ -291,6 +294,7 @@ export default function TestPlay(props: TestPlayProps) {
   );
 
   const onGameCompleted = useCallback((result: Result) => result, []);
+  const [submitted, setSubmitted] = useState(false);
 
   return (
     <div>
@@ -431,6 +435,21 @@ export default function TestPlay(props: TestPlayProps) {
                 リセット
               </Button>
             </Box>
+            <Button
+              onClick={() => {
+                setCurrentUser({
+                  id: currentUser.id,
+                  name: currentUser.name,
+                  program: Blockly.JavaScript.workspaceToCode(
+                    workspaceRef.current
+                  ),
+                  rank: currentUser.rank,
+                });
+                setSubmitted(true);
+              }}
+            >
+              プログラムを反映
+            </Button>
           </Box>
         </AccordionDetails>
       </Accordion>
@@ -447,6 +466,16 @@ export default function TestPlay(props: TestPlayProps) {
         />
       ) : (
         <Skeleton />
+      )}
+      {submitted && (
+        <Dialog
+          open={submitted}
+          onClose={() => {
+            setSubmitted(false);
+          }}
+        >
+          {currentUser.program}
+        </Dialog>
       )}
     </div>
   );

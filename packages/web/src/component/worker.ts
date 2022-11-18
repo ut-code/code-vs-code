@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { max, min } from "mathjs";
 import type { Vector2, Entity } from "./game";
 
 interface Fighter extends Entity {
@@ -165,6 +166,8 @@ function dummy() {
       getClosestEnemy,
       getClosestPortion,
       getClosestWeapon,
+      min,
+      max,
     ].forEach(
       // eslint-disable-next-line no-console
       console.log

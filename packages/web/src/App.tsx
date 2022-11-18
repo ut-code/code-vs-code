@@ -49,7 +49,11 @@ export default function App() {
         setCurrentUser={setCurrentUser}
         workspaceRef={workspaceRef}
       />
-      <TestPlay currentUser={currentUser} />
+      <TestPlay
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        workspaceRef={workspaceRef}
+      />
     </>
   );
 }
