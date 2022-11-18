@@ -896,6 +896,7 @@ export default class Game {
   start() {
     let previousTime1 = Date.now();
     let previousTime2 = Date.now();
+    let previousTime3 = Date.now();
     const startTime = Date.now();
     const callback = () => {
       if (this.isDestroyed || this.isEnded) return;
@@ -936,6 +937,11 @@ export default class Game {
       }
       if (currentTime - startTime >= 120000) {
         this.end();
+      }
+      if (currentTime - previousTime3 > 2000) {
+        previousTime3 = Date.now();
+        this.world.placeRandomPortion();
+        this.world.placeRandomWeapon();
       }
       if (!this.isPaused) requestAnimationFrame(callback);
       previousTime2 = currentTime;
