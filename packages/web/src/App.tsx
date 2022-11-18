@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Blockly from "blockly";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -10,6 +10,8 @@ import TestPlay from "./component/TestPlay";
 import Arena from "./component/Arena";
 import Welcome from "./component/Welcome";
 import ButtonAppBar from "./component/ButtonAppBar";
+import { getUsers } from "./fetchAPI";
+import type { User } from "./component/Emulator";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -28,7 +30,15 @@ export default function App() {
     program: "",
     rank: 0,
   });
+  const [users, setUsers] = useState<User[]>([]);
   const workspaceRef = useRef<Blockly.WorkspaceSvg>();
+
+  useEffect(() => {
+    async function fetchUsers() {
+      setUsers(await getUsers());
+    }
+    fetchUsers();
+  }, []);
 
   return (
     <>
@@ -43,11 +53,12 @@ export default function App() {
         <ButtonAppBar />
         <Injection workspaceRef={workspaceRef} />
       </Box>
-      <Welcome setCurrentUser={setCurrentUser} />
+      <Welcome users={users} setCurrentUser={setCurrentUser} />
       <Arena
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}
         workspaceRef={workspaceRef}
+        users={users}
       />
       <TestPlay
         currentUser={currentUser}

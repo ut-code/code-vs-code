@@ -251,10 +251,19 @@ export default function TestPlay(props: TestPlayProps) {
   useEffect(() => {
     const fetchUsers = async () => {
       const response = await getUsers();
+      const copy = response
+        .filter((user) => user.id !== currentUser.id)
+        .slice();
+      const newEnemyIds = [...Array(3)].map(
+        () => copy.splice(Math.floor(Math.random() * copy.length), 1)[0]?.id
+      ) as number[];
+      setEnemyIds(newEnemyIds);
       setUsers(response);
     };
     fetchUsers();
-  }, []);
+  }, [currentUser.id]);
+
+  const usersExceptMe = users?.filter((user) => user.id !== currentUser.id);
 
   const [isActive, setIsActive] = useState(false);
   const [executionId, setExecutionId] = useState(1);
@@ -453,9 +462,9 @@ export default function TestPlay(props: TestPlayProps) {
           </Box>
         </AccordionDetails>
       </Accordion>
-      {users ? (
+      {users && usersExceptMe ? (
         <EnemyDialog
-          users={users}
+          users={usersExceptMe}
           enemyIds={enemyIds}
           selectedEnemyIds={selectedEnemyIds}
           setSelectedEnemyIds={setSelectedEnemyIds}
