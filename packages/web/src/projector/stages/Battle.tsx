@@ -2,7 +2,13 @@ import { Box, LinearProgress, Stack } from "@mui/material";
 import { useCallback, useRef, useState } from "react";
 import { useMeasure } from "react-use";
 import Emulator, { Status } from "../../component/Emulator";
-import { Result, STAGE_HEIGHT, STAGE_WIDTH } from "../../component/game";
+import {
+  MAX_HP,
+  MAX_STAMINA,
+  Result,
+  STAGE_HEIGHT,
+  STAGE_WIDTH,
+} from "../../component/game";
 import ProjectorHeader from "../components/Header";
 import type { League, LeagueUserIds, User } from "../Projector";
 
@@ -56,6 +62,13 @@ export type ProjectorBattleProps = {
   onCompleted(rankSortedUserIds: [number, number, number, number]): void;
 };
 
+const defaultStatus: Omit<Status, "id"> = {
+  HP: MAX_HP,
+  stamina: MAX_STAMINA,
+  speed: 2,
+  weapon: "なし",
+};
+
 function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
   const [emulatorContainerRef, { width, height }] = useMeasure();
   const emulatorWidth = Math.min(
@@ -74,7 +87,9 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
     onCompletedRef.current(result as LeagueUserIds);
   }, []);
 
-  const [statuses, setStatuses] = useState<Status[] | null>(null);
+  const [statuses, setStatuses] = useState<Status[] | null>(
+    league.users.map((user) => ({ id: user.id, ...defaultStatus }))
+  );
 
   return (
     <Box
