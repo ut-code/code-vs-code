@@ -275,7 +275,7 @@ export default function TestPlay(props: TestPlayProps) {
     }
   };
 
-  const enemyUsers = useMemo(
+  const enemyUsers: User[] | null = useMemo(
     () =>
       users
         ? users.filter((user) =>
@@ -289,6 +289,11 @@ export default function TestPlay(props: TestPlayProps) {
     setStatuses(newStatuses);
   }, []);
 
+  const usersOnStage = useMemo(
+    () => (enemyUsers ? [currentUser].concat(enemyUsers) : null),
+    [currentUser, enemyUsers]
+  );
+
   const onGameCompleted = useCallback((result: Result) => result, []);
 
   return (
@@ -299,11 +304,11 @@ export default function TestPlay(props: TestPlayProps) {
         </AccordionSummary>
         <AccordionDetails sx={{ height: 800 }}>
           <Box sx={{ height: 450, width: 600 }}>
-            {users && enemyUsers ? (
+            {usersOnStage ? (
               <Emulator
                 width={600}
                 height={450}
-                users={[currentUser].concat(enemyUsers)}
+                users={usersOnStage}
                 hasGameStarted={isActive}
                 isPaused={isPaused}
                 executionId={executionId}
