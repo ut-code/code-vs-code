@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Blockly from "blockly";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  accordionSummaryClasses,
   Box,
   Button,
   Card,
@@ -18,6 +19,7 @@ import { FileUpload, Person } from "@mui/icons-material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { FaFortAwesome } from "react-icons/fa";
+import Draggable from "react-draggable";
 import type { User } from "./game";
 import { getUser, changeUserName, uploadProgram } from "../fetchAPI";
 
@@ -141,101 +143,111 @@ export default function Arena(props: ArenaProps) {
     setOpen(true);
   };
 
+  const accordionRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div>
-      <Accordion
-        onChange={handleChange}
-        sx={{ position: "absolute", top: 48, right: 640, width: 600 }}
+    <>
+      <Draggable
+        nodeRef={accordionRef}
+        handle={`.${accordionSummaryClasses.root}`}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          闘技場
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box
-            sx={{
-              position: "relative",
-              display: "flex",
-              gap: 1,
-            }}
-          >
-            <Card sx={{ width: 1 / 2, height: 170 }} variant="outlined">
-              {loaded && (
-                <>
-                  <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
-                    <FaFortAwesome size="25%" />
-                  </Box>
-                  <Typography sx={{ position: "absolute", ml: 2, mt: 1.5 }}>
-                    {currentUser.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      position: "absolute",
-                      ml: 11,
-                      mt: 3.5,
-                      fontSize: 60,
-                      fontWeight: "bold",
-                      textAlign: "center",
-                      width: 1 / 5,
-                    }}
-                  >
-                    {currentUser.rank ? currentUser.rank : "-"}
-                  </Typography>
-                  <Typography
-                    color="text.secondary"
-                    sx={{
-                      position: "absolute",
-                      ml: 23,
-                      mt: 12,
-                      fontSize: 35,
-                      textAlign: "center",
-                      width: 1 / 8,
-                    }}
-                  >
-                    {numberOfUsers}
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      ml: 13,
-                      mt: 13,
-                      borderTop: "grey solid",
-                      width: 150,
-                      transform: "rotate(-25deg)",
-                    }}
-                  />
-                </>
-              )}
-            </Card>
-            <Box sx={{ width: 1 / 2 }}>
-              <Button
-                onClick={handleUpload}
-                sx={{
-                  color: grey[900],
-                  borderColor: grey[300],
-                }}
-                fullWidth
-                variant="outlined"
-                startIcon={<FileUpload />}
-              >
-                プログラムのアップロード
-              </Button>
-              <Button
-                onClick={handleClickOpen}
-                sx={{
-                  color: grey[900],
-                  borderColor: grey[300],
-                  mt: 1,
-                }}
-                fullWidth
-                variant="outlined"
-                startIcon={<Person />}
-              >
-                ニックネームの変更…
-              </Button>
+        <Accordion
+          onChange={handleChange}
+          sx={{ position: "absolute", top: 60, right: 680, width: 600 }}
+          elevation={4}
+          disableGutters
+          ref={accordionRef}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            闘技場
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box
+              sx={{
+                position: "relative",
+                display: "flex",
+                gap: 1,
+              }}
+            >
+              <Card sx={{ width: 1 / 2, height: 170 }} variant="outlined">
+                {loaded && (
+                  <>
+                    <Box sx={{ position: "absolute", ml: 2, mt: 7 }}>
+                      <FaFortAwesome size="25%" />
+                    </Box>
+                    <Typography sx={{ position: "absolute", ml: 2, mt: 1.5 }}>
+                      {currentUser.name}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        position: "absolute",
+                        ml: 11,
+                        mt: 3.5,
+                        fontSize: 60,
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        width: 1 / 5,
+                      }}
+                    >
+                      {currentUser.rank ? currentUser.rank : "-"}
+                    </Typography>
+                    <Typography
+                      color="text.secondary"
+                      sx={{
+                        position: "absolute",
+                        ml: 23,
+                        mt: 12,
+                        fontSize: 35,
+                        textAlign: "center",
+                        width: 1 / 8,
+                      }}
+                    >
+                      {numberOfUsers}
+                    </Typography>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        ml: 13,
+                        mt: 13,
+                        borderTop: "grey solid",
+                        width: 150,
+                        transform: "rotate(-25deg)",
+                      }}
+                    />
+                  </>
+                )}
+              </Card>
+              <Box sx={{ width: 1 / 2 }}>
+                <Button
+                  onClick={handleUpload}
+                  sx={{
+                    color: grey[900],
+                    borderColor: grey[300],
+                  }}
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<FileUpload />}
+                >
+                  プログラムのアップロード
+                </Button>
+                <Button
+                  onClick={handleClickOpen}
+                  sx={{
+                    color: grey[900],
+                    borderColor: grey[300],
+                    mt: 1,
+                  }}
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<Person />}
+                >
+                  ニックネームの変更…
+                </Button>
+              </Box>
             </Box>
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+          </AccordionDetails>
+        </Accordion>
+      </Draggable>
       <ChangeNameDialog
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}
@@ -246,6 +258,6 @@ export default function Arena(props: ArenaProps) {
         name={name}
         setName={setName}
       />
-    </div>
+    </>
   );
 }
