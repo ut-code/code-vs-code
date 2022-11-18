@@ -255,13 +255,13 @@ class World {
     this.nextWeaponId += 1;
   }
 
-  runFightersAction() {
+  runFightersAction(delta: number) {
     for (const fighter of this.fighters) {
       // スタミナ回復
       if (fighter.stamina < MAX_STAMINA) fighter.stamina += 1;
       // スタミナ不足か判断後、アクションによってはスタミナ消費し実行
       if (!fighter.isShortOfStamina) {
-        fighter.action?.tick();
+        fighter.action?.tick(delta);
         if (fighter.stamina === 0) fighter.isShortOfStamina = true;
       } else if (fighter.stamina > MAX_STAMINA / 2) {
         fighter.isShortOfStamina = false;
@@ -380,7 +380,7 @@ interface FighterAction {
 
   readonly requiredStamina: number;
 
-  tick(): void;
+  tick(delta: number): void;
 }
 
 class WalkToAction implements FighterAction {
@@ -395,15 +395,17 @@ class WalkToAction implements FighterAction {
     this.destination = destination;
   }
 
-  tick() {
+  tick(delta: number) {
     const vector2 = {
       x: this.destination.x - this.actor.location.x,
       y: this.destination.y - this.actor.location.y,
     };
     const normalizedVector = normalizeVector2(vector2);
     this.actor.direction = normalizedVector || this.actor.direction;
-    this.actor.location.x += this.actor.direction.x * this.actor.speed;
-    this.actor.location.y += this.actor.direction.y * this.actor.speed;
+    this.actor.location.x +=
+      this.actor.direction.x * this.actor.speed * delta * 0.1;
+    this.actor.location.y +=
+      this.actor.direction.y * this.actor.speed * delta * 0.1;
   }
 }
 
@@ -419,7 +421,7 @@ class RunToAction implements FighterAction {
     this.destination = destination;
   }
 
-  tick() {
+  tick(delta: number) {
     if (this.actor.stamina <= 0) return;
     const vector2 = {
       x: this.destination.x - this.actor.location.x,
@@ -427,8 +429,10 @@ class RunToAction implements FighterAction {
     };
     const normalizedVector = normalizeVector2(vector2);
     this.actor.direction = normalizedVector || this.actor.direction;
-    this.actor.location.x += this.actor.direction.x * (this.actor.speed + 1);
-    this.actor.location.y += this.actor.direction.y * (this.actor.speed + 1);
+    this.actor.location.x +=
+      this.actor.direction.x * (this.actor.speed + 1) * delta * 0.1;
+    this.actor.location.y +=
+      this.actor.direction.y * (this.actor.speed + 1) * delta * 0.1;
     this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
   }
 }
@@ -911,7 +915,7 @@ export default class Game {
       if (this.world.fighters.length === 1) this.end();
       // worldクラスのメソッド実行
       this.world.manageValidPortions(currentTime - previousTime2);
-      this.world.runFightersAction();
+      this.world.runFightersAction(currentTime - previousTime2);
       this.world.detectCollision();
       this.world.removeDeadFighters();
       this.world.deleteWeaponsPickedUp();
