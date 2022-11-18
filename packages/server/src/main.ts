@@ -171,35 +171,33 @@ type PostSwapRankRequest = {
 
 app.post("/swap-rank", async (request, response) => {
   const requestBody: PostSwapRankRequest = request.body;
-  const user1 = await client.userBattleIdentity.findUniqueOrThrow({
-    where: { id: requestBody.userId1 },
+  const user1 = await client.userBattleIdentity.findUnique({
+    where: { userId: requestBody.userId1 },
   });
-  const user2 = await client.userBattleIdentity.findUniqueOrThrow({
-    where: { id: requestBody.userId2 },
+  const user2 = await client.userBattleIdentity.findUnique({
+    where: { userId: requestBody.userId2 },
   });
+  if (!user1 || !user2) throw new Error();
   await client.$transaction([
     client.userBattleIdentity.update({
-      where: { id: requestBody.userId2 },
+      where: { userId: requestBody.userId2 },
       data: {
-        userId: user2.userId,
         program: user2.program,
         league: user2.league,
         rank: 0, // rankのuniqueを保つため
       },
     }),
     client.userBattleIdentity.update({
-      where: { id: requestBody.userId1 },
+      where: { userId: requestBody.userId1 },
       data: {
-        userId: user1.userId,
         program: user1.program,
         league: user1.league,
         rank: user2.rank,
       },
     }),
     client.userBattleIdentity.update({
-      where: { id: requestBody.userId2 },
+      where: { userId: requestBody.userId2 },
       data: {
-        userId: user2.userId,
         program: user2.program,
         league: user2.league,
         rank: user1.rank,

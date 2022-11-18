@@ -285,10 +285,6 @@ export default function TestPlay(props: TestPlayProps) {
     [enemyIds, users]
   );
 
-  const handleStatuses = useCallback((newStatuses: Status[]) => {
-    setStatuses(newStatuses);
-  }, []);
-
   const usersOnStage = useMemo(
     () => (enemyUsers ? [currentUser].concat(enemyUsers) : null),
     [currentUser, enemyUsers]
@@ -312,7 +308,7 @@ export default function TestPlay(props: TestPlayProps) {
                 hasGameStarted={isActive}
                 isPaused={isPaused}
                 executionId={executionId}
-                handleStatuses={handleStatuses}
+                handleStatuses={setStatuses}
                 onGameCompleted={onGameCompleted}
               />
             ) : (
