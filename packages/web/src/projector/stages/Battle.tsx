@@ -1,7 +1,8 @@
 import { Box, LinearProgress, Stack } from "@mui/material";
 import { useCallback, useRef, useState } from "react";
+import { useMeasure } from "react-use";
 import Emulator, { Status } from "../../component/Emulator";
-import type { Result } from "../../component/game";
+import { Result, STAGE_HEIGHT, STAGE_WIDTH } from "../../component/game";
 import ProjectorHeader from "../components/Header";
 import type { League, LeagueUserIds, User } from "../Projector";
 
@@ -56,6 +57,16 @@ export type ProjectorBattleProps = {
 };
 
 function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
+  const [emulatorContainerRef, { width, height }] = useMeasure();
+  const emulatorWidth = Math.min(
+    width - 30,
+    (STAGE_WIDTH * height) / STAGE_HEIGHT
+  );
+  const emulatorHeight = Math.min(
+    width - 30,
+    (STAGE_HEIGHT * width) / STAGE_WIDTH
+  );
+
   const onCompletedRef = useRef(onCompleted);
   onCompletedRef.current = onCompleted;
 
@@ -100,10 +111,17 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
             />
           </Stack>
         )}
-        <Box>
+        <Box
+          ref={emulatorContainerRef}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <Emulator
-            width={10}
-            height={10}
+            width={emulatorWidth}
+            height={emulatorHeight}
             users={league.users}
             hasGameStarted
             executionId={1}

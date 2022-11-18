@@ -16,8 +16,8 @@ import type { Status, User } from "./Emulator";
 
 const MAX_HP = 100;
 const MAX_STAMINA = 100;
-const STAGE_WIDTH = 800;
-const STAGE_HEIGHT = 600;
+export const STAGE_WIDTH = 800;
+export const STAGE_HEIGHT = 600;
 
 PIXI.settings.RESOLUTION = window.devicePixelRatio;
 
