@@ -72,6 +72,8 @@ type validPortion = {
 export class Fighter implements Entity {
   id: number;
 
+  name: string;
+
   location: Vector2;
 
   readonly size: Vector2 = { x: 20, y: 20 };
@@ -96,8 +98,9 @@ export class Fighter implements Entity {
 
   validPortions: validPortion[] = [];
 
-  constructor(id: number, location: Vector2) {
+  constructor(id: number, name: string, location: Vector2) {
     this.id = id;
+    this.name = name;
     this.location = location;
   }
 }
@@ -226,16 +229,16 @@ class World {
 
   losers: Fighter[] = [];
 
-  constructor(fighterIds: number[]) {
-    const id1 = fighterIds[0];
-    const id2 = fighterIds[1];
-    const id3 = fighterIds[2];
-    const id4 = fighterIds[3];
-    if (!id1 || !id2 || !id3 || !id4) throw new Error("id0があるかも");
-    const player1 = new Fighter(id1, { x: 100, y: 100 });
-    const player2 = new Fighter(id2, { x: 700, y: 100 });
-    const player3 = new Fighter(id3, { x: 100, y: 500 });
-    const player4 = new Fighter(id4, { x: 700, y: 500 });
+  constructor(users: User[]) {
+    const user1 = users[0];
+    const user2 = users[1];
+    const user3 = users[2];
+    const user4 = users[3];
+    if (!user1 || !user2 || !user3 || !user4) throw new Error("id0があるかも");
+    const player1 = new Fighter(user1.id, user1.name, { x: 100, y: 100 });
+    const player2 = new Fighter(user2.id, user2.name, { x: 700, y: 100 });
+    const player3 = new Fighter(user3.id, user3.name, { x: 100, y: 500 });
+    const player4 = new Fighter(user4.id, user4.name, { x: 700, y: 500 });
     this.fighters = [player1, player2, player3, player4];
   }
 
@@ -562,6 +565,8 @@ class FighterRenderer {
 
   statusBarGraphics: PIXI.Graphics;
 
+  userNameText: PIXI.Text;
+
   constructor(fighter: Fighter, pixi: PIXI.Application) {
     this.fighter = fighter;
     this.pixi = pixi;
@@ -578,6 +583,16 @@ class FighterRenderer {
     // HPバー・ステータスバー
     this.statusBarGraphics = new PIXI.Graphics();
     pixi.stage.addChild(this.statusBarGraphics);
+
+    // ユーザー名
+    this.userNameText = new PIXI.Text(`${this.fighter.name}`);
+    this.userNameText.anchor.set(0.5);
+    this.userNameText.position.set(
+      this.fighter.location.x + this.fighter.size.x / 2,
+      this.fighter.location.y - 25
+    );
+    this.userNameText.scale.set(0.8);
+    pixi.stage.addChild(this.userNameText);
   }
 
   render(): void {
@@ -610,11 +625,18 @@ class FighterRenderer {
     );
 
     this.statusBarGraphics.endFill();
+
+    // ユーザー名
+    this.userNameText.position.set(
+      this.fighter.location.x + this.fighter.size.x / 2,
+      this.fighter.location.y - 25
+    );
   }
 
   destroy() {
     this.pixi.stage.removeChild(this.sprite);
     this.pixi.stage.removeChild(this.statusBarGraphics);
+    this.pixi.stage.removeChild(this.userNameText);
   }
 }
 
@@ -895,8 +917,7 @@ export default class Game {
   ) {
     this.users = users;
     this.onStatusesChanged = onStatusesChanged;
-    const ids = users.map((user) => user.id);
-    this.world = new World(ids);
+    this.world = new World(users);
     this.worldRenderer = new WorldRenderer(this.world, canvas);
     this.workers = new Map<number, Worker>();
     this.buildWorkers();
