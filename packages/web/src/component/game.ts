@@ -28,7 +28,8 @@ interface Vector2 {
   y: number;
 }
 
-function normalizeVector2(vector2: Vector2): Vector2 {
+function normalizeVector2(vector2: Vector2): Vector2 | null {
+  if (vector2.x === 0 && vector2.y === 0) return null;
   return {
     x: vector2.x / Math.sqrt(vector2.x ** 2 + vector2.y ** 2),
     y: vector2.y / Math.sqrt(vector2.x ** 2 + vector2.y ** 2),
@@ -397,7 +398,8 @@ class WalkToAction implements FighterAction {
       x: this.destination.x - this.actor.location.x,
       y: this.destination.y - this.actor.location.y,
     };
-    this.actor.direction = normalizeVector2(vector2);
+    const normalizedVector = normalizeVector2(vector2);
+    this.actor.direction = normalizedVector || this.actor.direction;
     this.actor.location.x += this.actor.direction.x * this.actor.speed;
     this.actor.location.y += this.actor.direction.y * this.actor.speed;
   }
@@ -421,7 +423,8 @@ class RunToAction implements FighterAction {
       x: this.destination.x - this.actor.location.x,
       y: this.destination.y - this.actor.location.y,
     };
-    this.actor.direction = normalizeVector2(vector2);
+    const normalizedVector = normalizeVector2(vector2);
+    this.actor.direction = normalizedVector || this.actor.direction;
     this.actor.location.x += this.actor.direction.x * (this.actor.speed + 1);
     this.actor.location.y += this.actor.direction.y * (this.actor.speed + 1);
     this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
@@ -451,7 +454,7 @@ class PunchAction implements FighterAction {
         x: this.target.location.x - this.actor.location.x,
         y: this.target.location.y - this.actor.location.y,
       });
-      this.actor.direction = vector2;
+      this.actor.direction = vector2 || this.actor.direction;
     }
     this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
     this.isCompleted = true;
@@ -479,7 +482,7 @@ class PickUpAction implements FighterAction {
         x: this.target.location.x - this.actor.location.x,
         y: this.target.location.y - this.actor.location.y,
       });
-      this.actor.direction = vector2;
+      this.actor.direction = vector2 || this.actor.direction;
     }
   }
 }
@@ -514,11 +517,11 @@ class UseWeaponAction implements FighterAction {
       const newBullet = new Bullet(
         this.actor,
         {
-          x: this.actor.location.x + vector.x,
-          y: this.actor.location.y + vector.y,
+          x: this.actor.location.x + (vector ? vector.x : 0),
+          y: this.actor.location.y + (vector ? vector.y : 0),
         },
         { x: 10, y: 20 },
-        vector,
+        vector || this.actor.direction,
         weapon.firingRange,
         weapon.damage,
         weapon.bulletSpeed
@@ -531,10 +534,11 @@ class UseWeaponAction implements FighterAction {
       } else if (this.actor.weapon.bulletsLeft === 1) {
         this.actor.weapon = null;
       }
-      this.actor.direction = normalizeVector2({
-        x: this.target.x - this.actor.location.x,
-        y: this.target.y - this.actor.location.y,
-      });
+      this.actor.direction =
+        normalizeVector2({
+          x: this.target.x - this.actor.location.x,
+          y: this.target.y - this.actor.location.y,
+        }) || this.actor.direction;
     }
     this.actor.stamina = Math.max(this.actor.stamina - this.requiredStamina, 0);
     this.isCompleted = true;
@@ -962,6 +966,7 @@ export default class Game {
         type: "module",
       });
       worker.onmessage = (e: MessageEvent<string>) => {
+        console.log("received message");
         const data: DataFromWorker = JSON.parse(e.data);
         if (data.type === "walkTo") {
           me.action = new WalkToAction(me, data.target);
