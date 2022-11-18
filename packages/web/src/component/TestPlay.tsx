@@ -1,9 +1,10 @@
 import Blockly from "blockly";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  accordionSummaryClasses,
   Box,
   Button,
   Chip,
@@ -26,82 +27,10 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { HiOutlineScale } from "react-icons/hi";
+import Draggable from "react-draggable";
 import Emulator, { Status } from "./Emulator";
 import type { User } from "./game";
 import { getUsers } from "../fetchAPI";
-
-// const sampleUsers: [User, User, User, User] = [
-//   {
-//     name: "fooBarBaz",
-//     id: 1,
-//     program: `let target = null;
-//     let closestPortion = portions[0];
-//     for ( const portion of portions ) {
-//       const previousDistance = calculateDistance( player, closestPortion );
-//       const currentDistance = calculateDistance( player, portion );
-//       if(previousDistance > currentDistance){closestPortion = portion}
-//     }
-//     target = closestPortion
-//     walkTo(target)`,
-//     rank: 1,
-//   },
-//   {
-//     name: "吾輩は猫",
-//     id: 2,
-//     program: `let closestWeapon = weapons[0];
-//     if(player.weapon){
-//       let closestEnemy = enemies[0]
-//     for ( const enemy of enemies ) {
-//       const previousDistance = calculateDistance( player, closestEnemy );
-//       const currentDistance = calculateDistance( player, enemy );
-//       if(previousDistance > currentDistance){closestEnemy = enemy}
-//     }
-//     if(calculateDistance(player, closestEnemy)<player.weapon.firingRange){
-//       useWeapon(closestEnemy)
-//     }else{walkTo(closestEnemy)}
-//     }
-//     else{
-//     for ( const weapon of weapons ) {
-//       const previousDistance = calculateDistance( player, closestWeapon )
-//       const currentDistance = calculateDistance( player, weapon );
-//       if(previousDistance > currentDistance){closestWeapon = weapon}
-//     }
-//     if(calculateDistance(player, closestWeapon)<player.armLength){
-//       pickUp(closestWeapon)
-//     }else{walkTo(closestWeapon)}
-//   }
-//   `,
-//     rank: 2,
-//   },
-//   {
-//     name: "テスト",
-//     id: 3,
-//     program: `let target = null;
-// let closestPortion = portions[0];
-// for ( const portion of portions ) {
-//   const previousDistance = calculateDistance( player, closestPortion );
-//   const currentDistance = calculateDistance( player, portion );
-//   if(previousDistance > currentDistance){closestPortion = portion}
-// }
-// target = closestPortion
-// walkTo(target)`,
-//     rank: 3,
-//   },
-//   {
-//     name: "UTC",
-//     id: 4,
-//     program: `let closestEnemy = enemies[0]
-//     for ( const enemy of enemies ) {
-//       const previousDistance = calculateDistance( player, closestEnemy );
-//       const currentDistance = calculateDistance( player, enemy );
-//       if(previousDistance > currentDistance){closestEnemy = enemy}
-//     }
-//       if(calculateDistance(player,closestEnemy)<player.armLength){
-//         punch(closestEnemy)
-//       }else{walkTo(closestEnemy)}`,
-//     rank: 4,
-//   },
-// ];
 
 interface EnemyDialogProps {
   open: boolean;
@@ -303,162 +232,174 @@ export default function TestPlay(props: TestPlayProps) {
   );
   const [submitted, setSubmitted] = useState(false);
 
+  const accordionRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div>
-      <Accordion sx={{ position: "absolute", top: 48, right: 0, width: 640 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          実行
-        </AccordionSummary>
-        <AccordionDetails sx={{ height: 800 }}>
-          <Box sx={{ height: 450, width: 600 }}>
-            {usersOnStage ? (
-              <Emulator
-                width={600}
-                height={450}
-                users={usersOnStage}
-                hasGameStarted={isActive}
-                isPaused={isPaused}
-                executionId={executionId}
-                handleStatuses={setStatuses}
-              />
-            ) : (
-              <Skeleton width="100%" height="auto" />
-            )}
-          </Box>
-          <Box sx={{ m: 1 }}>
-            <Box>
-              <Typography>HP</Typography>
-              <LinearProgress
-                variant="determinate"
-                value={
-                  statuses?.find((status) => status.id === currentUser.id)
-                    ?.HP || 0
-                }
-              />
-              <Typography sx={{ mt: 1 }}>元気</Typography>
-              <LinearProgress
-                variant="determinate"
-                value={
-                  statuses?.find((status) => status.id === currentUser.id)
-                    ?.stamina || 0
-                }
-              />
+    <>
+      <Draggable
+        nodeRef={accordionRef}
+        handle={`.${accordionSummaryClasses.root}`}
+      >
+        <Accordion
+          sx={{ position: "absolute", top: 60, right: 20, width: 640 }}
+          elevation={4}
+          disableGutters
+          ref={accordionRef}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            実行
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ height: 450, width: 600 }}>
+              {usersOnStage ? (
+                <Emulator
+                  width={600}
+                  height={450}
+                  users={usersOnStage}
+                  hasGameStarted={isActive}
+                  isPaused={isPaused}
+                  executionId={executionId}
+                  handleStatuses={setStatuses}
+                />
+              ) : (
+                <Skeleton width="100%" height="auto" />
+              )}
             </Box>
-            <Box
-              sx={{
-                mt: 1,
-                mb: 2,
-                display: "flex",
-                gap: 0.5,
-              }}
-            >
-              <Chip
-                icon={<DirectionsRunIcon />}
-                label={`移動: x${
-                  statuses?.find((status) => status.id === currentUser.id)
-                    ?.speed || 0
-                }`}
-                size="small"
-                variant="outlined"
-                sx={{ width: 100 }}
-              />
-              <Chip
-                icon={<HiOutlineScale size="0.8em" />}
-                label={`装備: ${
-                  statuses?.find((status) => status.id === currentUser.id)
-                    ?.weapon || "なし"
-                }`}
-                size="small"
-                variant="outlined"
-                sx={{ width: 140, ml: "auto" }}
-              />
-            </Box>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 2,
-              }}
-            >
-              {enemyUsers &&
-                enemyUsers.map((enemyUser) => (
-                  <Box key={enemyUser.name}>
-                    <Typography>{enemyUser.name}</Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={
-                        statuses?.find((status) => status.id === enemyUser.id)
-                          ?.HP || 0
-                      }
-                      color="error"
-                    />
-                  </Box>
-                ))}
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button variant="text" size="small" onClick={handleClickOpen}>
-                対戦相手の選択...
-              </Button>
-            </Box>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 2,
-                mt: 2,
-              }}
-            >
-              <Button
-                variant="outlined"
-                sx={{ color: grey[900], borderColor: grey[400] }}
-                onClick={() => {
-                  setIsActive(true);
-                  setIsPaused(false);
+            <Box sx={{ m: 1 }}>
+              <Box>
+                <Typography>HP</Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={
+                    statuses?.find((status) => status.id === currentUser.id)
+                      ?.HP || 0
+                  }
+                />
+                <Typography sx={{ mt: 1 }}>元気</Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={
+                    statuses?.find((status) => status.id === currentUser.id)
+                      ?.stamina || 0
+                  }
+                />
+              </Box>
+              <Box
+                sx={{
+                  mt: 1,
+                  mb: 2,
+                  display: "flex",
+                  gap: 0.5,
                 }}
-                startIcon={<PlayArrow />}
               >
-                実行
-              </Button>
-              <Button
-                variant="outlined"
-                sx={{ color: grey[900], borderColor: grey[400] }}
-                onClick={() => {
-                  setIsPaused(true);
+                <Chip
+                  icon={<DirectionsRunIcon />}
+                  label={`移動: x${
+                    statuses?.find((status) => status.id === currentUser.id)
+                      ?.speed || 0
+                  }`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ width: 100 }}
+                />
+                <Chip
+                  icon={<HiOutlineScale size="0.8em" />}
+                  label={`装備: ${
+                    statuses?.find((status) => status.id === currentUser.id)
+                      ?.weapon || "なし"
+                  }`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ width: 140, ml: "auto" }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: 2,
                 }}
-                startIcon={<Pause />}
               >
-                一時停止
-              </Button>
-              <Button
-                variant="outlined"
-                sx={{ color: grey[900], borderColor: grey[400] }}
-                onClick={() => {
-                  setExecutionId((previous) => previous + 1);
-                  setIsActive(false);
+                {enemyUsers &&
+                  enemyUsers.map((enemyUser) => (
+                    <Box key={enemyUser.name}>
+                      <Typography>{enemyUser.name}</Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={
+                          statuses?.find((status) => status.id === enemyUser.id)
+                            ?.HP || 0
+                        }
+                        color="error"
+                      />
+                    </Box>
+                  ))}
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button variant="text" size="small" onClick={handleClickOpen}>
+                  対戦相手の選択...
+                </Button>
+              </Box>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: 2,
+                  mt: 2,
                 }}
-                startIcon={<RestartAlt />}
               >
-                リセット
+                <Button
+                  variant="outlined"
+                  sx={{ color: grey[900], borderColor: grey[400] }}
+                  onClick={() => {
+                    setIsActive(true);
+                    setIsPaused(false);
+                  }}
+                  startIcon={<PlayArrow />}
+                >
+                  実行
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ color: grey[900], borderColor: grey[400] }}
+                  onClick={() => {
+                    setIsPaused(true);
+                  }}
+                  startIcon={<Pause />}
+                >
+                  一時停止
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ color: grey[900], borderColor: grey[400] }}
+                  onClick={() => {
+                    setExecutionId((previous) => previous + 1);
+                    setIsActive(false);
+                  }}
+                  startIcon={<RestartAlt />}
+                >
+                  リセット
+                </Button>
+              </Box>
+              <Button
+                onClick={() => {
+                  setCurrentUser({
+                    id: currentUser.id,
+                    name: currentUser.name,
+                    program: Blockly.JavaScript.workspaceToCode(
+                      workspaceRef.current
+                    ),
+                    rank: currentUser.rank,
+                  });
+                  setSubmitted(true);
+                }}
+              >
+                プログラムを反映
               </Button>
             </Box>
-            <Button
-              onClick={() => {
-                setCurrentUser({
-                  id: currentUser.id,
-                  name: currentUser.name,
-                  program: Blockly.JavaScript.workspaceToCode(
-                    workspaceRef.current
-                  ),
-                  rank: currentUser.rank,
-                });
-                setSubmitted(true);
-              }}
-            >
-              プログラムを反映
-            </Button>
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+          </AccordionDetails>
+        </Accordion>
+      </Draggable>
       {users && usersExceptMe ? (
         <EnemyDialog
           users={usersExceptMe}
@@ -483,6 +424,6 @@ export default function TestPlay(props: TestPlayProps) {
           {currentUser.program}
         </Dialog>
       )}
-    </div>
+    </>
   );
 }
