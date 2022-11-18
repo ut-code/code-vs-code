@@ -14,7 +14,7 @@ import itemFire from "../../resources/itemFire.png";
 import bulletFire from "../../resources/bulletFire.png";
 import type { Status, User } from "./Emulator";
 // eslint-disable-next-line import/extensions, import/no-unresolved
-import UserCodeRunnerWorker from "./worker.ts?worker&inline";
+import UserProgramRunnerWorker from "./worker.ts?worker&inline";
 
 export const MAX_HP = 100;
 export const MAX_STAMINA = 100;
@@ -882,7 +882,9 @@ export default class Game {
 
   onCompleted?: (result: Result) => void;
 
-  workers: Map<number, Worker>;
+  private workers: Map<number, Worker>;
+
+  private nextWorkers: Map<number, Worker>;
 
   users: User[];
 
@@ -898,8 +900,8 @@ export default class Game {
     const ids = users.map((user) => user.id);
     this.world = new World(ids);
     this.worldRenderer = new WorldRenderer(this.world, canvas);
-    this.workers = new Map<number, Worker>();
-    this.buildWorkers();
+    this.workers = this.createUserProgramRunnerWorkers();
+    this.nextWorkers = this.createUserProgramRunnerWorkers();
     this.worldRenderer.run();
   }
 
@@ -936,12 +938,13 @@ export default class Game {
       // タイムラグが必要な処理実行
       if (currentTime - previousTime1 >= 500) {
         previousTime1 = Date.now();
-        this.workers.forEach((worker) => {
+        for (const worker of this.workers.values()) {
           worker.terminate();
-        });
-        this.workers.clear();
-        this.buildWorkers();
+        }
+        this.workers = this.nextWorkers;
+        this.registerUserProgramResultHandlers();
         this.sendProgramsToWorkers();
+        this.nextWorkers = this.createUserProgramRunnerWorkers();
       }
       if (currentTime - startTime >= 120000) {
         this.end();
@@ -966,9 +969,20 @@ export default class Game {
     this.start();
   }
 
-  buildWorkers() {
-    for (const me of this.world.fighters) {
-      const worker = new UserCodeRunnerWorker();
+  createUserProgramRunnerWorkers() {
+    return new Map(
+      this.world.fighters.map((fighter) => [
+        fighter.id,
+        new UserProgramRunnerWorker(),
+      ])
+    );
+  }
+
+  registerUserProgramResultHandlers() {
+    for (const f of this.world.fighters) {
+      const me = f;
+      const worker = this.workers.get(f.id);
+      if (!worker) throw new Error("Worker not found");
       worker.onmessage = (e: MessageEvent<string>) => {
         const data: DataFromWorker = JSON.parse(e.data);
         if (data.type === "walkTo") {
@@ -995,7 +1009,6 @@ export default class Game {
           me.action = new UseWeaponAction(me, data.target, this.world.bullets);
         }
       };
-      this.workers.set(me.id, worker);
     }
   }
 
