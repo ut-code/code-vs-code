@@ -449,11 +449,17 @@ class PunchAction implements FighterAction {
 
   isCompleted = false;
 
+  isSucceeded = false;
+
   requiredStamina = 20;
 
   constructor(actor: Fighter, target: Fighter) {
     this.actor = actor;
     this.target = target;
+    const distance = calculateDistance(this.actor, this.target);
+    if (distance <= Fighter.armLength) {
+      this.isSucceeded = true;
+    }
   }
 
   tick() {
@@ -876,7 +882,7 @@ class WorldRenderer {
       if (action instanceof PunchAction) {
         const existingRenderer = this.punchEffectRenderers.get(action);
         if (!existingRenderer) {
-          if (!action.isCompleted) {
+          if (!action.isCompleted && action.isSucceeded) {
             const newRenderer = new PunchEffectRenderer(action, this.#pixi);
             this.punchEffectRenderers.set(action, newRenderer);
             newRenderer.onCompleted = () => {

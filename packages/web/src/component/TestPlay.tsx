@@ -431,7 +431,7 @@ export default function TestPlay(props: TestPlayProps) {
             setSubmitted(false);
           }}
         >
-          {currentUser.program}
+          <Typography sx={{ px: 2, py: 1 }}>反映しました</Typography>
         </Dialog>
       )}
     </>
