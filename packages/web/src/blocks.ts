@@ -136,6 +136,42 @@ Blockly.JavaScript[GET_PROPERTY_OF_FIGHTER] = (block: Blockly.Block) => [
   Blockly.JavaScript.ORDER_MEMBER,
 ];
 
+// 定数
+
+export const CONSTANT = "constant";
+const constantNames = {
+  armLength: "0",
+  stageWidth: "1",
+  stageHeight: "2",
+  maxHp: "3",
+  maxStamina: "4",
+  weaponRange: "5",
+};
+const constants = [40, 800, 600, 100, 100, 400];
+const CONSTANT_NAME = "constantName";
+Blockly.Blocks[CONSTANT] = {
+  init(this: Blockly.Block) {
+    this.appendDummyInput().appendField(
+      new Blockly.FieldDropdown([
+        ["腕の長さ(40)", constantNames.armLength],
+        ["ステージの横の長さ(800)", constantNames.stageWidth],
+        ["ステージの縦の長さ(600)", constantNames.stageHeight],
+        ["最大HP(100)", constantNames.maxHp],
+        ["最大元気(100)", constantNames.maxStamina],
+        ["武器の射程(400)", constantNames.weaponRange],
+      ]),
+      CONSTANT_NAME
+    );
+    this.setOutput(true, Number);
+    this.setColour(20);
+    this.setTooltip("ルールで決められている定数です。");
+  },
+};
+Blockly.JavaScript[CONSTANT] = (block: Blockly.Block) => [
+  `${constants[block.getFieldValue(CONSTANT_NAME)]}`,
+  Blockly.JavaScript.ORDER_ATOMIC,
+];
+
 // 意思決定
 
 const TARGET = "target";
@@ -329,10 +365,57 @@ Blockly.JavaScript[CLOSEST_WEAPON] = () => [
 ];
 
 // 日本語訳がおかしい物の修正など
-// while
+// if
 
 const STATEMENT = "statement";
 const CONDITION = "condition";
+
+export const CUSTOM_IF = "custom_if";
+Blockly.Blocks[CUSTOM_IF] = {
+  init(this: Blockly.Block) {
+    this.appendValueInput(CONDITION).setCheck(Boolean).appendField("もし");
+    this.appendDummyInput().appendField("なら");
+    this.appendStatementInput(STATEMENT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(210);
+    this.setTooltip("条件が満たされる場合、内部の文を実行します。");
+  },
+};
+Blockly.JavaScript[CUSTOM_IF] = (block: Blockly.Block) =>
+  `if(${Blockly.JavaScript.valueToCode(
+    block,
+    CONDITION,
+    Blockly.JavaScript.ORDER_NONE
+  )}){${Blockly.JavaScript.statementToCode(block, STATEMENT)}};`;
+
+const STATEMENT2 = "statement2";
+export const CUSTOM_IFELSE = "custom_ifelse";
+Blockly.Blocks[CUSTOM_IFELSE] = {
+  init(this: Blockly.Block) {
+    this.appendValueInput(CONDITION).setCheck(Boolean).appendField("もし");
+    this.appendDummyInput().appendField("なら");
+    this.appendStatementInput(STATEMENT);
+    this.appendDummyInput().appendField("そうでなければ");
+    this.appendStatementInput(STATEMENT2);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(210);
+    this.setTooltip(
+      "条件が満たされる場合は1番目の文を、満たされない場合は2番目の文を実行します。"
+    );
+  },
+};
+Blockly.JavaScript[CUSTOM_IFELSE] = (block: Blockly.Block) =>
+  `if(${Blockly.JavaScript.valueToCode(
+    block,
+    CONDITION,
+    Blockly.JavaScript.ORDER_NONE
+  )}){${Blockly.JavaScript.statementToCode(block, STATEMENT)}}else{
+    ${Blockly.JavaScript.statementToCode(block, STATEMENT2)}
+  };`;
+
+// while
 
 export const CUSTOM_WHILE = "custom_while";
 Blockly.Blocks[CUSTOM_WHILE] = {

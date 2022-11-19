@@ -377,6 +377,14 @@ export default function TestPlay(props: TestPlayProps) {
                   onClick={() => {
                     setExecutionId((previous) => previous + 1);
                     setIsActive(false);
+                    setCurrentUser({
+                      id: currentUser.id,
+                      name: currentUser.name,
+                      program: Blockly.JavaScript.workspaceToCode(
+                        workspaceRef.current
+                      ),
+                      rank: currentUser.rank,
+                    });
                   }}
                   startIcon={<RestartAlt />}
                 >
