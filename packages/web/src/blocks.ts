@@ -105,7 +105,7 @@ const FighterProperties = {
   HP: "HP",
   STAMINA: "stamina",
   SPEED: "speed",
-  WEAPON: "weapon.bulletsLeft",
+  WEAPON: "weapon?.bulletsLeft",
 } as const;
 export const GET_PROPERTY_OF_FIGHTER = "get_property_of_fighter";
 Blockly.Blocks[GET_PROPERTY_OF_FIGHTER] = {
