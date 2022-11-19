@@ -131,19 +131,26 @@ export default function Arena(props: ArenaProps) {
   const handleChange = async (_: unknown, expanded: boolean) => {
     if (expanded) {
       setCurrentUser(await getUser(currentUser.id));
-      setNumberOfUsers(users.length);
+      setNumberOfUsers(users.filter((user) => user.program).length);
       setLoaded(true);
     } else setLoaded(false);
   };
 
   const handleUpload = () => {
+    const newProgram = Blockly.JavaScript.workspaceToCode(workspaceRef.current);
     uploadProgram(
       {
         userId: currentUser.id,
-        program: Blockly.JavaScript.workspaceToCode(workspaceRef.current),
+        program: newProgram,
       },
       password
     );
+    setCurrentUser({
+      name: currentUser.name,
+      id: currentUser.id,
+      program: newProgram,
+      rank: currentUser.rank,
+    });
     setUploaded(true);
   };
 
@@ -151,6 +158,14 @@ export default function Arena(props: ArenaProps) {
     setName("");
     setErrorMessage(" ");
     setOpen(true);
+  };
+
+  const calculateRank = (rank: number) => {
+    let ret = 0;
+    for (const user of users) {
+      if (user.program && rank >= user.rank) ret += 1;
+    }
+    return ret;
   };
 
   const accordionRef = useRef<HTMLDivElement>(null);
@@ -199,7 +214,7 @@ export default function Arena(props: ArenaProps) {
                         width: 1 / 5,
                       }}
                     >
-                      {currentUser.rank ? currentUser.rank : "-"}
+                      {currentUser.rank ? calculateRank(currentUser.rank) : "-"}
                     </Typography>
                     <Typography
                       color="text.secondary"

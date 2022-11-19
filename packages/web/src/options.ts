@@ -21,6 +21,9 @@ import {
   CUSTOM_LISTS_INSERT_INDEX,
   CUSTOM_LISTS_DELETE_INDEX,
   CONSOLE_LOG,
+  CONSTANT,
+  CUSTOM_IF,
+  CUSTOM_IFELSE,
 } from "./blocks";
 
 const numberInput = (initialInput: number) => {
@@ -46,6 +49,14 @@ const options: any = {
         contents: [
           {
             kind: "block",
+            type: CUSTOM_IF,
+          },
+          {
+            kind: "block",
+            type: CUSTOM_IFELSE,
+          },
+          {
+            kind: "block",
             type: "controls_if",
           },
           {
@@ -68,6 +79,10 @@ const options: any = {
         contents: [
           {
             kind: "block",
+            type: "controls_forEach",
+          },
+          {
+            kind: "block",
             type: "controls_repeat_ext",
             inputs: {
               TIMES: numberInput(10),
@@ -88,10 +103,6 @@ const options: any = {
           },
           {
             kind: "block",
-            type: "controls_forEach",
-          },
-          {
-            kind: "block",
             type: "controls_flow_statements",
           },
         ],
@@ -103,6 +114,10 @@ const options: any = {
           {
             kind: "block",
             type: "math_number",
+          },
+          {
+            kind: "block",
+            type: DISTANCE,
           },
           {
             kind: "block",
@@ -135,10 +150,6 @@ const options: any = {
               X: numberInput(0),
               Y: numberInput(0),
             },
-          },
-          {
-            kind: "block",
-            type: DISTANCE,
           },
           {
             kind: "block",
@@ -178,22 +189,6 @@ const options: any = {
           },
           {
             kind: "block",
-            type: ENEMIES,
-          },
-          {
-            kind: "block",
-            type: PORTIONS,
-          },
-          {
-            kind: "block",
-            type: WEAPONS,
-          },
-          {
-            kind: "block",
-            type: GET_PROPERTY_OF_FIGHTER,
-          },
-          {
-            kind: "block",
             type: CLOSEST_ENEMY,
           },
           {
@@ -203,6 +198,26 @@ const options: any = {
           {
             kind: "block",
             type: CLOSEST_WEAPON,
+          },
+          {
+            kind: "block",
+            type: GET_PROPERTY_OF_FIGHTER,
+          },
+          {
+            kind: "block",
+            type: CONSTANT,
+          },
+          {
+            kind: "block",
+            type: ENEMIES,
+          },
+          {
+            kind: "block",
+            type: PORTIONS,
+          },
+          {
+            kind: "block",
+            type: WEAPONS,
           },
         ],
       },
