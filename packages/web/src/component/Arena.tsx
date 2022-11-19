@@ -124,6 +124,7 @@ export default function Arena(props: ArenaProps) {
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(" ");
   const [name, setName] = useState("");
+  const [uploaded, setUploaded] = useState(false);
   const { password } = useApiPasswordContext();
   if (!password) throw new Error("Missing password");
 
@@ -143,6 +144,7 @@ export default function Arena(props: ArenaProps) {
       },
       password
     );
+    setUploaded(true);
   };
 
   const handleClickOpen = () => {
@@ -266,6 +268,16 @@ export default function Arena(props: ArenaProps) {
         name={name}
         setName={setName}
       />
+      {uploaded && (
+        <Dialog
+          open={uploaded}
+          onClose={() => {
+            setUploaded(false);
+          }}
+        >
+          <Typography sx={{ px: 2, py: 1 }}>アップロードしました</Typography>
+        </Dialog>
+      )}
     </>
   );
 }

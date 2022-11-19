@@ -132,8 +132,12 @@ Blockly.JavaScript[GET_PROPERTY_OF_FIGHTER] = (block: Blockly.Block) => [
     block,
     OBJECT,
     Blockly.JavaScript.ORDER_MEMBER
-  )}.${block.getFieldValue(PROPERTY_NAME)}`,
-  Blockly.JavaScript.ORDER_MEMBER,
+  )}.${block.getFieldValue(PROPERTY_NAME)} ? ${Blockly.JavaScript.valueToCode(
+    block,
+    OBJECT,
+    Blockly.JavaScript.ORDER_MEMBER
+  )}.${block.getFieldValue(PROPERTY_NAME)} : 0`,
+  Blockly.JavaScript.ORDER_CONDITIONAL,
 ];
 
 // 意思決定
@@ -488,7 +492,7 @@ Blockly.Blocks[CONSOLE_LOG] = {
     this.appendValueInput(VALUE).appendField("console.log");
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour(0);
+    this.setColour(160);
   },
 };
 Blockly.JavaScript[CONSOLE_LOG] = (block: Blockly.Block) =>
