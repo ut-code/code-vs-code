@@ -26,7 +26,7 @@ function ProjectorReadyUser({
           paddingX: "40px",
           color: "white",
           backgroundColor: "black",
-          fontSize: "60px",
+          fontSize: "50px",
           textAlign: "center",
         }}
       >
