@@ -38,6 +38,54 @@ Blockly.JavaScript[MATH_VECTOR2] = (block: Blockly.Block) => [
   Blockly.JavaScript.ORDER_MEMBER,
 ];
 
+// Vector2Dの中身を取り出す
+const X_LOWER = "x";
+const Y_LOWER = "y";
+const AXIS_NAME = "axis_name";
+const TARGET_VECTOR = "TARGET_VECTOR";
+export const GET_XY = "get_xy";
+Blockly.Blocks[GET_XY] = {
+  init(this: Blockly.Block) {
+    this.appendValueInput(TARGET_VECTOR).setCheck(ExistenceOrVector2D);
+    this.appendDummyInput()
+      .appendField("の")
+      .appendField(
+        new Blockly.FieldDropdown([
+          ["x", X_LOWER],
+          ["y", Y_LOWER],
+        ]),
+        AXIS_NAME
+      );
+    this.setOutput(true, Number);
+    this.setColour(230);
+    this.setTooltip(
+      "座標のx(一番左で0, 一番右で800)またはy(一番上で0, 一番下で600)の値です。"
+    );
+  },
+};
+Blockly.JavaScript[GET_XY] = (block: Blockly.Block) => [
+  `${Blockly.JavaScript.valueToCode(
+    block,
+    TARGET_VECTOR,
+    Blockly.JavaScript.ORDER_MEMBER
+  )}.location ? ${Blockly.JavaScript.valueToCode(
+    block,
+    TARGET_VECTOR,
+    Blockly.JavaScript.ORDER_MEMBER
+  )}.location.${block.getFieldValue(
+    AXIS_NAME
+  )} : ${Blockly.JavaScript.valueToCode(
+    block,
+    TARGET_VECTOR,
+    Blockly.JavaScript.ORDER_MEMBER
+  )}.${block.getFieldValue(AXIS_NAME)} ? ${Blockly.JavaScript.valueToCode(
+    block,
+    TARGET_VECTOR,
+    Blockly.JavaScript.ORDER_MEMBER
+  )}.${block.getFieldValue(AXIS_NAME)} : 0`,
+  Blockly.JavaScript.ORDER_CONDITIONAL,
+];
+
 // オブジェクト
 
 export const PLAYER = "player";

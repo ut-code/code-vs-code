@@ -8,6 +8,7 @@ import {
   RUN_TO,
   USE_WEAPON,
   MATH_VECTOR2,
+  GET_XY,
   WALK_TO,
   WEAPONS,
   DISTANCE,
@@ -150,6 +151,10 @@ const options: any = {
               X: numberInput(0),
               Y: numberInput(0),
             },
+          },
+          {
+            kind: "block",
+            type: GET_XY,
           },
           {
             kind: "block",
