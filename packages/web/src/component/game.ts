@@ -289,8 +289,14 @@ class World {
     // 壁との当たり判定
     for (const fighter of this.fighters) {
       fighter.location = {
-        x: Math.min(fighter.location.x, STAGE_WIDTH - fighter.size.x),
-        y: Math.min(fighter.location.y, STAGE_HEIGHT - fighter.size.y),
+        x: Math.min(
+          Math.max(fighter.location.x, 0),
+          STAGE_WIDTH - fighter.size.x
+        ),
+        y: Math.min(
+          Math.max(fighter.location.y, 0),
+          STAGE_HEIGHT - fighter.size.y
+        ),
       };
     }
 
