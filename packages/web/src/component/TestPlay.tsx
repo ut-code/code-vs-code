@@ -181,7 +181,9 @@ export default function TestPlay(props: TestPlayProps) {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await getUsers();
+      const response = await getUsers().then((rawUsers) =>
+        rawUsers.filter((user) => typeof user.program === "string")
+      );
       const copy = response
         .filter((user) => user.id !== currentUser.id)
         .slice();
