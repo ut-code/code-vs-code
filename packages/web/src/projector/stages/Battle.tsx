@@ -8,7 +8,7 @@ import {
   Result,
   STAGE_HEIGHT,
   STAGE_WIDTH,
-} from "../../component/game";
+} from "../../component/game/gameComponents";
 import ProjectorHeader from "../components/Header";
 import type { League, LeagueUserIds, User } from "../Projector";
 

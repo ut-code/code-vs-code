@@ -12,6 +12,7 @@ import { getUsers } from "./fetchAPI";
 import type { User } from "./component/Emulator";
 import { useApiPasswordContext } from "./common/api-password";
 import ApiPasswordDialog from "./component/ApiPasswordDialog";
+import options from "./options";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState({
@@ -47,7 +48,7 @@ export default function App() {
             setIsApiPasswordDialogOpen(true);
           }}
         />
-        <Injection workspaceRef={workspaceRef} />
+        <Injection workspaceRef={workspaceRef} options={options} />
       </Box>
       {password && (
         <>
