@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import type { Result } from "./game/game";
-import TutorialGame from "./tutorial/tutorialGames";
 import Game from "./game/game";
 
 export interface User {
@@ -50,9 +49,6 @@ export default function Emulator(props: EmulatorProps) {
     switch (gameModeId) {
       case 0:
         GameClass = Game;
-        break;
-      case 1:
-        GameClass = TutorialGame;
         break;
       default:
         GameClass = Game;

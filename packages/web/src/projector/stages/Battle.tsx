@@ -143,6 +143,7 @@ function ProjectorBattle({ league, onCompleted }: ProjectorBattleProps) {
             isPaused={false}
             handleStatuses={setStatuses}
             onGameCompleted={onGameCompleted}
+            gameModeId={0}
           />
         </Box>
         {statuses && (

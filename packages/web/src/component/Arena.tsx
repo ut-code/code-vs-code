@@ -20,7 +20,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { grey } from "@mui/material/colors";
 import { FaFortAwesome } from "react-icons/fa";
 import Draggable from "react-draggable";
-import type { User } from "./game";
+import type { User } from "./game/game";
 import { getUser, changeUserName, uploadProgram } from "../fetchAPI";
 import { useApiPasswordContext } from "../common/api-password";
 
