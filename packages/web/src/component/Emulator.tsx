@@ -45,7 +45,7 @@ export default function Emulator(props: EmulatorProps) {
     gameModeId,
   } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<any>();
+  const gameRef = useRef<Game>();
   useEffect(() => {
     if (!canvasRef.current) throw new Error();
     let GameClass = Game;

@@ -48,7 +48,7 @@ export default function Modal(ModalProps: ModalProps) {
         <Pagination
           count={tutorialDialog?.steps.length || 0}
           page={page}
-          onChange={(e, pages) => handlePageChange(pages)}
+          onChange={(_e, pages) => handlePageChange(pages)}
           color="primary"
           sx={{ justifyContent: "center" }}
         />
