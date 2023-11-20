@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Result } from "./game/game";
 import Game from "./game/game";
+import tutorialGames from "./tutorial/tutorialGames";
 
 export interface User {
   name: string;
@@ -29,6 +30,8 @@ type EmulatorProps = {
   gameModeId: number;
 };
 
+const GameModes = [Game, ...tutorialGames];
+
 export default function Emulator(props: EmulatorProps) {
   const {
     width,
@@ -45,14 +48,8 @@ export default function Emulator(props: EmulatorProps) {
   const gameRef = useRef<any>();
   useEffect(() => {
     if (!canvasRef.current) throw new Error();
-    let GameClass;
-    switch (gameModeId) {
-      case 0:
-        GameClass = Game;
-        break;
-      default:
-        GameClass = Game;
-    }
+    let GameClass = Game;
+    GameClass = GameModes[gameModeId] || Game;
     const game = new GameClass(
       users,
       canvasRef.current,

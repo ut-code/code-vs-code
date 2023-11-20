@@ -41,12 +41,21 @@ export default class World {
     const user2 = users[1];
     const user3 = users[2];
     const user4 = users[3];
-    if (!user1 || !user2 || !user3 || !user4) throw new Error("id0があるかも");
-    const player1 = new Fighter(user1.id, user1.name, { x: 100, y: 100 });
-    const player2 = new Fighter(user2.id, user2.name, { x: 700, y: 100 });
-    const player3 = new Fighter(user3.id, user3.name, { x: 100, y: 500 });
-    const player4 = new Fighter(user4.id, user4.name, { x: 700, y: 500 });
-    this.fighters = [player1, player2, player3, player4];
+    const player1 = user1
+      ? new Fighter(user1.id, user1.name, { x: 100, y: 100 })
+      : null;
+    const player2 = user2
+      ? new Fighter(user2.id, user2.name, { x: 700, y: 100 })
+      : null;
+    const player3 = user3
+      ? new Fighter(user3.id, user3.name, { x: 100, y: 500 })
+      : null;
+    const player4 = user4
+      ? new Fighter(user4.id, user4.name, { x: 700, y: 500 })
+      : null;
+    this.fighters = [player1, player2, player3, player4].filter(
+      (player): player is Fighter => player !== null
+    );
   }
 
   placeRandomPortion() {
