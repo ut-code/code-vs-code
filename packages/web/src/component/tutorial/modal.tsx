@@ -7,11 +7,11 @@ import Pagination from "@mui/material/Pagination";
 import type { TutorialDialogPropsStep } from "./TutorialDialogs";
 import { tutorialDialogs } from "./TutorialDialogs";
 
-interface ModalProps {
+interface TutorialModalProps {
   id: number;
 }
 
-export default function Modal(ModalProps: ModalProps) {
+export default function TutorialModal(ModalProps: TutorialModalProps) {
   const [open, setOpen] = useState(true);
   const [page, setPage] = useState(1);
   const { id: tutorialId } = ModalProps;
@@ -48,7 +48,7 @@ export default function Modal(ModalProps: ModalProps) {
         <Pagination
           count={tutorialDialog?.steps.length || 0}
           page={page}
-          onChange={(e, pages) => handlePageChange(pages)}
+          onChange={(_e, pages) => handlePageChange(pages)}
           color="primary"
           sx={{ justifyContent: "center" }}
         />

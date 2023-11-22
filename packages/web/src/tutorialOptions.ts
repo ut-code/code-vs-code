@@ -1,3 +1,4 @@
+import type { Block } from "core/blockly";
 import {
   PUNCH,
   ENEMIES,
@@ -182,14 +183,6 @@ const tutorialOptions3 = {
           },
           {
             kind: "block",
-            type: "math_modulo",
-            inputs: {
-              DIVIDEND: numberInput(0),
-              DIVISOR: numberInput(0),
-            },
-          },
-          {
-            kind: "block",
             type: MINMAX,
             inputs: {
               A: numberInput(0),
@@ -204,32 +197,6 @@ const tutorialOptions3 = {
               Y: numberInput(0),
             },
           },
-          {
-            kind: "block",
-            type: "math_single",
-            inputs: {
-              NUM: numberInput(0),
-            },
-          },
-          {
-            kind: "block",
-            type: "math_trig",
-            inputs: {
-              NUM: numberInput(0),
-            },
-          },
-          {
-            kind: "block",
-            type: "math_constant",
-          },
-          {
-            kind: "block",
-            type: "math_random_int",
-            inputs: {
-              FROM: numberInput(1),
-              TO: numberInput(10),
-            },
-          },
         ],
       },
       ...tutorialOptions2.toolbox.contents,
@@ -240,8 +207,46 @@ const tutorialOptions3 = {
 const tutorialOptions4 = {
   ...tutorialOptions3,
   toolbox: {
-    ...tutorialOptions3.toolbox,
-    contents: [...tutorialOptions3.toolbox.contents],
+    contents: tutorialOptions3.toolbox.contents.map(
+      (category: { name: string; contents: Block[] }) => {
+        // Create a new object instead of modifying the existing one
+        const updatedCategory = { ...category };
+
+        if (category.name === "行動") {
+          updatedCategory.contents = category.contents.filter(
+            (block) => block.type !== PUNCH
+          );
+          // 新しいブロックを追加
+          updatedCategory.contents.push(
+            {
+              kind: "block",
+              type: USE_WEAPON,
+            },
+            {
+              kind: "block",
+              type: PICK_UP,
+            }
+          );
+        }
+        if (category.name === "情報") {
+          updatedCategory.contents.push(
+            {
+              kind: "block",
+              type: CLOSEST_WEAPON,
+            },
+            {
+              kind: "block",
+              type: GET_PROPERTY_OF_FIGHTER,
+            },
+            {
+              kind: "block",
+              type: WEAPONS,
+            }
+          );
+        }
+        return updatedCategory;
+      }
+    ),
   },
 };
 

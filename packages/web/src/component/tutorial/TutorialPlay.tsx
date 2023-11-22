@@ -21,7 +21,7 @@ import { HiOutlineScale } from "react-icons/hi";
 import Draggable from "react-draggable";
 import Emulator, { Status } from "../Emulator";
 import type { User } from "../game/game";
-import Modal from "./modal";
+import TutorialModal from "./modal";
 import tutorialEnemies from "./tutorialEnemies";
 
 interface TutorialPlayProps {
@@ -90,7 +90,7 @@ export default function TutorialPlay(props: TutorialPlayProps) {
           ref={accordionRef}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Modal id={tutorialId} />
+            <TutorialModal id={tutorialId} />
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{ height: 450, width: 600 }}>
