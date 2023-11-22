@@ -2,6 +2,7 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Play from "./Play";
 import App from "./App";
 import { ApiPasswordContextProvider } from "./common/api-password";
 import Projector from "./projector/Projector";
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+  },
+  {
+    path: "/play",
+    element: <Play />,
   },
   {
     path: "/projector",

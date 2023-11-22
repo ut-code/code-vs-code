@@ -72,3 +72,37 @@ body,
 .blocklyFlyoutBackground {
   fill: transparent;
 }
+.link-container {
+  display: flex;
+  justify-content: space-around; /* or 'space-between' for more space between boxes */
+  align-items: center;
+  /*二個まで並んだら改行*/
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+
+}
+.button {
+  text-decoration: none;
+  color: #fff; /* Change text color to white */
+  background-color: #3498db; /* Set background color to a shade of blue */
+  width: 300px;
+  height: 200px;
+  padding: 20px;
+  border: none; /* Remove border */
+  border-radius: 10px; /* Add rounded corners */
+  text-align: center;
+  margin: 10px;
+  transition: background-color 0.3s; /* Add a smooth transition effect */
+
+  /* Center the text vertically */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.button:hover {
+  background-color: #2980b9; /* Change background color on hover */
+}

@@ -1,78 +1,62 @@
-import { useEffect, useRef, useState } from "react";
-import "./common/blockly";
-import type { WorkspaceSvg } from "blockly";
+import { Link, Routes, Route } from "react-router-dom";
+import Tutorial1 from "./component/tutorial/Tutorial1";
+import Tutorial2 from "./component/tutorial/Tutorial2";
+import Tutorial3 from "./component/tutorial/Tutorial3";
+import Tutorial4 from "./component/tutorial/Tutorial4";
+import Play from "./Play";
 import "./style.css";
-import { Box } from "@mui/material";
-import Injection from "./component/Injection";
-import TestPlay from "./component/TestPlay";
-import Arena from "./component/Arena";
-import Welcome from "./component/Welcome";
 import ButtonAppBar from "./component/ButtonAppBar";
-import { getUsers } from "./fetchAPI";
-import type { User } from "./component/Emulator";
-import { useApiPasswordContext } from "./common/api-password";
-import ApiPasswordDialog from "./component/ApiPasswordDialog";
-import options from "./options";
 
-export default function App() {
-  const [currentUser, setCurrentUser] = useState({
-    id: 1,
-    name: "",
-    program: "",
-    rank: 0,
-  });
-  const [users, setUsers] = useState<User[]>([]);
-  const { password } = useApiPasswordContext();
-  const [isApiPasswordDialogOpen, setIsApiPasswordDialogOpen] = useState(false);
-  const workspaceRef = useRef<WorkspaceSvg>();
-
-  useEffect(() => {
-    async function fetchUsers() {
-      setUsers(await getUsers());
-    }
-    fetchUsers();
-  }, []);
-
+function App() {
   return (
-    <>
-      <Box
-        sx={{
-          width: 1,
-          height: 1,
-          display: "grid",
-          gridTemplateRows: "48px auto",
-        }}
-      >
-        <ButtonAppBar
-          openApiPasswordDialog={() => {
-            setIsApiPasswordDialogOpen(true);
-          }}
-        />
-        <Injection workspaceRef={workspaceRef} options={options} />
-      </Box>
-      {password && (
-        <>
-          <Welcome users={users} setCurrentUser={setCurrentUser} />
-          <Arena
-            currentUser={currentUser}
-            setCurrentUser={setCurrentUser}
-            workspaceRef={workspaceRef}
-            users={users}
-          />
-        </>
-      )}
-      <TestPlay
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        workspaceRef={workspaceRef}
-      />
-      {!password && isApiPasswordDialogOpen && (
-        <ApiPasswordDialog
-          onClose={() => {
-            setIsApiPasswordDialogOpen(false);
-          }}
-        />
-      )}
-    </>
+    <div className="App">
+      <ButtonAppBar />
+
+      <div className="link-container">
+        <Link to="/tutorial1" className="button">
+          <div>
+            <h2>Tutorial 1</h2>
+            <p>Learn about Tutorial 1.</p>
+          </div>
+        </Link>
+        <Link to="/tutorial2" className="button">
+          <div>
+            <h2>Tutorial 2</h2>
+            <p>Learn about Tutorial 2.</p>
+          </div>
+        </Link>
+
+        <Link to="/tutorial3" className="button">
+          <div>
+            <h2>Tutorial 3</h2>
+            <p>Learn about Tutorial 3.</p>
+          </div>
+        </Link>
+
+        <Link to="/tutorial4" className="button">
+          <div>
+            <h2>Tutorial 4</h2>
+            <p>Learn about Tutorial 4.</p>
+          </div>
+        </Link>
+
+        <Link to="/play" className="button">
+          <div>
+            <h2>Play</h2>
+            <p>Play</p>
+          </div>
+        </Link>
+      </div>
+
+      <Routes>
+        <Route path="/play" element={<Play />} />
+        <Route path="/tutorial1" element={<Tutorial1 />} />
+        <Route path="/tutorial2" element={<Tutorial2 />} />
+        <Route path="/tutorial3" element={<Tutorial3 />} />
+        <Route path="/tutorial4" element={<Tutorial4 />} />
+      </Routes>
+    </div>
   );
 }
+
+export default App;
