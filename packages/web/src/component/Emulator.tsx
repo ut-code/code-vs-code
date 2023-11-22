@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import Game from "./game";
-import type { Result } from "./game";
+import type { Result } from "./game/game";
+import Game from "./game/game";
 
 export interface User {
   name: string;
@@ -26,6 +26,7 @@ type EmulatorProps = {
   executionId: number; // エミュレーターそのものを更新するためのId
   handleStatuses: (statuses: Status[]) => void;
   onGameCompleted?: (result: Result) => void;
+  gameModeId: number;
 };
 
 export default function Emulator(props: EmulatorProps) {
@@ -38,19 +39,32 @@ export default function Emulator(props: EmulatorProps) {
     executionId,
     handleStatuses,
     onGameCompleted,
+    gameModeId,
   } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<Game>();
+  const gameRef = useRef<any>();
   useEffect(() => {
     if (!canvasRef.current) throw new Error();
-    const game = new Game(users, canvasRef.current, (newStatuses: Status[]) => {
-      handleStatuses(newStatuses);
-    });
+    let GameClass;
+    switch (gameModeId) {
+      case 0:
+        GameClass = Game;
+        break;
+      default:
+        GameClass = Game;
+    }
+    const game = new GameClass(
+      users,
+      canvasRef.current,
+      (newStatuses: Status[]) => {
+        handleStatuses(newStatuses);
+      }
+    );
     gameRef.current = game;
     return () => {
       game.destroy();
     };
-  }, [users, executionId, handleStatuses]);
+  }, [users, executionId, handleStatuses, gameModeId]);
   useEffect(() => {
     if (!gameRef.current) throw new Error();
     gameRef.current.onCompleted = (result: Result) => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { Vector2, Entity } from "./game";
+import type { Vector2, Entity } from "./game/gameComponents";
 
 interface Fighter extends Entity {
   HP: number;

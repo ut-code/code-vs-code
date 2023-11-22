@@ -29,7 +29,7 @@ import { grey } from "@mui/material/colors";
 import { HiOutlineScale } from "react-icons/hi";
 import Draggable from "react-draggable";
 import Emulator, { Status } from "./Emulator";
-import type { User } from "./game";
+import type { User } from "./game/game";
 import { getUsers } from "../fetchAPI";
 
 interface EnemyDialogProps {
@@ -264,6 +264,7 @@ export default function TestPlay(props: TestPlayProps) {
                   isPaused={isPaused}
                   executionId={executionId}
                   handleStatuses={setStatuses}
+                  gameModeId={0}
                 />
               ) : (
                 <Skeleton width="100%" height="auto" />

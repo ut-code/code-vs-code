@@ -11,7 +11,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import type { User } from "./game";
+import type { User } from "./game/game";
 import iconURL from "../icon1.svg";
 import { createUser } from "../fetchAPI";
 import DropDown from "./DropDown";
