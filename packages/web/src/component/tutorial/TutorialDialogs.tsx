@@ -1,3 +1,21 @@
+import tutorial11 from "../../../resources/tutorialImages/tutorial1_1.png";
+import tutorial12 from "../../../resources/tutorialImages/tutorial1_2.png";
+import tutorial13 from "../../../resources/tutorialImages/tutorial1_3.png";
+import tutorial141 from "../../../resources/tutorialImages/tutorial1_4_1.png";
+import tutorial142 from "../../../resources/tutorialImages/tutorial1_4_2.png";
+import tutorial15 from "../../../resources/tutorialImages/tutorial1_5.png";
+import tutorial21 from "../../../resources/tutorialImages/tutorial2_1.png";
+import tutorial22 from "../../../resources/tutorialImages/tutorial2_2.png";
+import tutorial23 from "../../../resources/tutorialImages/tutorial2_3.png";
+import tutorial311 from "../../../resources/tutorialImages/tutorial3_1_1.png";
+import tutorial312 from "../../../resources/tutorialImages/tutorial3_1_2.png";
+import tutorial313 from "../../../resources/tutorialImages/tutorial3_1_3.png";
+import tutorial32 from "../../../resources/tutorialImages/tutorial3_2.png";
+import tutorial411 from "../../../resources/tutorialImages/tutorial4_1_1.png";
+import tutorial412 from "../../../resources/tutorialImages/tutorial4_1_2.png";
+import tutorial42 from "../../../resources/tutorialImages/tutorial4_2.png";
+import tutorial43 from "../../../resources/tutorialImages/tutorial4_3.png";
+
 export interface TutorialDialogPropsStep {
   title: string;
   content: JSX.Element;
@@ -24,6 +42,7 @@ export const TutorialDialog1: TutorialDialogProps = {
             <br />
             まずはチュートリアルを通じて機体の動作やルールを学んでいきましょう。
           </p>
+          <img src={tutorial11} alt="tutorial11" width="100%" />
         </div>
       ),
     },
@@ -41,6 +60,7 @@ export const TutorialDialog1: TutorialDialogProps = {
             <br />
             画面上で表示されている機体のうち、あなたのプレイヤー名が表示されているのが自分の機体でそれ以外が敵の機体です。
           </p>
+          <img src={tutorial12} alt="tutorial12" width="50%" />
         </div>
       ),
     },
@@ -56,6 +76,7 @@ export const TutorialDialog1: TutorialDialogProps = {
             <br />
             ブロックを反映させるには、一度右下の「リセット」ボタンを押す必要があります。
           </p>
+          <img src={tutorial13} alt="tutorial13" width="100%" />
         </div>
       ),
     },
@@ -70,6 +91,8 @@ export const TutorialDialog1: TutorialDialogProps = {
             行動ブロックは赤色のブロックで、機体の行動を決める最も重要なブロックです。
             <br />
           </p>
+          <img src={tutorial141} alt="tutorial141" width="50%" />
+          <img src={tutorial142} alt="tutorial142" width="50%" />
         </div>
       ),
     },
@@ -83,6 +106,7 @@ export const TutorialDialog1: TutorialDialogProps = {
             <br />
             「敵を倒す」目標を達成するために、このブロックと情報ブロックを組み合わせて使ってみましょう。
           </p>
+          <img src={tutorial15} alt="tutorial15" width="60%" />
         </div>
       ),
     },
@@ -104,6 +128,7 @@ export const TutorialDialog2: TutorialDialogProps = {
             <br />
             どちらも特定の地点に移動するためのブロックです。
           </p>
+          <img src={tutorial21} alt="tutorial21" width="50%" />
         </div>
       ),
     },
@@ -119,6 +144,7 @@ export const TutorialDialog2: TutorialDialogProps = {
             <br />
             そのため、行動ブロックを組み合わせる際は「元気」の消費量にも注意しましょう。
           </p>
+          <img src={tutorial22} alt="tutorial22" width="100%" />
         </div>
       ),
     },
@@ -133,6 +159,7 @@ export const TutorialDialog2: TutorialDialogProps = {
             追加されたブロックを使って、敵に近づくためのプログラムを作ってみましょう。
             敵に十分近づいたらクリアです。
           </p>
+          <img src={tutorial23} alt="tutorial23" width="70%" />
         </div>
       ),
     },
@@ -154,6 +181,8 @@ export const TutorialDialog3: TutorialDialogProps = {
             <br />
             うまく活用してより強いバトルAIを作りましょう。
           </p>
+          <img src={tutorial311} alt="tutorial311" width="20%" />
+          <img src={tutorial312} alt="tutorial312" width="50%" />
         </div>
       ),
     },
@@ -169,6 +198,7 @@ export const TutorialDialog3: TutorialDialogProps = {
             <br />
             「論理」ブロックは「もし～ならば」という形で使われ、条件によって異なる行動を行うことができます。
           </p>
+          <img src={tutorial32} alt="tutorial32" width="70%" />
         </div>
       ),
     },
@@ -188,6 +218,7 @@ export const TutorialDialog3: TutorialDialogProps = {
             論理ブロックを使って、遠くにいる敵に対しては「向かう」ブロックを使い、近くにいる敵に対しては「殴る」ブロックを使うようにプログラムを作ってみましょう。
             <br />
           </p>
+          <img src={tutorial313} alt="tutorial313" width="50%" />
         </div>
       ),
     },
@@ -207,6 +238,8 @@ const TutorialDialog4: TutorialDialogProps = {
             <br />
             また「情報」タブに「ファイター情報」ブロックが追加されました。これは自分や敵の機体の情報を取得するためのブロックです。様々な状況判断を行うことに用いられます。
           </p>
+          <img src={tutorial411} alt="tutorial411" width="40%" />
+          <img src={tutorial412} alt="tutorial412" width="50%" />
         </div>
       ),
     },
@@ -220,6 +253,7 @@ const TutorialDialog4: TutorialDialogProps = {
             <br />
             「武器」を使うには、まずフィールド上にランダムに現れる「武器」を手に入れ、それを敵に向けて使用するという手順を踏まなければいけません。
           </p>
+          <img src={tutorial42} alt="tutorial42" width="70%" />
         </div>
       ),
     },
@@ -233,6 +267,7 @@ const TutorialDialog4: TutorialDialogProps = {
             <br />
             「武器」を手に入れたら「武器を使う」ブロックを使って敵に向けて使用しましょう。ただし武器には射程距離があり、それよりも遠い敵には当たりません。「腕の長さ」と同じブロックに定数(400)として含まれているので活用してみましょう。
           </p>
+          <img src={tutorial43} alt="tutorial43" width="70%" />
         </div>
       ),
     },
