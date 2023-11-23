@@ -24,35 +24,35 @@ function App() {
       <div className="link-container">
         <Link to="/tutorial1" className="button">
           <div>
-            <h2>Tutorial 1</h2>
-            <p>Learn about Tutorial 1.</p>
+            <h2>基本操作のチュートリアル</h2>
+            <p>機体を動かすための基本操作を知りましょう。まずはここから。</p>
           </div>
         </Link>
         <Link to="/tutorial2" className="button">
           <div>
-            <h2>Tutorial 2</h2>
-            <p>Learn about Tutorial 2.</p>
+            <h2>移動のチュートリアル</h2>
+            <p>2種類ある機体の移動方法を学びましょう。</p>
           </div>
         </Link>
 
         <Link to="/tutorial3" className="button">
           <div>
-            <h2>Tutorial 3</h2>
-            <p>Learn about Tutorial 3.</p>
+            <h2>論理のチュートリアル</h2>
+            <p>条件で場合を分けて異なる行動を行えるようにしましょう。</p>
           </div>
         </Link>
 
         <Link to="/tutorial4" className="button">
           <div>
-            <h2>Tutorial 4</h2>
-            <p>Learn about Tutorial 4.</p>
+            <h2>武器のチュートリアル</h2>
+            <p>戦闘を有利に進められる武器の使用方法を学びましょう。</p>
           </div>
         </Link>
 
         <Link to="/play" className="button">
           <div>
-            <h2>Play</h2>
-            <p>Play</p>
+            <h2>チュートリアルをスキップ</h2>
+            <p />
           </div>
         </Link>
       </div>
