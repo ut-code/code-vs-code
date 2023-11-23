@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import "../../common/blockly";
 import type { WorkspaceSvg } from "blockly";
 import "../../style.css";
@@ -9,28 +9,18 @@ import ButtonAppBar from "../ButtonAppBar";
 import { tutorialOptions2 } from "../../tutorialOptions";
 import { useApiPasswordContext } from "../../common/api-password";
 import ApiPasswordDialog from "../ApiPasswordDialog";
-import Welcome from "../Welcome";
-import { getUsers } from "../../fetchAPI";
-import type { User } from "../Emulator";
 
 export default function Tutorial2() {
   const [currentUser, setCurrentUser] = useState({
     id: 0,
-    name: "",
+    name: "あなた",
     program: "",
     rank: 0,
   });
-  const [users, setUsers] = useState<User[]>([]);
+
   const { password } = useApiPasswordContext();
   const [isApiPasswordDialogOpen, setIsApiPasswordDialogOpen] = useState(false);
   const workspaceRef = useRef<WorkspaceSvg>();
-
-  useEffect(() => {
-    async function fetchUsers() {
-      setUsers(await getUsers());
-    }
-    fetchUsers();
-  }, []);
 
   return (
     <>
@@ -49,7 +39,6 @@ export default function Tutorial2() {
         />
         <Injection workspaceRef={workspaceRef} options={tutorialOptions2} />
       </Box>
-      {password && <Welcome users={users} setCurrentUser={setCurrentUser} />}
       <TutorialPlay
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}

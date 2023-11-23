@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, Routes, Route } from "react-router-dom";
 import Tutorial1 from "./component/tutorial/Tutorial1";
 import Tutorial2 from "./component/tutorial/Tutorial2";
@@ -6,12 +7,20 @@ import Tutorial4 from "./component/tutorial/Tutorial4";
 import Play from "./Play";
 import "./style.css";
 import ButtonAppBar from "./component/ButtonAppBar";
+import { useApiPasswordContext } from "./common/api-password";
+import ApiPasswordDialog from "./component/ApiPasswordDialog";
 
 function App() {
+  const { password } = useApiPasswordContext();
+  const [isApiPasswordDialogOpen, setIsApiPasswordDialogOpen] = useState(false);
+
   return (
     <div className="App">
-      <ButtonAppBar />
-
+      <ButtonAppBar
+        openApiPasswordDialog={() => {
+          setIsApiPasswordDialogOpen(true);
+        }}
+      />
       <div className="link-container">
         <Link to="/tutorial1" className="button">
           <div>
@@ -55,6 +64,13 @@ function App() {
         <Route path="/tutorial3" element={<Tutorial3 />} />
         <Route path="/tutorial4" element={<Tutorial4 />} />
       </Routes>
+      {!password && isApiPasswordDialogOpen && (
+        <ApiPasswordDialog
+          onClose={() => {
+            setIsApiPasswordDialogOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
