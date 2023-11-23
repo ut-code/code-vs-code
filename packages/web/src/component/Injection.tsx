@@ -15,7 +15,7 @@ import modifyTranslation from "../modifyTranslation";
 
 export default function Injection(props: {
   workspaceRef: React.MutableRefObject<Blockly.WorkspaceSvg | undefined>;
-  options: any;
+  options: Blockly.BlocklyOptions;
 }) {
   const { workspaceRef } = props;
   const workspaceDivRef = useRef<HTMLDivElement>(null);

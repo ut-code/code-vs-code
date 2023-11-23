@@ -22,6 +22,21 @@ export default function ButtonAppBar({
           </a>
         </Box>
         <Typography sx={{ ml: 2 }}>Code vs Code</Typography>
+        <Box sx={{ height: 32 }}>
+          <a href="/" target="_blank" rel="noreferrer">
+            <Typography
+              variant="caption"
+              sx={{
+                ml: 2,
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              チュートリアル選択画面に戻る
+            </Typography>
+          </a>
+        </Box>
         {!password && (
           <ButtonBase
             onClick={openApiPasswordDialog}

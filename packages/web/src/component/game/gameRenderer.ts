@@ -353,14 +353,48 @@ class WorldRenderer {
   }
 
   showResult(result: Result, users: User[]) {
+    const nextPage = () => {
+      if (this.world.worldId === 4) {
+        window.location.href = "/";
+      } else {
+        window.location.href = `/tutorial${(
+          this.world.worldId + 1
+        ).toString()}`;
+      }
+    };
     if (result.length === 1) {
-      const resultText = new PIXI.Text(`チュートリアルクリア！`, {
-        fontFamily: "Arial",
-        fontStyle: "italic",
-      });
-      resultText.anchor.set(0.5);
-      resultText.position.set(400, 100);
-      this.#pixi.stage.addChild(resultText);
+      if (result[0] === 0) {
+        const resultText = new PIXI.Text(`失敗……`, {
+          fontFamily: "Arial",
+          fontStyle: "italic",
+        });
+        resultText.anchor.set(0.5);
+        resultText.position.set(400, 100);
+        this.#pixi.stage.addChild(resultText);
+      } else {
+        const resultText = new PIXI.Text(`クリア！`, {
+          fontFamily: "Arial",
+          fontStyle: "italic",
+        });
+        resultText.anchor.set(0.5);
+        resultText.position.set(400, 100);
+
+        // 次のページへのリンクを追加
+        const linkText = new PIXI.Text("次のページへ", {
+          fontFamily: "Arial",
+          fill: "blue",
+          fontStyle: "italic",
+        });
+        linkText.anchor.set(0.5);
+        linkText.position.set(400, 150);
+
+        linkText.interactive = true;
+        linkText.buttonMode = true;
+
+        linkText.on("pointerdown", () => nextPage());
+
+        this.#pixi.stage.addChild(resultText, linkText);
+      }
     } else if (result.length > 1) {
       let rank = 1;
       for (const id of result) {
