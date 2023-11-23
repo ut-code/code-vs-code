@@ -86,7 +86,7 @@ class TutorialGame1 extends Game {
   }
 
   override end() {
-    const result: Result = [0];
+    const result: Result = [1];
     this.result = result;
     this.world.clear();
     this.isEnded = true;

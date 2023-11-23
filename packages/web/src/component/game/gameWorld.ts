@@ -36,6 +36,8 @@ export default class World {
 
   losers: Fighter[] = [];
 
+  worldId = 0;
+
   constructor(users: User[]) {
     const user1 = users[0];
     const user2 = users[1];

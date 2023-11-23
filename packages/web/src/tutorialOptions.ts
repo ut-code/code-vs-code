@@ -213,39 +213,21 @@ const tutorialOptions4 = {
   toolbox: {
     contents: tutorialOptions3.toolbox.contents.map(
       (category: { name: string; contents: contents[] }) => {
-        // Create a new object instead of modifying the existing one
         const updatedCategory = { ...category };
         if (category.name === "行動") {
-          updatedCategory.contents = category.contents.filter(
-            (block) => block.type !== PUNCH
-          );
-          // 新しいブロックを追加
-          updatedCategory.contents.push(
-            {
-              kind: "block",
-              type: USE_WEAPON,
-            },
-            {
-              kind: "block",
-              type: PICK_UP,
-            }
-          );
+          updatedCategory.contents = category.contents
+            .filter((block) => block.type !== PUNCH)
+            .concat([
+              { kind: "block", type: USE_WEAPON },
+              { kind: "block", type: PICK_UP },
+            ]);
         }
         if (category.name === "情報") {
-          updatedCategory.contents.push(
-            {
-              kind: "block",
-              type: CLOSEST_WEAPON,
-            },
-            {
-              kind: "block",
-              type: GET_PROPERTY_OF_FIGHTER,
-            },
-            {
-              kind: "block",
-              type: WEAPONS,
-            }
-          );
+          updatedCategory.contents = category.contents.concat([
+            { kind: "block", type: CLOSEST_WEAPON },
+            { kind: "block", type: GET_PROPERTY_OF_FIGHTER },
+            { kind: "block", type: WEAPONS },
+          ]);
         }
         return updatedCategory;
       }

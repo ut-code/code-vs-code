@@ -4,6 +4,8 @@ import type { User } from "../game/game";
 import { Fighter } from "../game/gameComponents";
 
 export class TutorialWorld extends World {
+  override worldId = 1;
+
   constructor(users: User[]) {
     super(users);
     const user1 = users[0];
@@ -16,6 +18,8 @@ export class TutorialWorld extends World {
 }
 
 export class TutorialWorld2 extends World {
+  override worldId = 2;
+
   constructor(users: User[]) {
     super(users);
     const user1 = users[0];
@@ -28,6 +32,8 @@ export class TutorialWorld2 extends World {
 }
 
 export class TutorialWorld3 extends World {
+  override worldId = 3;
+
   constructor(users: User[]) {
     super(users);
     const user1 = users[0];
@@ -40,6 +46,8 @@ export class TutorialWorld3 extends World {
 }
 
 export class TutorialWorld4 extends World {
+  override worldId = 4;
+
   constructor(users: User[]) {
     super(users);
     const user1 = users[0];
