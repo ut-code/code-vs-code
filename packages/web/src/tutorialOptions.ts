@@ -1,4 +1,3 @@
-import type { Block } from "core/blockly";
 import {
   PUNCH,
   ENEMIES,
@@ -37,6 +36,11 @@ const numberInput = (initialInput: number) => {
     },
   };
 };
+
+interface contents {
+  kind: string;
+  type: string;
+}
 
 // https://github.com/google/blockly/issues/6075
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,10 +212,9 @@ const tutorialOptions4 = {
   ...tutorialOptions3,
   toolbox: {
     contents: tutorialOptions3.toolbox.contents.map(
-      (category: { name: string; contents: Block[] }) => {
+      (category: { name: string; contents: contents[] }) => {
         // Create a new object instead of modifying the existing one
         const updatedCategory = { ...category };
-
         if (category.name === "行動") {
           updatedCategory.contents = category.contents.filter(
             (block) => block.type !== PUNCH

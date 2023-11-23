@@ -13,7 +13,7 @@ import ApiPasswordDialog from "../ApiPasswordDialog";
 export default function Tutorial4() {
   const [currentUser, setCurrentUser] = useState({
     id: 0,
-    name: "",
+    name: "あなた",
     program: "",
     rank: 0,
   });
