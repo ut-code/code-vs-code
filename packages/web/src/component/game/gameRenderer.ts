@@ -354,7 +354,7 @@ class WorldRenderer {
 
   showResult(result: Result, users: User[]) {
     const nextPage = () => {
-      if (this.world.worldId === 4) {
+      if (this.world.worldId === 5) {
         window.location.href = "/";
       } else {
         window.location.href = `/tutorial${(

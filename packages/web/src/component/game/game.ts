@@ -114,7 +114,7 @@ export default class Game {
     callback();
   }
 
-  private endConditionMet() {
+  endConditionMet() {
     // 例: プレイヤーが１人なら終了
     return this.world.fighters.length <= 1;
   }

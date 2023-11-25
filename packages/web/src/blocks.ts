@@ -6,7 +6,7 @@ const Boolean = "Boolean";
 const Vector2D = "ベクトル2";
 const Existence = "存在";
 const Fighter = "ファイター";
-const Portion = "ポーション";
+const Portion = "キノコ";
 const Weapon = "武器";
 const ExistenceOrVector2D = [Existence, Fighter, Portion, Weapon, Vector2D];
 
@@ -71,10 +71,10 @@ Blockly.JavaScript[ENEMIES] = () => [
 export const PORTIONS = "portions";
 Blockly.Blocks[PORTIONS] = {
   init(this: Blockly.Block) {
-    this.appendDummyInput().appendField("ポーションリスト");
+    this.appendDummyInput().appendField("キノコリスト");
     this.setOutput(true, Array);
     this.setColour(20);
-    this.setTooltip("落ちているポーションのリストです。");
+    this.setTooltip("落ちているキノコのリストです。");
   },
 };
 Blockly.JavaScript[PORTIONS] = () => [
@@ -343,10 +343,10 @@ Blockly.JavaScript[CLOSEST_ENEMY] = () => [
 export const CLOSEST_PORTION = "closestPortion";
 Blockly.Blocks[CLOSEST_PORTION] = {
   init(this: Blockly.Block) {
-    this.appendDummyInput().appendField("最も近いポーション");
+    this.appendDummyInput().appendField("最も近いキノコ");
     this.setOutput(true, Portion);
     this.setColour(20);
-    this.setTooltip("自分に最も近いポーションです。");
+    this.setTooltip("自分に最も近いキノコです。");
   },
 };
 Blockly.JavaScript[CLOSEST_PORTION] = () => [

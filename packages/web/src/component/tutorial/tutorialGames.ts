@@ -6,6 +6,7 @@ import {
   TutorialWorld2,
   TutorialWorld3,
   TutorialWorld4,
+  TutorialWorld5,
 } from "./tutorialWorlds";
 import WorldRenderer from "../game/gameRenderer";
 import type { User, Status } from "../Emulator";
@@ -86,7 +87,10 @@ class TutorialGame1 extends Game {
   }
 
   override end() {
-    const result: Result = [1];
+    const result: Result = [0];
+    if (this.EndConditionMet()) {
+      result[0] = 1;
+    }
     this.result = result;
     this.world.clear();
     this.isEnded = true;
@@ -225,12 +229,104 @@ class TutorialGame4 extends TutorialGame1 {
     return false;
   }
 }
+class TutorialGame5 extends Game{
+  constructor(
+    users: User[],
+    canvas: HTMLCanvasElement,
+    onStatusesChanged: (statuses: Status[]) => void
+  ) {
+    super(users, canvas, onStatusesChanged);
+    this.world = new TutorialWorld5(users);
+    this.worldRenderer = new WorldRenderer(this.world, canvas);
+    this.workers = this.createUserProgramRunnerWorkers();
+    this.nextWorkers = this.createUserProgramRunnerWorkers();
+    this.worldRenderer.run();
+  }
+
+  override start() {
+    let previousTime1 = Date.now();
+    let previousTime2 = Date.now();
+    let previousTime3 = Date.now();
+    const startTime = Date.now();
+    const callback = () => {
+      if (this.isDestroyed || this.isEnded) return;
+      const currentTime = Date.now();
+      // ゲームが終わりか判断
+      if (this.endConditionMet()) {
+        this.end();
+        return;
+      }
+      // worldクラスのメソッド実行
+      this.world.manageValidPortions(currentTime - previousTime2);
+      this.world.runFightersAction(currentTime - previousTime2);
+      this.world.detectCollision();
+      this.world.removeDeadFighters();
+      // HP変化を伝える
+      this.onStatusesChanged(
+        this.world.fighters.map((fighter) => {
+          return {
+            id: fighter.id,
+            HP: fighter.HP,
+            stamina: fighter.stamina,
+            speed: fighter.speed,
+            weapon: fighter.weapon ? "ファイヤ" : "なし",
+          };
+        })
+      );
+      // タイムラグが必要な処理実行
+      if (currentTime - previousTime1 >= 500) {
+        previousTime1 = Date.now();
+        for (const worker of this.workers.values()) {
+          worker.terminate();
+        }
+        this.workers = this.nextWorkers;
+        this.registerUserProgramResultHandlers();
+        this.sendProgramsToWorkers();
+        this.nextWorkers = this.createUserProgramRunnerWorkers();
+      }
+      if (currentTime - startTime >= 120000) {
+        this.end();
+      }
+      if (currentTime - previousTime3 > 2000) {
+        previousTime3 = Date.now();
+        this.world.placeRandomPortion();
+      }
+      if (!this.isPaused) requestAnimationFrame(callback);
+      previousTime2 = currentTime;
+    };
+    callback();
+  }
+
+  override endConditionMet(){
+    // プレイヤー1の有効なポーションの数が5個になったら終了
+    const fighter = this.world.fighters[0];
+    if(!fighter) return false;
+    if(fighter.validPortions.length >= 4){
+      return true;
+    }
+    return false;
+  }
+
+  override end() {
+    const result: Result = [0];
+    if (this.endConditionMet()) {
+      result[0] = 1;
+    }
+    this.result = result;
+    this.world.clear();
+    this.isEnded = true;
+    this.onCompleted?.(this.result);
+    this.worldRenderer.showResult(result, this.users);
+  }
+
+}
 
 const tutorialGames = [
   TutorialGame1,
   TutorialGame2,
   TutorialGame3,
   TutorialGame4,
+  TutorialGame5,
 ];
 
 export default tutorialGames;

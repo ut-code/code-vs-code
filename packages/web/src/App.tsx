@@ -4,6 +4,7 @@ import Tutorial1 from "./component/tutorial/Tutorial1";
 import Tutorial2 from "./component/tutorial/Tutorial2";
 import Tutorial3 from "./component/tutorial/Tutorial3";
 import Tutorial4 from "./component/tutorial/Tutorial4";
+import Tutorial5 from "./component/tutorial/Tutorial5";
 import Play from "./Play";
 import "./style.css";
 import ButtonAppBar from "./component/ButtonAppBar";
@@ -46,6 +47,13 @@ function App() {
           <div>
             <h2>武器のチュートリアル</h2>
             <p>戦闘を有利に進められる武器の使用方法を学びましょう。</p>
+          </div>
+        </Link>
+
+        <Link to="/tutorial5" className="button">
+          <div>
+            <h2>スピードアップのチュートリアル</h2>
+            <p>スピードアップアイテムの使用方法を学びましょう。</p>
           </div>
         </Link>
 
