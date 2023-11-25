@@ -71,6 +71,7 @@ function App() {
         <Route path="/tutorial2" element={<Tutorial2 />} />
         <Route path="/tutorial3" element={<Tutorial3 />} />
         <Route path="/tutorial4" element={<Tutorial4 />} />
+        <Route path="/tutorial5" element={<Tutorial5 />} />
       </Routes>
       {!password && isApiPasswordDialogOpen && (
         <ApiPasswordDialog

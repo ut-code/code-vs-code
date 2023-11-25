@@ -229,7 +229,7 @@ class TutorialGame4 extends TutorialGame1 {
     return false;
   }
 }
-class TutorialGame5 extends Game{
+class TutorialGame5 extends Game {
   constructor(
     users: User[],
     canvas: HTMLCanvasElement,
@@ -297,11 +297,11 @@ class TutorialGame5 extends Game{
     callback();
   }
 
-  override endConditionMet(){
+  override endConditionMet() {
     // プレイヤー1の有効なポーションの数が5個になったら終了
     const fighter = this.world.fighters[0];
-    if(!fighter) return false;
-    if(fighter.validPortions.length >= 4){
+    if (!fighter) return false;
+    if (fighter.validPortions.length >= 4) {
       return true;
     }
     return false;
@@ -318,7 +318,6 @@ class TutorialGame5 extends Game{
     this.onCompleted?.(this.result);
     this.worldRenderer.showResult(result, this.users);
   }
-
 }
 
 const tutorialGames = [

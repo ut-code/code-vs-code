@@ -331,7 +331,7 @@ const TutorialDialog5: TutorialDialogProps = {
         <div>
           <h1>キノコを利用する</h1>
           <p>
-          このページでの目標は<strong>「キノコを利用する」</strong>ことです。
+            このページでの目標は<strong>「キノコを利用する」</strong>ことです。
             <br />
             「キノコ」を複数獲得して、スピードを4倍に出来ればクリアです。
             <br />
@@ -342,8 +342,6 @@ const TutorialDialog5: TutorialDialogProps = {
     },
   ],
 };
-
-  
 
 export const tutorialDialogs = [
   TutorialDialog1,

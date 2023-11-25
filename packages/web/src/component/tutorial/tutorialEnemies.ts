@@ -40,9 +40,9 @@ const tutorial5Enemies: User[] = [
   {
     id: 1,
     name: "敵",
-    //最も近いポーションに向かう
+    // 最も近いポーションに向かう
     program: "walkTo(getClosestPortion());",
-    /*program: "if(calculateDistance(player,getClosestEnemy()) < 40){  punch(getClosestEnemy());}else{walkTo(getClosestEnemy());};" ,*/
+    /* program: "if(calculateDistance(player,getClosestEnemy()) < 40){  punch(getClosestEnemy());}else{walkTo(getClosestEnemy());};" , */
     rank: 0,
   },
 ];
