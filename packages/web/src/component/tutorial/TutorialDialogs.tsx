@@ -15,6 +15,7 @@ import tutorial411 from "../../../resources/tutorialImages/tutorial4_1_1.png";
 import tutorial412 from "../../../resources/tutorialImages/tutorial4_1_2.png";
 import tutorial42 from "../../../resources/tutorialImages/tutorial4_2.png";
 import tutorial43 from "../../../resources/tutorialImages/tutorial4_3.png";
+import tutorial44 from "../../../resources/tutorialImages/tutorial4_4.png";
 
 export interface TutorialDialogPropsStep {
   title: string;
@@ -286,6 +287,7 @@ const TutorialDialog4: TutorialDialogProps = {
             <br />
             「武器」を拾うためにも場合を分けて「行動」ブロックを使わなければいけないことに注意してください。
           </p>
+          <img src={tutorial44} alt="tutorial44" width="70%" />
         </div>
       ),
     },
