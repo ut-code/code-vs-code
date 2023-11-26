@@ -294,9 +294,59 @@ const TutorialDialog4: TutorialDialogProps = {
   ],
 };
 
+const TutorialDialog5: TutorialDialogProps = {
+  goal: "キノコを利用する",
+  steps: [
+    {
+      title: "チュートリアル4番",
+      content: (
+        <div>
+          <h1>新規ブロック獲得！</h1>
+          <p>
+            「情報」タブと「行動」タブにスピードアップキノコに関連するブロックが追加されました。
+            <br />
+            フィールド上のキノコを獲得することで機体のスピードを一時的に上げることができます。
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: "チュートリアル4番",
+      content: (
+        <div>
+          <h1>「キノコ」の使い方</h1>
+          <p>
+            キノコの効果は重複し、獲得するほど速く移動できるようになり、時間経過で効果が切れます。
+            <br />
+            キノコは武器と違い十分に近づいていれば自動的に獲得できるので、「拾う」ブロックは必要ありません。
+            <br />
+            現在の速さは左下の「移動:×」表示で確認できます。
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: "チュートリアル4番",
+      content: (
+        <div>
+          <h1>キノコを利用する</h1>
+          <p>
+            このページでの目標は<strong>「キノコを利用する」</strong>ことです。
+            <br />
+            「キノコ」を複数獲得して、スピードを4倍に出来ればクリアです。
+            <br />
+            ただし敵もキノコを狙っているので、工夫してキノコを獲得しましょう。
+          </p>
+        </div>
+      ),
+    },
+  ],
+};
+
 export const tutorialDialogs = [
   TutorialDialog1,
   TutorialDialog2,
   TutorialDialog3,
   TutorialDialog4,
+  TutorialDialog5,
 ];

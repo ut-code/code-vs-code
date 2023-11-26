@@ -10,6 +10,7 @@ import Tutorial1 from "./component/tutorial/Tutorial1";
 import Tutorial2 from "./component/tutorial/Tutorial2";
 import Tutorial3 from "./component/tutorial/Tutorial3";
 import Tutorial4 from "./component/tutorial/Tutorial4";
+import Tutorial5 from "./component/tutorial/Tutorial5";
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
   {
     path: "/tutorial4",
     element: <Tutorial4 />,
+  },
+  {
+    path: "/tutorial5",
+    element: <Tutorial5 />,
   },
 ]);
 

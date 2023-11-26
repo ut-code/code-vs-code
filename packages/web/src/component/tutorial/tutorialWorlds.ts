@@ -58,3 +58,17 @@ export class TutorialWorld4 extends World {
     this.fighters = [player1, player2];
   }
 }
+
+export class TutorialWorld5 extends World {
+  override worldId = 5;
+
+  constructor(users: User[]) {
+    super(users);
+    const user1 = users[0];
+    const user2 = users[1];
+    if (!user1 || !user2) throw new Error("id0があるかも");
+    const player1 = new Fighter(user1.id, user1.name, { x: 30, y: 50 });
+    const player2 = new Fighter(user2.id, user2.name, { x: 400, y: 300 });
+    this.fighters = [player1, player2];
+  }
+}

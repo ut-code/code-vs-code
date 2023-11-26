@@ -4,6 +4,7 @@ import Tutorial1 from "./component/tutorial/Tutorial1";
 import Tutorial2 from "./component/tutorial/Tutorial2";
 import Tutorial3 from "./component/tutorial/Tutorial3";
 import Tutorial4 from "./component/tutorial/Tutorial4";
+import Tutorial5 from "./component/tutorial/Tutorial5";
 import Play from "./Play";
 import "./style.css";
 import ButtonAppBar from "./component/ButtonAppBar";
@@ -49,6 +50,13 @@ function App() {
           </div>
         </Link>
 
+        <Link to="/tutorial5" className="button">
+          <div>
+            <h2>スピードアップのチュートリアル</h2>
+            <p>スピードアップアイテムの使用方法を学びましょう。</p>
+          </div>
+        </Link>
+
         <Link to="/play" className="button">
           <div>
             <h2>チュートリアルをスキップ</h2>
@@ -63,6 +71,7 @@ function App() {
         <Route path="/tutorial2" element={<Tutorial2 />} />
         <Route path="/tutorial3" element={<Tutorial3 />} />
         <Route path="/tutorial4" element={<Tutorial4 />} />
+        <Route path="/tutorial5" element={<Tutorial5 />} />
       </Routes>
       {!password && isApiPasswordDialogOpen && (
         <ApiPasswordDialog
