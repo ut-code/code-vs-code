@@ -31,3 +31,7 @@ services:
         value: https://code-vs-code.utcode.net
       - key: PORT
         value: 8081
+      - key: DATABASE_URL
+        sync: false
+      - key: API_PASSWORD
+        sync: false
